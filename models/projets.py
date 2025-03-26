@@ -1,3 +1,4 @@
+# c:\wamp\www\mon_compta_app\models\projets.py
 from controllers.db_manager import db
 from datetime import date
 
@@ -9,6 +10,8 @@ class Projet(db.Model):
     date_fin = db.Column(db.Date)    # Use db.Date
     statut = db.Column(db.String(20), default="En attente")
     prix_total = db.Column(db.Integer, nullable=False, default=0)  # prix_total is now not nullable
+    organisation_id = db.Column(db.Integer, db.ForeignKey('organisation.id'), nullable=False)
+    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
 
     transactions = db.relationship('Transaction', backref='projet', lazy=True)
 

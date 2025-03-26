@@ -1,1 +1,5 @@
-# This file can be empty for now.
+# c:\wamp\www\mon_compta_app\models\__init__.py
+from .organisations import Organisation
+from .users import User
+from .projets import Projet
+from .transactions import Transaction

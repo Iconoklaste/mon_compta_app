@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>Ajouter un Utilisateur</h1>
+
+    <form method="POST" id="userForm">
+        <div class="form-group">
+            <label for="nom">Nom</label>
+            <input type="text" class="form-control" id="nom" name="nom" required>
+        </div>
+        <div class="form-group">
+            <label for="prenom">Prénom</label>
+            <input type="text" class="form-control" id="prenom" name="prenom" required>
+        </div>
+        <div class="form-group">
+            <label for="mail">Email</label>
+            <input type="email" class="form-control" id="mail" name="mail" required>
+        </div>
+        <div class="form-group">
+            <label for="telephone">Téléphone</label>
+            <input type="tel" class="form-control" id="telephone" name="telephone">
+        </div>
+        <div class="form-group">
+            <label for="password">Mot de passe</label>
+            <input type="password" class="form-control" id="password" name="password" required>
+        </div>
+        <div class="form-group">
+            <label for="organisation">Organisation</label>
+            <select class="form-control" id="organisation" name="organisation" required>
+                {% for organisation in organisations %}
+                    <option value="{{ organisation.designation }}">{{ organisation.designation }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#addOrganisationModal">
+                Ajouter une nouvelle organisation
+            </button>
+        </div>
+        <button type="submit" class="btn btn-primary">Ajouter</button>
+    </form>
+
+    <!-- Modal for adding a new organization -->
+    <div class="modal fade" id="addOrganisationModal" tabindex="-1" role="dialog" aria-labelledby="addOrganisationModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addOrganisationModalLabel">Ajouter une nouvelle organisation</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="addOrganisationForm">
+                        <div class="form-group">
+                            <label for="newOrganisationDesignation">Nom de l'organisation</label>
+                            <input type="text" class="form-control" id="newOrganisationDesignation" name="newOrganisationDesignation" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="newOrganisationAdresse">Adresse</label>
+                            <input type="text" class="form-control" id="newOrganisationAdresse" name="newOrganisationAdresse">
+                        </div>
+                        <div class="form-group">
+                            <label for="newOrganisationTelephone">Téléphone</label>
+                            <input type="text" class="form-control" id="newOrganisationTelephone" name="newOrganisationTelephone">
+                        </div>
+                        <div class="form-group">
+                            <label for="newOrganisationMailContact">Email de contact</label>
+                            <input type="email" class="form-control" id="newOrganisationMailContact" name="newOrganisationMailContact">
+                        </div>
+                        <div class="form-group">
+                            <label for="newOrganisationLogo">Logo (URL)</label>
+                            <input type="text" class="form-control" id="newOrganisationLogo" name="newOrganisationLogo">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+                    <button type="button" class="btn btn-primary" id="saveOrganisation">Enregistrer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('saveOrganisation').addEventListener('click', function() {
+            const designation = document.getElementById('newOrganisationDesignation').value;
+            const adresse = document.getElementById('newOrganisationAdresse').value;
+            const telephone = document.getElementById('newOrganisationTelephone').value;
+            const mail_contact = document.getElementById('newOrganisationMailContact').value;
+            const logo = document.getElementById('newOrganisationLogo').value;
+
+            if (designation) {
+                fetch('/ajouter_organisation', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ designation: designation, adresse: adresse, telephone: telephone, mail_contact: mail_contact, logo: logo }),
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        const select = document.getElementById('organisation');
+                        const option = document.createElement('option');
+                        option.value = designation;
+                        option.text = designation;
+                        select.add(option);
+                        select.value = designation;
+                        $('#addOrganisationModal').modal('hide');
+                        // Clear the modal fields
+                        document.getElementById('newOrganisationDesignation').value = '';
+                        document.getElementById('newOrganisationAdresse').value = '';
+                        document.getElementById('newOrganisationTelephone').value = '';
+                        document.getElementById('newOrganisationMailContact').value = '';
+                        document.getElementById('newOrganisationLogo').value = '';
+                    } else {
+                        alert('Erreur lors de l\'ajout de l\'organisation.');
+                    }
+                });
+            }
+        });
+    </script>
+{% endblock %}
