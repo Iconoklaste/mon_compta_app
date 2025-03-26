@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>Liste des Projets</h1>
+    <ul class="list-group">
+        {% for projet in projets %}
+            <li class="list-group-item">
+                <a href="{{ url_for('projet_detail', projet_id=projet.id) }}">{{ projet.nom }}</a> - {{ projet.statut }}
+            </li>
+        {% endfor %}
+    </ul>
+{% endblock %}

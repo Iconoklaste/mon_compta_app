@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>Ajouter un Projet</h1>
+    <form method="POST">
+        <div class="form-group">
+            <label for="nom">Nom du Projet</label>
+            <input type="text" class="form-control" id="nom" name="nom" required>
+        </div>
+        <div class="form-group">
+            <label for="client">Client</label>
+            <input type="text" class="form-control" id="client" name="client" required>
+        </div>
+        <div class="form-group">
+            <label for="date_debut">Date de Début</label>
+            <input type="date" class="form-control" id="date_debut" name="date_debut">
+        </div>
+        <div class="form-group">
+            <label for="date_fin">Date de Fin</label>
+            <input type="date" class="form-control" id="date_fin" name="date_fin">
+        </div>
+        <div class="form-group">
+            <label for="prix_total">Prix Total:</label>
+            <input type="number" id="prix_total" name="prix_total" value="0">
+        </div>
+        <div class="form-group">
+            <label for="statut">Statut</label>
+            <select class="form-control" id="statut" name="statut">
+                <option value="En attente">En attente</option>
+                <option value="Terminé">Terminé</option>
+                <option value="En cours">En cours</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Ajouter</button>
+    </form>
+{% endblock %}
