@@ -3,6 +3,7 @@ from flask import Flask, render_template, request, redirect, url_for, send_file,
 from controllers.db_manager import init_db, db
 from controllers.projets_controller import projets_bp  # Import the blueprint
 from models import *  # Import all models
+from models.clients import Client # Import the Client model
 from datetime import date
 import os
 from flask_migrate import Migrate  # Import Migrate
@@ -87,9 +88,12 @@ def projet_detail(projet_id):
 def ajouter_projet():
     user_id = session['user_id']
     user = User.query.get_or_404(user_id)
+    clients = Client.query.all() # Get all clients
+    status_options = ["En attente", "En cours", "Terminé", "Annulé"] # Add this line
     if request.method == 'POST':
         nom = request.form['nom']
-        client = request.form['client']
+        # client = request.form['client'] # Removed this line
+        client_id = request.form['client_id'] # Get the client_id
         date_debut_str = request.form['date_debut']
         date_fin_str = request.form['date_fin']
         statut = request.form['statut']
@@ -98,12 +102,34 @@ def ajouter_projet():
         date_fin = date.fromisoformat(date_fin_str) if date_fin_str else None
         organisation = Organisation.query.first()
 
-        nouveau_projet = Projet(nom=nom, client=client, date_debut=date_debut, date_fin=date_fin, statut=statut, prix_total=prix_total, organisation=organisation, user=user)
+        # Get the client object
+        client = Client.query.get(client_id)
+
+        nouveau_projet = Projet(nom=nom, date_debut=date_debut, date_fin=date_fin, statut=statut, prix_total=prix_total, organisation=organisation, user=user, client_obj=client) # Add client_obj
         db.session.add(nouveau_projet)
         db.session.commit()
         return redirect(url_for('projets'))
 
-    return render_template('ajouter_projet.html')
+    return render_template('ajouter_projet.html', clients=clients, status_options=status_options) # Pass status_options to the template
+
+
+
+@app.route('/ajouter_client', methods=['POST'])
+def ajouter_client():
+    data = request.get_json()
+    nom = data.get('nom')
+    adresse = data.get('adresse')
+    code_postal = data.get('code_postal')
+    ville = data.get('ville')
+    telephone = data.get('telephone')
+    mail = data.get('mail')
+
+    if nom:
+        new_client = Client(nom=nom, adresse=adresse, code_postal=code_postal, ville=ville, telephone=telephone, mail=mail)
+        db.session.add(new_client)
+        db.session.commit()
+        return jsonify({'success': True, 'client_id': new_client.id})
+    return jsonify({'success': False})
 
 @app.route('/ajouter_transaction/<int:projet_id>', methods=['GET', 'POST'])
 @login_required
