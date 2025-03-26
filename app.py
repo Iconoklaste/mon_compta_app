@@ -156,11 +156,13 @@ def ajouter_organisation():
     data = request.get_json()
     designation = data.get('designation')
     adresse = data.get('adresse')
+    code_postal = data.get('code_postal')
+    ville = data.get('ville')
     telephone = data.get('telephone')
     mail_contact = data.get('mail_contact')
     logo = data.get('logo')
     if designation:
-        new_organisation = Organisation(designation=designation, adresse=adresse, telephone=telephone, mail_contact=mail_contact, logo=logo)
+        new_organisation = Organisation(designation=designation, adresse=adresse, code_postal=code_postal, ville=ville, telephone=telephone, mail_contact=mail_contact, logo=logo)
         db.session.add(new_organisation)
         db.session.commit()
         return jsonify({'success': True})
@@ -171,7 +173,7 @@ if __name__ == '__main__':
         # db.create_all() # Remove this line, Flask-Migrate will handle database creation
         # Create a default organization if none exists
         if not Organisation.query.first():
-            default_organisation = Organisation(designation="Default Organisation", adresse="Default Address", telephone="0123456789", mail_contact="default@example.com", logo="default_logo.png")
+            default_organisation = Organisation(designation="Default Organisation", adresse="Default Address", code_postal="00000", ville="Default City", telephone="0123456789", mail_contact="default@example.com", logo="default_logo.png")
             db.session.add(default_organisation)
             db.session.commit()
         pass

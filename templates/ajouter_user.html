@@ -61,6 +61,14 @@
                             <input type="text" class="form-control" id="newOrganisationAdresse" name="newOrganisationAdresse">
                         </div>
                         <div class="form-group">
+                            <label for="newOrganisationCodePostal">Code postal</label>
+                            <input type="text" class="form-control" id="newOrganisationCodePostal" name="newOrganisationCodePostal" pattern="[0-9]{5}" title="Le code postal doit contenir 5 chiffres">
+                        </div>
+                        <div class="form-group">
+                            <label for="newOrganisationVille">Ville</label>
+                            <input type="text" class="form-control" id="newOrganisationVille" name="newOrganisationVille">
+                        </div>
+                        <div class="form-group">
                             <label for="newOrganisationTelephone">Téléphone</label>
                             <input type="text" class="form-control" id="newOrganisationTelephone" name="newOrganisationTelephone">
                         </div>
@@ -86,6 +94,8 @@
         document.getElementById('saveOrganisation').addEventListener('click', function() {
             const designation = document.getElementById('newOrganisationDesignation').value;
             const adresse = document.getElementById('newOrganisationAdresse').value;
+            const code_postal = document.getElementById('newOrganisationCodePostal').value;
+            const ville = document.getElementById('newOrganisationVille').value;
             const telephone = document.getElementById('newOrganisationTelephone').value;
             const mail_contact = document.getElementById('newOrganisationMailContact').value;
             const logo = document.getElementById('newOrganisationLogo').value;
@@ -96,7 +106,7 @@
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({ designation: designation, adresse: adresse, telephone: telephone, mail_contact: mail_contact, logo: logo }),
+                    body: JSON.stringify({ designation: designation, adresse: adresse, code_postal: code_postal, ville: ville, telephone: telephone, mail_contact: mail_contact, logo: logo }),
                 })
                 .then(response => response.json())
                 .then(data => {
@@ -111,6 +121,8 @@
                         // Clear the modal fields
                         document.getElementById('newOrganisationDesignation').value = '';
                         document.getElementById('newOrganisationAdresse').value = '';
+                        document.getElementById('newOrganisationCodePostal').value = '';
+                        document.getElementById('newOrganisationVille').value = '';
                         document.getElementById('newOrganisationTelephone').value = '';
                         document.getElementById('newOrganisationMailContact').value = '';
                         document.getElementById('newOrganisationLogo').value = '';

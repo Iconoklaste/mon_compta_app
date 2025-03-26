@@ -7,11 +7,14 @@ def generate_facturation_pdf(transaction):
     p = canvas.Canvas(buffer, pagesize=letter)
     width, height = letter
 
+    # Retrieve organization information from the transaction's user
+    organisation = transaction.user.organisation
+    
     # En-tête : Nom de l'entreprise et coordonnées
     p.setFont("Helvetica-Bold", 16)
-    p.drawString(50, height - 50, "Votre Entreprise")  # Remplacez par votre nom ou logo
+    p.drawString(50, height - 50, organisation.designation)  # Use organization's designation
     p.setFont("Helvetica", 10)
-    p.drawString(50, height - 70, "Adresse de l'entreprise, Téléphone, Email")
+    p.drawString(50, height - 70, f"{organisation.adresse}, {organisation.code_postal} {organisation.ville}, {organisation.telephone}, {organisation.mail_contact}") # Use organization's details
 
     # Titre de la facture
     p.setFont("Helvetica-Bold", 20)
