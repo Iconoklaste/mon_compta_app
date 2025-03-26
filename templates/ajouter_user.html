@@ -28,7 +28,7 @@
             <label for="organisation">Organisation</label>
             <select class="form-control" id="organisation" name="organisation" required>
                 {% for organisation in organisations %}
-                    <option value="{{ organisation.designation }}">{{ organisation.designation }}</option>
+                    <option value="{{ organisation.designation }}" {% if organisation.designation == user_organisation.designation %}selected{% endif %}>{{ organisation.designation }}</option>
                 {% endfor %}
             </select>
         </div>

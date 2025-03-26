@@ -1,6 +1,8 @@
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from io import BytesIO
+from reportlab.lib.utils import ImageReader
+from flask import url_for
 
 def generate_facturation_pdf(transaction):
     buffer = BytesIO()
@@ -9,12 +11,24 @@ def generate_facturation_pdf(transaction):
 
     # Retrieve organization information from the transaction's user
     organisation = transaction.user.organisation
-    
+
+    # --- Logo ---
+    if organisation.logo:
+        try:
+            # Use ImageReader to handle binary data
+            logo_image = ImageReader(BytesIO(organisation.logo))
+            # Draw the image on the canvas (adjust position and size as needed)
+            p.drawImage(logo_image, 50, height - 150, width=100, height=100, preserveAspectRatio=True)
+        except Exception as e:
+            print(f"Error loading logo: {e}")
+            # Handle the error, e.g., log it or use a default image
+    # --- End Logo ---
+
     # En-tête : Nom de l'entreprise et coordonnées
     p.setFont("Helvetica-Bold", 16)
-    p.drawString(50, height - 50, organisation.designation)  # Use organization's designation
+    p.drawString(170, height - 50, organisation.designation)  # Use organization's designation
     p.setFont("Helvetica", 10)
-    p.drawString(50, height - 70, f"{organisation.adresse}, {organisation.code_postal} {organisation.ville}, {organisation.telephone}, {organisation.mail_contact}") # Use organization's details
+    p.drawString(170, height - 70, f"{organisation.adresse}, {organisation.code_postal} {organisation.ville}, {organisation.telephone}, {organisation.mail_contact}") # Use organization's details
 
     # Titre de la facture
     p.setFont("Helvetica-Bold", 20)

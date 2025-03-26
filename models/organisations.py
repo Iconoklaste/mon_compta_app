@@ -2,6 +2,8 @@
 
 from controllers.db_manager import db
 from werkzeug.security import generate_password_hash, check_password_hash
+from sqlalchemy.orm import validates
+from flask import current_app
 
 class Organisation(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -11,7 +13,8 @@ class Organisation(db.Model):
     ville = db.Column(db.String(100))
     telephone = db.Column(db.String(20))
     mail_contact = db.Column(db.String(100))
-    logo = db.Column(db.String(200))  # Store the path to the logo image
+    logo = db.Column(db.LargeBinary)  # Store the logo image as binary data
+    logo_mimetype = db.Column(db.String(50)) # Store the mimetype of the logo
 
     users = db.relationship('User', backref='organisation', lazy=True)
     projets = db.relationship('Projet', backref='organisation', lazy=True)
@@ -19,3 +22,13 @@ class Organisation(db.Model):
 
     def __repr__(self):
         return f'<Organisation {self.designation}>'
+
+    @validates('logo')
+    def validate_logo(self, key, logo):
+        """
+        Validate the logo size before saving it to the database.
+        """
+        max_size = current_app.config.get('MAX_LOGO_SIZE', 1024 * 1024)  # 1MB default
+        if logo and len(logo) > max_size:
+            raise ValueError(f"Logo size exceeds the maximum allowed size of {max_size} bytes.")
+        return logo

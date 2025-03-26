@@ -1,0 +1,40 @@
+<!-- c:\wamp\www\mon_compta_app\templates\modifier_organisation.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>Modifier l'organisation</h1>
+    <form method="POST" enctype="multipart/form-data">
+        <div>
+            <label for="designation">Désignation:</label>
+            <input type="text" id="designation" name="designation" value="{{ organisation.designation }}" required>
+        </div>
+        <div>
+            <label for="adresse">Adresse:</label>
+            <input type="text" id="adresse" name="adresse" value="{{ organisation.adresse }}">
+        </div>
+        <div>
+            <label for="code_postal">Code Postal:</label>
+            <input type="text" id="code_postal" name="code_postal" value="{{ organisation.code_postal }}">
+        </div>
+        <div>
+            <label for="ville">Ville:</label>
+            <input type="text" id="ville" name="ville" value="{{ organisation.ville }}">
+        </div>
+        <div>
+            <label for="telephone">Téléphone:</label>
+            <input type="text" id="telephone" name="telephone" value="{{ organisation.telephone }}">
+        </div>
+        <div>
+            <label for="mail_contact">Mail de contact:</label>
+            <input type="email" id="mail_contact" name="mail_contact" value="{{ organisation.mail_contact }}">
+        </div>
+        <div>
+            <label for="logo">Logo:</label>
+            <input type="file" id="logo" name="logo" accept="image/*">
+            {% if organisation.logo %}
+                <img src="{{ url_for('get_logo', organisation_id=organisation.id) }}" alt="Logo actuel" style="max-width: 100px; max-height: 100px;">
+            {% endif %}
+        </div>
+        <button type="submit">Modifier</button>
+    </form>
+{% endblock %}

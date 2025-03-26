@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>Modifier mon profil</h1>
+
+    <form method="POST">
+        <div class="form-group">
+            <label for="nom">Nom</label>
+            <input type="text" class="form-control" id="nom" name="nom" value="{{ user.nom }}" required>
+        </div>
+        <div class="form-group">
+            <label for="prenom">Prénom</label>
+            <input type="text" class="form-control" id="prenom" name="prenom" value="{{ user.prenom }}" required>
+        </div>
+        <div class="form-group">
+            <label for="mail">Email</label>
+            <input type="email" class="form-control" id="mail" name="mail" value="{{ user.mail }}" required>
+        </div>
+        <div class="form-group">
+            <label for="telephone">Téléphone</label>
+            <input type="tel" class="form-control" id="telephone" name="telephone" value="{{ user.telephone }}">
+        </div>
+        <div class="form-group">
+            <label for="password">Nouveau mot de passe (laisser vide pour ne pas changer)</label>
+            <input type="password" class="form-control" id="password" name="password">
+        </div>
+        <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
+    </form>
+{% endblock %}

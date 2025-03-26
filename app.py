@@ -1,3 +1,4 @@
+# c:\wamp\www\mon_compta_app\app.py
 from flask import Flask, render_template, request, redirect, url_for, send_file, make_response, jsonify, session, abort
 from controllers.db_manager import init_db, db
 from controllers.projets_controller import projets_bp  # Import the blueprint
@@ -8,11 +9,14 @@ from flask_migrate import Migrate  # Import Migrate
 from controllers.facturation import generate_facturation_pdf # Import the function from facturation.py
 from functools import wraps
 from werkzeug.security import check_password_hash
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(os.path.expanduser("~"), 'compta.db')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'your_secret_key' # Add a secret key
+app.config['MAX_LOGO_SIZE'] = 2 * 1024 * 1024 # 2MB max size for logo
+app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'} # Allowed extensions for logo
 
 init_db(app)
 
@@ -30,6 +34,10 @@ def login_required(f):
             return redirect(url_for('index'))
         return f(*args, **kwargs)
     return decorated_function
+
+def allowed_file(filename):
+    return '.' in filename and \
+           filename.rsplit('.', 1)[1].lower() in app.config['ALLOWED_EXTENSIONS']
 
 @app.route('/')
 def index():
@@ -57,7 +65,9 @@ def logout():
 @app.route('/projets')
 @login_required
 def projets():
-    projets = Projet.query.all()
+    user_id = session['user_id']
+    user = User.query.get_or_404(user_id)
+    projets = Projet.query.filter_by(user_id=user_id).all()
     return render_template('projets.html', projets=projets)
 
 @app.route('/projet/<int:projet_id>')
@@ -75,6 +85,8 @@ def projet_detail(projet_id):
 @app.route('/ajouter_projet', methods=['GET', 'POST'])
 @login_required
 def ajouter_projet():
+    user_id = session['user_id']
+    user = User.query.get_or_404(user_id)
     if request.method == 'POST':
         nom = request.form['nom']
         client = request.form['client']
@@ -85,7 +97,6 @@ def ajouter_projet():
         date_debut = date.fromisoformat(date_debut_str) if date_debut_str else None
         date_fin = date.fromisoformat(date_fin_str) if date_fin_str else None
         organisation = Organisation.query.first()
-        user = User.query.first()
 
         nouveau_projet = Projet(nom=nom, client=client, date_debut=date_debut, date_fin=date_fin, statut=statut, prix_total=prix_total, organisation=organisation, user=user)
         db.session.add(nouveau_projet)
@@ -131,6 +142,7 @@ def generer_facture(transaction_id):
 @app.route('/ajouter_user', methods=['GET', 'POST'])
 def ajouter_user():
     organisations = Organisation.query.all()
+    user_organisation = Organisation.query.first()
     if request.method == 'POST':
         nom = request.form['nom']
         prenom = request.form['prenom']
@@ -149,7 +161,7 @@ def ajouter_user():
         db.session.commit()
         return redirect(url_for('index'))
 
-    return render_template('ajouter_user.html', organisations=organisations)
+    return render_template('ajouter_user.html', organisations=organisations, user_organisation=user_organisation)
 
 @app.route('/ajouter_organisation', methods=['POST'])
 def ajouter_organisation():
@@ -168,12 +180,72 @@ def ajouter_organisation():
         return jsonify({'success': True})
     return jsonify({'success': False})
 
+@app.route('/modifier_profil', methods=['GET', 'POST'])
+@login_required
+def modifier_profil():
+    user_id = session['user_id']
+    user = User.query.get_or_404(user_id)
+
+    if request.method == 'POST':
+        user.nom = request.form['nom']
+        user.prenom = request.form['prenom']
+        user.mail = request.form['mail']
+        user.telephone = request.form['telephone']
+        if request.form['password']:
+            user.set_password(request.form['password'])
+        db.session.commit()
+        return redirect(url_for('index'))
+
+    return render_template('modifier_profil.html', user=user)
+
+@app.route('/modifier_organisation', methods=['GET', 'POST'])
+@login_required
+def modifier_organisation():
+    user_id = session['user_id']
+    user = User.query.get_or_404(user_id)
+    organisation = user.organisation
+
+    if request.method == 'POST':
+        organisation.designation = request.form['designation']
+        organisation.adresse = request.form['adresse']
+        organisation.code_postal = request.form['code_postal']
+        organisation.ville = request.form['ville']
+        organisation.telephone = request.form['telephone']
+        organisation.mail_contact = request.form['mail_contact']
+
+        # Handle logo upload
+        if 'logo' in request.files:
+            file = request.files['logo']
+            if file and file.filename != '' and allowed_file(file.filename):
+                try:
+                    organisation.logo = file.read()
+                    organisation.logo_mimetype = file.mimetype
+                except ValueError as e:
+                    return str(e), 400
+            elif file and file.filename != '':
+                return "File type not allowed", 400
+
+        db.session.commit()
+        return redirect(url_for('index'))
+
+    return render_template('modifier_organisation.html', organisation=organisation)
+
+@app.route('/get_logo/<int:organisation_id>')
+def get_logo(organisation_id):
+    organisation = Organisation.query.get_or_404(organisation_id)
+    if organisation.logo:
+        response = make_response(organisation.logo)
+        response.headers.set('Content-Type', organisation.logo_mimetype)
+        return response
+    else:
+        return "Logo not found", 404
+
 if __name__ == '__main__':
     with app.app_context():
         # db.create_all() # Remove this line, Flask-Migrate will handle database creation
         # Create a default organization if none exists
         if not Organisation.query.first():
-            default_organisation = Organisation(designation="Default Organisation", adresse="Default Address", code_postal="00000", ville="Default City", telephone="0123456789", mail_contact="default@example.com", logo="default_logo.png")
+            default_organisation = Organisation(designation="Default Organisation", adresse="Default Address", code_postal="00000", ville="Default City", telephone="0123456789", mail_contact="default@example.com")
             db.session.add(default_organisation)
             db.session.commit()
         pass
