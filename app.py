@@ -6,9 +6,7 @@ from models.transactions import Transaction
 from datetime import date
 import os
 from flask_migrate import Migrate  # Import Migrate
-from io import BytesIO
-from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
+from controllers.facturation import generate_facturation_pdf # Import the function from facturation.py
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(os.path.expanduser("~"), 'compta.db')
@@ -22,25 +20,7 @@ migrate = Migrate(app, db)  # Initialize Migrate
 # Register the blueprint
 app.register_blueprint(projets_bp)
 
-def generate_pdf(transaction):
-    buffer = BytesIO()
-    p = canvas.Canvas(buffer, pagesize=letter)
-
-    # Add content to the PDF
-    p.drawString(100, 750, "Facture")
-    p.drawString(100, 700, f"Transaction ID: {transaction.id}")
-    p.drawString(100, 680, f"Date: {transaction.date.strftime('%d/%m/%Y')}")
-    p.drawString(100, 660, f"Type: {transaction.type}")
-    p.drawString(100, 640, f"Montant: {transaction.montant}")
-    p.drawString(100, 620, f"Description: {transaction.description}")
-    p.drawString(100, 600, f"Mode de paiement: {transaction.mode_paiement}")
-    # ... add more details as needed ...
-
-    p.showPage()
-    p.save()
-
-    buffer.seek(0)
-    return buffer.getvalue()
+# Removed the generate_pdf function
 
 @app.route('/')
 def index():
@@ -105,12 +85,8 @@ def ajouter_transaction(projet_id):
 @app.route('/generer_facture/<int:transaction_id>')
 def generer_facture(transaction_id):
     transaction = Transaction.query.get_or_404(transaction_id)
-    # You'll need to implement the logic to generate the PDF here.
-    # This might involve using a library like ReportLab or WeasyPrint.
-    # The following is a placeholder example.
-    
     # Example using a function that generates the pdf
-    pdf_data = generate_pdf(transaction)
+    pdf_data = generate_facturation_pdf(transaction)
 
     response = make_response(pdf_data)
     response.headers['Content-Type'] = 'application/pdf'

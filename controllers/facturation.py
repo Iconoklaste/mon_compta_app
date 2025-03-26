@@ -1,13 +1,57 @@
-from fpdf import FPDF
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from io import BytesIO
 
-def generer_facture(projet_nom, transactions):
-    pdf = FPDF()
-    pdf.add_page()
-    pdf.set_font("Arial", size=12)
-    pdf.cell(200, 10, txt=f"Facture pour le projet : {projet_nom}", ln=1, align="C")
+def generate_facturation_pdf(transaction):
+    buffer = BytesIO()
+    p = canvas.Canvas(buffer, pagesize=letter)
+    width, height = letter
 
-    for transaction in transactions:
-        pdf.cell(200, 10, txt=f"{transaction.description} : {transaction.montant} ({transaction.type})", ln=1)
+    # En-tête : Nom de l'entreprise et coordonnées
+    p.setFont("Helvetica-Bold", 16)
+    p.drawString(50, height - 50, "Votre Entreprise")  # Remplacez par votre nom ou logo
+    p.setFont("Helvetica", 10)
+    p.drawString(50, height - 70, "Adresse de l'entreprise, Téléphone, Email")
 
-    pdf.output("facture.pdf")
-    return "facture.pdf"
+    # Titre de la facture
+    p.setFont("Helvetica-Bold", 20)
+    p.drawCentredString(width/2, height - 100, "FACTURE")
+
+    # Ligne horizontale pour séparer l'en-tête du contenu
+    p.setLineWidth(1)
+    p.line(50, height - 110, width - 50, height - 110)
+
+    # Section Détails de la transaction
+    p.setFont("Helvetica-Bold", 12)
+    p.drawString(50, height - 140, "Détails de la transaction:")
+    
+    p.setFont("Helvetica", 10)
+    y = height - 160  # Position initiale pour les détails
+    line_height = 15
+
+    p.drawString(60, y, f"ID de la transaction : {transaction.id}")
+    y -= line_height
+    p.drawString(60, y, f"Date : {transaction.date.strftime('%d/%m/%Y')}")
+    y -= line_height
+    p.drawString(60, y, f"Type : {transaction.type}")
+    y -= line_height
+    p.drawString(60, y, f"Montant : {transaction.montant} €")
+    y -= line_height
+    p.drawString(60, y, f"Description : {transaction.description}")
+    y -= line_height
+    p.drawString(60, y, f"Mode de paiement : {transaction.mode_paiement}")
+
+    # Ajout d'une section optionnelle pour plus d'informations (ex : conditions de paiement)
+    y -= (line_height * 2)
+    p.setFont("Helvetica-Oblique", 9)
+    p.drawString(50, y, "Conditions de paiement : Paiement à 30 jours. Merci de votre confiance.")
+
+    # Pied de page : Message de remerciement
+    p.setFont("Helvetica-Oblique", 10)
+    p.drawCentredString(width/2, 50, "Merci pour votre confiance et à bientôt !")
+
+    p.showPage()
+    p.save()
+
+    buffer.seek(0)
+    return buffer.getvalue()
