@@ -101,7 +101,7 @@
             const logo = document.getElementById('newOrganisationLogo').value;
 
             if (designation) {
-                fetch('/ajouter_organisation', {
+                fetch('/organisations/ajouter_organisation', { // Correct URL
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

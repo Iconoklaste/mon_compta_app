@@ -11,12 +11,13 @@ class User(db.Model):
     telephone = db.Column(db.String(20))
     password_hash = db.Column(db.String(128))
     organisation_id = db.Column(db.Integer, db.ForeignKey('organisation.id'), nullable=False)
+    
 
     projets = db.relationship('Projet', backref='user', lazy=True)
     transactions = db.relationship('Transaction', backref='user', lazy=True)
 
     def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
+        self.password_hash = generate_password_hash(password, method='sha256')
 
     def check_password(self, password):
         return check_password_hash(self.password_hash, password)

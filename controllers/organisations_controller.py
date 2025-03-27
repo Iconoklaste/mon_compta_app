@@ -60,7 +60,7 @@ def modifier_organisation():
 
     return render_template('modifier_organisation.html', organisation=organisation)
 
-@organisations_bp.route('/get_logo/<int:organisation_id>')
+@organisations_bp.route('/get_logo/<int:organisation_id>', endpoint='get_logo')
 def get_logo(organisation_id):
     organisation = Organisation.query.get_or_404(organisation_id)
     if organisation.logo:

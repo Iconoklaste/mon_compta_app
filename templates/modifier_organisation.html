@@ -32,7 +32,7 @@
             <label for="logo">Logo:</label>
             <input type="file" id="logo" name="logo" accept="image/*">
             {% if organisation.logo %}
-                <img src="{{ url_for('get_logo', organisation_id=organisation.id) }}" alt="Logo actuel" style="max-width: 100px; max-height: 100px;">
+            <img src="{{ url_for('organisations.get_logo', organisation_id=organisation.id) }}" alt="Logo actuel" style="max-width: 100px; max-height: 100px;">
             {% endif %}
         </div>
         <button type="submit">Modifier</button>

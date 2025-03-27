@@ -36,7 +36,7 @@
                     </li>
                 {% else %}
                     <li class="nav-item">
-                        <form method="POST" action="{{ url_for('users.login') }}">
+                        <form method="POST" action="{{ url_for('users.index') }}">
                             <input type="email" name="email" placeholder="Email" required>
                             <input type="password" name="password" placeholder="Mot de passe" required>
                             <button type="submit">Se connecter</button>

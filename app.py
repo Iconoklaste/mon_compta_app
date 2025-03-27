@@ -77,27 +77,19 @@ def generer_facture(transaction_id):
 
 
 
-
-
-
-
-
-@app.route('/get_logo/<int:organisation_id>')
-def get_logo(organisation_id):
-    organisation = Organisation.query.get_or_404(organisation_id)
-    if organisation.logo:
-        response = make_response(organisation.logo)
-        response.headers.set('Content-Type', organisation.logo_mimetype)
-        return response
-    else:
-        return "Logo not found", 404
+# Removed the get_logo function
 
 if __name__ == '__main__':
     with app.app_context():
         # db.create_all() # Remove this line, Flask-Migrate will handle database creation
         # Create a default organization if none exists
         if not Organisation.query.first():
-            default_organisation = Organisation(designation="Default Organisation", adresse="Default Address", code_postal="00000", ville="Default City", telephone="0123456789", mail_contact="default@example.com")
+            default_organisation = Organisation(designation="Default Organisation",
+                                                adresse="Default Address", 
+                                                code_postal="00000", 
+                                                ville="Default City", 
+                                                telephone="0123456789", 
+                                                mail_contact="default@example.com")
             db.session.add(default_organisation)
             db.session.commit()
         pass
