@@ -4,7 +4,7 @@
     <h1>Détails du Projet : {{ projet.nom }}</h1>
     <a href="{{ url_for('projets.modifier_projet', projet_id=projet.id) }}" class="btn btn-warning">Modifier le Projet</a>
     <a href="{{ url_for('projets.supprimer_projet', projet_id=projet.id) }}" class="btn btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce projet ? Cette action est irréversible.')">Supprimer le Projet</a>
-    <p>Client : {{ projet.client }}</p>
+    <p>Client : {{ client.nom }}</p>
     <p>Date de Début : {{ projet.date_debut.strftime('%d/%m/%Y') if projet.date_debut else 'Non définie' }}</p>
     <p>Date de Fin : {{ projet.date_fin.strftime('%d/%m/%Y') if projet.date_fin else 'Non définie' }}</p>
     <p>Statut : {{ projet.statut }}</p>

@@ -4,6 +4,9 @@ from reportlab.lib.utils import ImageReader
 from reportlab.lib import colors
 from io import BytesIO
 
+from controllers.db_manager import db
+
+
 def generate_facturation_pdf(transaction):
     buffer = BytesIO()
     p = canvas.Canvas(buffer, pagesize=letter)

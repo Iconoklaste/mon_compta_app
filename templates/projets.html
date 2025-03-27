@@ -5,7 +5,7 @@
     <ul class="list-group">
         {% for projet in projets %}
             <li class="list-group-item">
-                <a href="{{ url_for('projet_detail', projet_id=projet.id) }}">{{ projet.nom }}</a> - {{ projet.statut }}
+                <a href="{{ url_for('projets.projet_detail', projet_id=projet.id) }}">{{ projet.nom }}</a> - {{ projet.statut }}
             </li>
         {% endfor %}
     </ul>
