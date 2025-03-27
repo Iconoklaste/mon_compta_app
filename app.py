@@ -4,7 +4,7 @@ from controllers.users_controller import login_required, users_bp
 from controllers.db_manager import init_db
 from controllers.projets_controller import projets_bp  # Import the blueprint
 from controllers.facturation import generate_facturation_pdf # Import the function from facturation.py
-#from controllers.clients_controller import clients_bp
+from controllers.clients_controller import clients_bp
 #from controllers.organisations_controller import organisations_bp
 #from controllers.transactions_controller import transactions_bp
 from models import *  # Import all models
@@ -32,7 +32,7 @@ migrate = Migrate(app, db)  # Initialize Migrate
 # Register the blueprint
 app.register_blueprint(projets_bp)
 app.register_blueprint(users_bp)
-#app.register_blueprint(clients_bp)
+app.register_blueprint(clients_bp)
 #app.register_blueprint(organisations_bp)
 #app.register_blueprint(transactions_bp)
 
@@ -47,23 +47,7 @@ def allowed_file(filename):
 
 
 
-@app.route('/ajouter_client', methods=['POST'])
-@login_required
-def ajouter_client():
-    data = request.get_json()
-    nom = data.get('nom')
-    adresse = data.get('adresse')
-    code_postal = data.get('code_postal')
-    ville = data.get('ville')
-    telephone = data.get('telephone')
-    mail = data.get('mail')
 
-    if nom:
-        new_client = Client(nom=nom, adresse=adresse, code_postal=code_postal, ville=ville, telephone=telephone, mail=mail)
-        db.session.add(new_client)
-        db.session.commit()
-        return jsonify({'success': True, 'client_id': new_client.id})
-    return jsonify({'success': False})
 
 @app.route('/ajouter_transaction/<int:projet_id>', methods=['GET', 'POST'])
 @login_required

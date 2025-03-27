@@ -1,4 +1,4 @@
-<!-- c:\wamp\www\mon_compta_app\templates\ajouter_projet.html -->
+
 {% extends 'base.html' %}
 
 {% block content %}
@@ -101,7 +101,7 @@
             const mail = document.getElementById('newClientMail').value;
 
             if (nom) {
-                fetch('/ajouter_client', {
+                fetch('/clients/ajouter_client', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',

@@ -29,15 +29,11 @@ def modifier_projet(projet_id):
 
     if form.validate_on_submit():
         projet.nom = form.nom.data
-        client_id = form.client_id.data
+        projet.client_id = form.client_id.data
         projet.date_debut = form.date_debut.data
         projet.date_fin = form.date_fin.data
         projet.statut = form.statut.data
         projet.prix_total = form.prix_total.data
-
-        # Get the client object
-        client = Client.query.get(client_id)
-        projet.client_obj = client
 
         db.session.commit()
         return redirect(url_for('projets.projet_detail', projet_id=projet.id))
