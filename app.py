@@ -84,12 +84,17 @@ if __name__ == '__main__':
         # db.create_all() # Remove this line, Flask-Migrate will handle database creation
         # Create a default organization if none exists
         if not Organisation.query.first():
-            default_organisation = Organisation(designation="Default Organisation",
-                                                adresse="Default Address", 
-                                                code_postal="00000", 
-                                                ville="Default City", 
-                                                telephone="0123456789", 
-                                                mail_contact="default@example.com")
+            default_organisation = Organisation(
+                designation="Default Organisation",
+                adresse="Default Address",
+                code_postal="00000",
+                ville="Default City",
+                telephone="0123456789",
+                mail_contact="default@example.com",
+                siret="12345678901234",  # Example SIRET
+                tva_intracommunautaire=None,  # Optional, can be None
+                forme_juridique="SARL"  # Example legal form
+            )
             db.session.add(default_organisation)
             db.session.commit()
         pass

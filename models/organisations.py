@@ -20,7 +20,7 @@ class Organisation(db.Model):
     exonere_tva = db.Column(db.Boolean, default=False)  # VAT exemption checkbox
     
     # New fields for accounting
-    siret = db.Column(db.String(14), nullable=False, unique=True)  # SIRET is mandatory and unique
+    siret = db.Column(db.String(14), nullable=True, unique=True)  # SIRET is mandatory and unique
     tva_intracommunautaire = db.Column(db.String(20), unique=True)  # Optional VAT number
     forme_juridique = db.Column(db.String(50))  # Optional legal form
 
