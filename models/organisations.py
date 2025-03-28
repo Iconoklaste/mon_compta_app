@@ -18,6 +18,11 @@ class Organisation(db.Model):
     iban = db.Column(db.String(34))  # IBAN format: XX00 1234 5678 9012 3456 7890 (max 34 characters)
     bic = db.Column(db.String(11))  # BIC format: ABCD1234XXX (max 11 characters)
     exonere_tva = db.Column(db.Boolean, default=False)  # VAT exemption checkbox
+    
+    # New fields for accounting
+    siret = db.Column(db.String(14), nullable=False, unique=True)  # SIRET is mandatory and unique
+    tva_intracommunautaire = db.Column(db.String(20), unique=True)  # Optional VAT number
+    forme_juridique = db.Column(db.String(50))  # Optional legal form
 
     users = db.relationship('User', backref='organisation', lazy=True)
     projets = db.relationship('Projet', backref='organisation', lazy=True)
