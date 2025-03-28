@@ -53,7 +53,7 @@ def generate_facturation_pdf(transaction):
     # (à gauche, sous le logo)
     p.setFont("Helvetica-Bold", 11)
     p.drawString(50, height - 150, organisation.designation)
-    
+
     p.setFont("Helvetica", 9)
     p.drawString(
         50,
@@ -78,7 +78,7 @@ def generate_facturation_pdf(transaction):
     client_name = client.nom
     client_tel = client.telephone
     client_address = f"{client.adresse}, {client.code_postal} {client.ville}"
-    
+
     p.drawRightString(width - 50, height - 165, client_name)
     p.drawRightString(width - 50, height - 180, client_tel)
     p.drawRightString(width - 50, height - 195, client_address)
@@ -90,10 +90,10 @@ def generate_facturation_pdf(transaction):
     table_top = height - 230
     left_margin = 50
     right_margin = width - 50
-    col_widths = [ (right_margin - left_margin) * 0.45,  # DESCRIPTION
-                   (right_margin - left_margin) * 0.15,  # PRIX
-                   (right_margin - left_margin) * 0.15,  # QTE
-                   (right_margin - left_margin) * 0.25 ] # TOTAL
+    col_widths = [(right_margin - left_margin) * 0.45,  # DESCRIPTION
+                  (right_margin - left_margin) * 0.15,  # PRIX
+                  (right_margin - left_margin) * 0.15,  # QTE
+                  (right_margin - left_margin) * 0.25]  # TOTAL
 
     # En-têtes du tableau
     p.setFont("Helvetica-Bold", 10)
@@ -150,29 +150,41 @@ def generate_facturation_pdf(transaction):
     # ======================
     # Exemples de calcul
     tva_rate = 0.20  # 20% de TVA, par exemple
-    tva_amount = sous_total * tva_rate
-    total_ttc = sous_total + tva_amount
+    if organisation.exonere_tva:
+        tva_amount = 0
+        total_ttc = sous_total
+    else:
+        tva_amount = sous_total * tva_rate
+        total_ttc = sous_total + tva_amount
 
     p.setFont("Helvetica-Bold", 10)
     p.drawRightString(x_positions[2], current_y, "SOUS-TOTAL :")
     p.drawRightString(x_positions[4] - 5, current_y, f"{sous_total} €")
     current_y -= 15
 
-    p.drawRightString(x_positions[2], current_y, "TVA (20%) :")
-    p.drawRightString(x_positions[4] - 5, current_y, f"{tva_amount:.2f} €")
-    current_y -= 15
+    if not organisation.exonere_tva:
+        p.drawRightString(x_positions[2], current_y, "TVA (20%) :")
+        p.drawRightString(x_positions[4] - 5, current_y, f"{tva_amount:.2f} €")
+        current_y -= 15
 
     p.drawRightString(x_positions[2], current_y, "TOTAL TTC :")
     p.drawRightString(x_positions[4] - 5, current_y, f"{total_ttc:.2f} €")
+    current_y -= 15
+
+    # Mention légale si TVA non applicable
+    if organisation.exonere_tva:
+        p.setFont("Helvetica", 8)
+        p.drawRightString(x_positions[4] - 5, current_y, "TVA non applicable, article 293 B du Code général des impôts (CGI)")
+        current_y -=15
 
     # ======================
     #   PAIEMENT / FOOTER
     # ======================
-    current_y -= 40
+    current_y -= 25
     p.setFont("Helvetica", 9)
     p.drawString(left_margin, current_y, f"Paiement à l'ordre de {organisation.designation}")
     current_y -= 15
-    p.drawString(left_margin, current_y, "IBAN : XX00 1234 5678 9012 3456 7890 | BIC : ABCD1234XXX")
+    p.drawString(left_margin, current_y, f"IBAN : {organisation.iban} | BIC : {organisation.bic}")
     current_y -= 15
     p.drawString(left_margin, current_y, "Paiement sous 30 jours. Des pénalités peuvent s'appliquer en cas de retard.")
 

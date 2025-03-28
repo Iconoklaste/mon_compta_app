@@ -3,6 +3,7 @@ from controllers.db_manager import db
 from controllers.users_controller import login_required
 from models import Organisation, User
 from werkzeug.utils import secure_filename
+from io import BytesIO
 
 organisations_bp = Blueprint('organisations', __name__, url_prefix='/organisations')
 
@@ -11,22 +12,51 @@ def allowed_file(filename):
            filename.rsplit('.', 1)[1].lower() in {'png', 'jpg', 'jpeg', 'gif'}
 
 @organisations_bp.route('/ajouter_organisation', methods=['POST'])
-@login_required
 def ajouter_organisation():
-    data = request.get_json()
-    designation = data.get('designation')
-    adresse = data.get('adresse')
-    code_postal = data.get('code_postal')
-    ville = data.get('ville')
-    telephone = data.get('telephone')
-    mail_contact = data.get('mail_contact')
-    logo = data.get('logo')
-    if designation:
-        new_organisation = Organisation(designation=designation, adresse=adresse, code_postal=code_postal, ville=ville, telephone=telephone, mail_contact=mail_contact, logo=logo)
+    try:
+        designation = request.form.get('designation')
+        adresse = request.form.get('adresse')
+        code_postal = request.form.get('code_postal')
+        ville = request.form.get('ville')
+        telephone = request.form.get('telephone')
+        mail_contact = request.form.get('mail_contact')
+        logo = request.files.get('logo')
+
+        # Validation des données
+        if not all([designation, adresse, code_postal, ville, telephone, mail_contact]):
+            return jsonify({'success': False, 'error': 'Tous les champs sont obligatoires.'}), 400
+
+        logo_data = None
+        logo_mimetype = None
+
+        if logo and logo.filename != '' and allowed_file(logo.filename):
+            try:
+                logo_data = logo.read()
+                logo_mimetype = logo.mimetype
+            except ValueError as e:
+                return str(e), 400
+        elif logo and logo.filename != '':
+            return "File type not allowed", 400
+
+        # Création de l'organisation
+        new_organisation = Organisation(
+            designation=designation,
+            adresse=adresse,
+            code_postal=code_postal,
+            ville=ville,
+            telephone=telephone,
+            mail_contact=mail_contact,
+            logo=logo_data,
+            logo_mimetype=logo_mimetype
+        )
+
         db.session.add(new_organisation)
         db.session.commit()
-        return jsonify({'success': True})
-    return jsonify({'success': False})
+
+        return jsonify({'success': True, 'organisation_id': new_organisation.id}), 201  # 201 Created
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'success': False, 'error': str(e)}), 500
 
 @organisations_bp.route('/modifier_organisation', methods=['GET', 'POST'])
 @login_required
@@ -42,6 +72,9 @@ def modifier_organisation():
         organisation.ville = request.form['ville']
         organisation.telephone = request.form['telephone']
         organisation.mail_contact = request.form['mail_contact']
+        organisation.iban = request.form['iban']
+        organisation.bic = request.form['bic']
+        organisation.exonere_tva = 'exonere_tva' in request.form  # Check if the checkbox is checked
 
         # Handle logo upload
         if 'logo' in request.files:

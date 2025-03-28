@@ -15,6 +15,9 @@ class Organisation(db.Model):
     mail_contact = db.Column(db.String(100))
     logo = db.Column(db.LargeBinary)  # Store the logo image as binary data
     logo_mimetype = db.Column(db.String(50)) # Store the mimetype of the logo
+    iban = db.Column(db.String(34))  # IBAN format: XX00 1234 5678 9012 3456 7890 (max 34 characters)
+    bic = db.Column(db.String(11))  # BIC format: ABCD1234XXX (max 11 characters)
+    exonere_tva = db.Column(db.Boolean, default=False)  # VAT exemption checkbox
 
     users = db.relationship('User', backref='organisation', lazy=True)
     projets = db.relationship('Projet', backref='organisation', lazy=True)

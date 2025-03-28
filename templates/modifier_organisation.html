@@ -29,6 +29,18 @@
             <input type="email" id="mail_contact" name="mail_contact" value="{{ organisation.mail_contact }}">
         </div>
         <div>
+            <label for="iban">IBAN:</label>
+            <input type="text" id="iban" name="iban" value="{{ organisation.iban }}">
+        </div>
+        <div>
+            <label for="bic">BIC:</label>
+            <input type="text" id="bic" name="bic" value="{{ organisation.bic }}">
+        </div>
+        <div>
+            <label for="exonere_tva">Exonéré de TVA:</label>
+            <input type="checkbox" id="exonere_tva" name="exonere_tva" {% if organisation.exonere_tva %}checked{% endif %}>
+        </div>
+        <div>
             <label for="logo">Logo:</label>
             <input type="file" id="logo" name="logo" accept="image/*">
             {% if organisation.logo %}
