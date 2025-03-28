@@ -6,7 +6,7 @@ from controllers.projets_controller import projets_bp  # Import the blueprint
 from controllers.facturation import generate_facturation_pdf # Import the function from facturation.py
 from controllers.clients_controller import clients_bp
 from controllers.organisations_controller import organisations_bp
-#from controllers.transactions_controller import transactions_bp
+from controllers.transactions_controller import transactions_bp
 from models import *  # Import all models
 #from models.clients import Client # Import the Client model
 from models.organisations import Organisation
@@ -34,34 +34,34 @@ app.register_blueprint(projets_bp)
 app.register_blueprint(users_bp)
 app.register_blueprint(clients_bp)
 app.register_blueprint(organisations_bp)
-#app.register_blueprint(transactions_bp)
+app.register_blueprint(transactions_bp)
 
 
 
 
 
 
-@app.route('/ajouter_transaction/<int:projet_id>', methods=['GET', 'POST'])
-@login_required
-def ajouter_transaction(projet_id):
-    projet = Projet.query.get_or_404(projet_id)
-    if request.method == 'POST':
-        date_str = request.form['date']
-        type = request.form['type']
-        montant = float(request.form['montant'])
-        description = request.form['description']
-        mode_paiement = request.form['mode_paiement']
+# @app.route('/ajouter_transaction/<int:projet_id>', methods=['GET', 'POST'])
+# @login_required
+# def ajouter_transaction(projet_id):
+#     projet = Projet.query.get_or_404(projet_id)
+#     if request.method == 'POST':
+#         date_str = request.form['date']
+#         type = request.form['type']
+#         montant = float(request.form['montant'])
+#         description = request.form['description']
+#         mode_paiement = request.form['mode_paiement']
 
-        date_transaction = date.fromisoformat(date_str)
-        organisation = Organisation.query.first()
-        user = User.query.first()
+#         date_transaction = date.fromisoformat(date_str)
+#         organisation = Organisation.query.first()
+#         user = User.query.first()
 
-        nouvelle_transaction = Transaction(date=date_transaction, type=type, montant=montant, description=description, mode_paiement=mode_paiement, projet_id=projet_id, organisation=organisation, user=user)
-        db.session.add(nouvelle_transaction)
-        db.session.commit()
-        return redirect(url_for('projets.projet_detail', projet_id=projet_id))
+#         nouvelle_transaction = Transaction(date=date_transaction, type=type, montant=montant, description=description, mode_paiement=mode_paiement, projet_id=projet_id, organisation=organisation, user=user)
+#         db.session.add(nouvelle_transaction)
+#         db.session.commit()
+#         return redirect(url_for('projets.projet_detail', projet_id=projet_id))
 
-    return render_template('ajouter_transaction.html', projet=projet)
+#     return render_template('ajouter_transaction.html', projet=projet)
 
 @app.route('/generer_facture/<int:transaction_id>')
 @login_required

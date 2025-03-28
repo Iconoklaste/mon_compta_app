@@ -4,7 +4,26 @@
     <h1>Bienvenue sur Mon Application de Comptabilité</h1>
     <p>Gérez vos projets et vos transactions facilement.</p>
     {% if session['user_id'] %}
-        <p>Vous êtes connecté.</p>
+        <div class="row">
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Gestion de Projet</h5>
+                        <p class="card-text">Accédez à la liste de vos projets et gérez-les.</p>
+                        <a href="{{ url_for('projets.projets') }}" class="btn btn-primary">Voir les Projets</a>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Comptabilité</h5>
+                        <p class="card-text">Accédez à la partie comptabilité de l'application.</p>
+                        <a href="#" class="btn btn-secondary disabled">Accéder à la Comptabilité (Bientôt Disponible)</a>
+                    </div>
+                </div>
+            </div>
+        </div>
     {% else %}
         {% if users %}
             <h2>Connexion</h2>
@@ -21,7 +40,6 @@
 
                 <a href="{{ url_for('users.ajouter_user') }}" class="btn btn-secondary">Ajouter un utilisateur</a>
             </form>
-            
         {% else %}
             <div class="alert alert-warning" role="alert">
                 Aucun utilisateur n'a été trouvé. Veuillez créer au moins un utilisateur pour commencer.
@@ -29,6 +47,4 @@
             <a href="{{ url_for('users.ajouter_user') }}" class="btn btn-primary">Ajouter un utilisateur</a>
         {% endif %}
     {% endif %}
-
-    
 {% endblock %}

@@ -25,5 +25,5 @@
         {% endfor %}
     </ul>
 
-    <a href="{{ url_for('ajouter_transaction', projet_id=projet.id) }}" class="btn btn-primary">Ajouter une Transaction</a>
+    <a href="{{ url_for('transactions.ajouter_transaction', projet_id=projet.id) }}" class="btn btn-primary">Ajouter une Transaction</a>
 {% endblock %}
