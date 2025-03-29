@@ -1,0 +1,34 @@
+<!-- c:\wamp\www\mon_compta_app\templates\clients.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>Liste des Clients</h1>
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Nom</th>
+                <th>Adresse</th>
+                <th>Code Postal</th>
+                <th>Ville</th>
+                <th>Téléphone</th>
+                <th>Mail</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for client in clients %}
+            <tr>
+                <td>{{ client.nom }}</td>
+                <td>{{ client.adresse }}</td>
+                <td>{{ client.code_postal }}</td>
+                <td>{{ client.ville }}</td>
+                <td>{{ client.telephone }}</td>
+                <td>{{ client.mail }}</td>
+                <td>
+                    <a href="{{ url_for('clients.client_dashboard', client_id=client.id) }}" class="btn btn-primary">Détail</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

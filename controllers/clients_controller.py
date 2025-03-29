@@ -7,6 +7,12 @@ from models import Client, Projet, Transaction
 
 clients_bp = Blueprint('clients', __name__, url_prefix='/clients')
 
+@clients_bp.route('/')  # Add this route
+@login_required
+def clients():
+    clients = Client.query.all()
+    return render_template('clients.html', clients=clients)
+
 @clients_bp.route('/ajouter_client', methods=['POST'])
 @login_required
 def ajouter_client():
