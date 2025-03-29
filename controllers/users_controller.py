@@ -22,7 +22,7 @@ def index():
         user = User.query.filter_by(mail=email).first()
         if user and user.check_password(password):
             session['user_id'] = user.id
-            return redirect(url_for('projets.projets')) # Redirect to projets page after login
+            return redirect(url_for('users.index')) # Redirect to projets page after login
         else:
             return "Invalid email or password"
     users = User.query.all()
