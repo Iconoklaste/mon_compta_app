@@ -12,6 +12,7 @@ class Transaction(db.Model):
     projet_id = db.Column(db.Integer, db.ForeignKey('projet.id'), nullable=True)
     organisation_id = db.Column(db.Integer, db.ForeignKey('organisation.id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
+    exercice_id = db.Column(db.Integer, db.ForeignKey('exercice_comptable.id'), nullable=True)
 
     def __repr__(self):
         return f'<Transaction {self.description}>'

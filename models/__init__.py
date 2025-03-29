@@ -4,3 +4,4 @@ from .users import User
 from .projets import Projet
 from .transactions import Transaction
 from .clients import Client
+from .exercices import ExerciceComptable
