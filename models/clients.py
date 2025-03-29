@@ -10,7 +10,7 @@ class Client(db.Model):
     telephone = db.Column(db.String(20))
     mail = db.Column(db.String(100))
 
-    projets = db.relationship('Projet', backref='client_obj', lazy=True)
+    projets = db.relationship('Projet', back_populates='client', lazy=True) # change backref to back_populates
 
     def __repr__(self):
         return f'<Client {self.nom}>'

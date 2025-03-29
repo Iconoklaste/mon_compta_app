@@ -1,8 +1,8 @@
 """empty message
 
-Revision ID: a0962444cde3
+Revision ID: 060816fda31f
 Revises: 
-Create Date: 2025-03-28 18:40:23.201450
+Create Date: 2025-03-29 12:35:43.531986
 
 """
 from alembic import op
@@ -10,7 +10,7 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'a0962444cde3'
+revision = '060816fda31f'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -48,6 +48,15 @@ def upgrade():
     sa.UniqueConstraint('siret'),
     sa.UniqueConstraint('tva_intracommunautaire')
     )
+    op.create_table('exercice_comptable',
+    sa.Column('id', sa.Integer(), nullable=False),
+    sa.Column('date_debut', sa.Date(), nullable=False),
+    sa.Column('date_fin', sa.Date(), nullable=False),
+    sa.Column('statut', sa.String(length=20), nullable=True),
+    sa.Column('organisation_id', sa.Integer(), nullable=False),
+    sa.ForeignKeyConstraint(['organisation_id'], ['organisation.id'], ),
+    sa.PrimaryKeyConstraint('id')
+    )
     op.create_table('user',
     sa.Column('id', sa.Integer(), nullable=False),
     sa.Column('nom', sa.String(length=50), nullable=False),
@@ -66,7 +75,7 @@ def upgrade():
     sa.Column('date_debut', sa.Date(), nullable=True),
     sa.Column('date_fin', sa.Date(), nullable=True),
     sa.Column('statut', sa.String(length=20), nullable=True),
-    sa.Column('prix_total', sa.Integer(), nullable=False),
+    sa.Column('prix_total', sa.Float(), nullable=False),
     sa.Column('date_creation', sa.DateTime(), nullable=True),
     sa.Column('organisation_id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=False),
@@ -86,6 +95,8 @@ def upgrade():
     sa.Column('projet_id', sa.Integer(), nullable=True),
     sa.Column('organisation_id', sa.Integer(), nullable=False),
     sa.Column('user_id', sa.Integer(), nullable=True),
+    sa.Column('exercice_id', sa.Integer(), nullable=True),
+    sa.ForeignKeyConstraint(['exercice_id'], ['exercice_comptable.id'], ),
     sa.ForeignKeyConstraint(['organisation_id'], ['organisation.id'], ),
     sa.ForeignKeyConstraint(['projet_id'], ['projet.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
@@ -99,6 +110,7 @@ def downgrade():
     op.drop_table('transaction')
     op.drop_table('projet')
     op.drop_table('user')
+    op.drop_table('exercice_comptable')
     op.drop_table('organisation')
     op.drop_table('client')
     # ### end Alembic commands ###

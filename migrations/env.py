@@ -99,15 +99,12 @@ def run_migrations_online():
     with connectable.connect() as connection:
         context.configure(
             connection=connection,
-            target_metadata=get_metadata(), # Change here
-            compare_type=True,
-            batch_mode=True,
-            batch_prefix='_alembic_batch_'
+            target_metadata=get_metadata(),
+            **conf_args
         )
 
         with context.begin_transaction():
             context.run_migrations()
-
 
 
 if context.is_offline_mode():

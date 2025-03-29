@@ -45,6 +45,52 @@
             <label for="mode_paiement">Mode de Paiement</label>
             <input type="text" class="form-control" id="mode_paiement" name="mode_paiement" value="{{ mode_paiement }}">
         </div>
+
+        {# Fiscal Year Selection #}
+        <div class="form-group">
+            <label for="exercice_id">Exercice Comptable</label>
+            {% if exercices %}
+                <select class="form-control" id="exercice_id" name="exercice_id">
+                    {% for exercice in exercices %}
+                        <option value="{{ exercice.id }}">{{ exercice.date_debut.strftime('%Y') }} - {{ exercice.date_fin.strftime('%Y') }}</option>
+                    {% endfor %}
+                </select>
+            {% else %}
+                <p>Aucun exercice comptable n'existe.</p>
+                <input type="hidden" name="exercice_id" value="new">
+            {% endif %}
+            <button type="button" class="btn btn-secondary mt-2" id="show-new-exercice-form">
+                {% if exercices %}
+                    Créer un nouvel exercice
+                {% else %}
+                    Créer un exercice
+                {% endif %}
+            </button>
+        </div>
+
+        {# New Fiscal Year Fields (Hidden by Default) #}
+        <div id="new-exercice-fields" style="display: none;">
+            <div class="form-group">
+                <label for="date_debut_exercice">Date de début de l'exercice</label>
+                <input type="date" class="form-control" id="date_debut_exercice" name="date_debut_exercice">
+            </div>
+            <div class="form-group">
+                <label for="date_fin_exercice">Date de fin de l'exercice</label>
+                <input type="date" class="form-control" id="date_fin_exercice" name="date_fin_exercice">
+            </div>
+        </div>
+
         <button type="submit" class="btn btn-primary">Ajouter</button>
     </form>
+
+    {# JavaScript to Show/Hide New Fiscal Year Fields #}
+    <script>
+        document.getElementById('show-new-exercice-form').addEventListener('click', function() {
+            var newExerciceFields = document.getElementById('new-exercice-fields');
+            newExerciceFields.style.display = 'block';
+            {% if exercices %}
+                document.getElementById('exercice_id').disabled = true;
+            {% endif %}
+        });
+    </script>
 {% endblock %}

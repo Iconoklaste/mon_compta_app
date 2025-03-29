@@ -15,7 +15,7 @@ def generate_facturation_pdf(transaction):
     # Récupérer les informations de l'organisation
     organisation = transaction.user.organisation
     projet = transaction.projet
-    client = projet.client_obj
+    client = projet.client
 
     # ======================
     #        EN-TÊTE

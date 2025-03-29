@@ -11,7 +11,9 @@ from models import *  # Import all models
 #from models.clients import Client # Import the Client model
 from models.organisations import Organisation
 from models.users import User
-from datetime import date
+from models.exercices import ExerciceComptable
+from models.projets import Projet
+from datetime import date, datetime
 import os
 from flask_migrate import Migrate  # Import Migrate
 
@@ -37,32 +39,6 @@ app.register_blueprint(organisations_bp)
 app.register_blueprint(transactions_bp)
 
 
-
-
-
-
-# @app.route('/ajouter_transaction/<int:projet_id>', methods=['GET', 'POST'])
-# @login_required
-# def ajouter_transaction(projet_id):
-#     projet = Projet.query.get_or_404(projet_id)
-#     if request.method == 'POST':
-#         date_str = request.form['date']
-#         type = request.form['type']
-#         montant = float(request.form['montant'])
-#         description = request.form['description']
-#         mode_paiement = request.form['mode_paiement']
-
-#         date_transaction = date.fromisoformat(date_str)
-#         organisation = Organisation.query.first()
-#         user = User.query.first()
-
-#         nouvelle_transaction = Transaction(date=date_transaction, type=type, montant=montant, description=description, mode_paiement=mode_paiement, projet_id=projet_id, organisation=organisation, user=user)
-#         db.session.add(nouvelle_transaction)
-#         db.session.commit()
-#         return redirect(url_for('projets.projet_detail', projet_id=projet_id))
-
-#     return render_template('ajouter_transaction.html', projet=projet)
-
 @app.route('/generer_facture/<int:transaction_id>')
 @login_required
 def generer_facture(transaction_id):
@@ -76,8 +52,6 @@ def generer_facture(transaction_id):
     return response
 
 
-
-# Removed the get_logo function
 
 if __name__ == '__main__':
     with app.app_context():
@@ -96,6 +70,60 @@ if __name__ == '__main__':
                 forme_juridique="SARL"  # Example legal form
             )
             db.session.add(default_organisation)
+            db.session.commit()
+
+        # Create a default user if none exists
+        if not User.query.first():
+            default_organisation = Organisation.query.first()
+            default_user = User(
+                nom="Jacquemot",
+                prenom="Thomas",
+                mail="tjacquemot@gmail.com",
+                telephone="0123456789",
+                organisation_id=default_organisation.id # change organisation to organisation_id
+            )
+            default_user.set_password("test")  # Set a default password
+            db.session.add(default_user)
+            db.session.commit()
+        
+        # Create an exercice for 2025 if none exists
+        if not ExerciceComptable.query.first():
+            default_organisation = Organisation.query.first()
+            exercice_2025 = ExerciceComptable(
+                date_debut=date(2025, 1, 1),
+                date_fin=date(2025, 12, 31),
+                organisation_id=default_organisation.id
+            )
+            db.session.add(exercice_2025)
+            db.session.commit()
+
+        # Create a default project if none exists
+        if not Projet.query.first():
+            default_organisation = Organisation.query.first()
+            default_user = User.query.first()
+            exercice_2025 = ExerciceComptable.query.first()
+            # Create a default client
+            default_client = Client(
+                nom="Default Client",
+                adresse="Client Address",
+                code_postal="12345",
+                ville="Client City",
+                telephone="9876543210",
+                mail="client@example.com"
+            )
+            db.session.add(default_client)
+            db.session.commit()
+
+            default_projet = Projet(
+                nom="Default Project",
+                date_debut=date(2025, 1, 15),
+                date_fin=date(2025, 6, 30),
+                prix_total=1000.00,
+                organisation_id=default_organisation.id, # change organisation to organisation_id
+                user_id=default_user.id, # change user to user_id
+                client_id=default_client.id
+            )
+            db.session.add(default_projet)
             db.session.commit()
         pass
     app.run(debug=True)
