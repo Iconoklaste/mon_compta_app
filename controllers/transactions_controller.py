@@ -68,7 +68,8 @@ def ajouter_transaction(projet_id):
             projet_id=projet_id,
             organisation=organisation,
             user=user,
-            exercice_id=exercice_id if exercice_id != 'new' else None
+            exercice_id=exercice_id if exercice_id != 'new' else None,
+            reglement="Non réglée"
         )
         
         db.session.add(transaction)
@@ -76,3 +77,19 @@ def ajouter_transaction(projet_id):
         flash('Transaction ajoutée avec succès!', 'success')
         return redirect(url_for('projets.projet_detail', projet_id=projet_id, remaining_to_bill=remaining_to_bill))
     return render_template('ajouter_transaction.html', projet=projet, remaining_to_bill=remaining_to_bill, exercices=exercices)
+
+
+@transactions_bp.route('/modifier_reglement/<int:transaction_id>', methods=['POST'])
+@login_required
+def modifier_reglement(transaction_id):
+    transaction = Transaction.query.get_or_404(transaction_id)
+    new_reglement = request.form.get('reglement')
+
+    if new_reglement in ["Non réglée", "Réglée", "Partiellement réglée"]:
+        transaction.reglement = new_reglement
+        db.session.commit()
+        flash(f"Le statut de règlement de la transaction a été mis à jour à {new_reglement}.", 'success')
+    else:
+        flash("Statut de règlement invalide.", 'danger')
+
+    return redirect(url_for('projets.projet_detail', projet_id=transaction.projet_id))

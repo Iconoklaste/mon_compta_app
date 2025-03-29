@@ -1,3 +1,4 @@
+<!-- c:\wamp\www\mon_compta_app\templates\index.html -->
 {% extends 'base.html' %}
 
 {% block content %}
@@ -19,7 +20,7 @@
                     <div class="card-body">
                         <h5 class="card-title">Comptabilité</h5>
                         <p class="card-text">Accédez à la partie comptabilité de l'application.</p>
-                        <a href="#" class="btn btn-secondary disabled">Accéder à la Comptabilité (Bientôt Disponible)</a>
+                        <a href="{{ url_for('compta.index') }}" class="btn btn-secondary">Accéder à la Comptabilité</a>
                     </div>
                 </div>
             </div>

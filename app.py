@@ -7,6 +7,7 @@ from controllers.facturation import generate_facturation_pdf # Import the functi
 from controllers.clients_controller import clients_bp
 from controllers.organisations_controller import organisations_bp
 from controllers.transactions_controller import transactions_bp
+from controllers.compta_controller import compta_bp
 from models import *  # Import all models
 #from models.clients import Client # Import the Client model
 from models.organisations import Organisation
@@ -37,6 +38,7 @@ app.register_blueprint(users_bp)
 app.register_blueprint(clients_bp)
 app.register_blueprint(organisations_bp)
 app.register_blueprint(transactions_bp)
+app.register_blueprint(compta_bp)
 
 
 @app.route('/generer_facture/<int:transaction_id>')

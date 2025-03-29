@@ -13,6 +13,7 @@ class Transaction(db.Model):
     organisation_id = db.Column(db.Integer, db.ForeignKey('organisation.id'), nullable=False)
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     exercice_id = db.Column(db.Integer, db.ForeignKey('exercice_comptable.id'), nullable=True)
+    reglement = db.Column(db.String(20), default="Non réglée") # Add this line
 
     def __repr__(self):
         return f'<Transaction {self.description}>'
