@@ -3,58 +3,151 @@
 {% block content %}
 <h1>Tableau de Bord - {{ client.nom }}</h1>
 
-<h2>Informations Client</h2>
-<ul>
-    <li>Adresse : {{ client.adresse }}, {{ client.code_postal }} {{ client.ville }}</li>
-    <li>Téléphone : {{ client.telephone }}</li>
-    <li>Email : {{ client.mail }}</li>
-</ul>
+<div class="tabs">
+    <input type="radio" name="tabs" id="tab1" checked="checked">
+    <label for="tab1">Informations Client</label>
+    <div class="tab">
+        <h2>Informations Client</h2>
+        <ul>
+            <li>Adresse : {{ client.adresse }}, {{ client.code_postal }} {{ client.ville }}</li>
+            <li>Téléphone : {{ client.telephone }}</li>
+            <li>Email : {{ client.mail }}</li>
+        </ul>
+    </div>
 
-<h2>Projets</h2>
-<table>
-    <thead>
-        <tr>
-            <th>Nom</th>
-            <th>Statut</th>
-            <th>Montant Total</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for projet in projets %}
-        <tr>
-            <td>{{ projet.nom }}</td>
-            <td>{{ projet.statut }}</td>
-            <td>{{ projet.get_total() }} €</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+    <input type="radio" name="tabs" id="tab2">
+    <label for="tab2">Projets</label>
+    <div class="tab">
+        <h2>Projets</h2>
+        <table class="full-width-table">
+            <thead>
+                <tr>
+                    <th>Nom</th>
+                    <th>Statut</th>
+                    <th class="right-align">Montant Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for projet in projets %}
+                <tr class="clickable-row" onclick="window.location=&quot;{{ url_for('projets.projet_detail', projet_id=projet.id) }}&quot;">
+                    <td>{{ projet.nom }}</td>
+                    <td>{{ projet.statut }}</td>
+                    <td class="right-align">{{ projet.get_total() }} €</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 
-<h2>Transactions</h2>
-<table>
-    <thead>
-        <tr>
-            <th>Date</th>
-            <th>Type</th>
-            <th>Description</th>
-            <th>Montant</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for transaction in transactions %}
-        <tr>
-            <td>{{ transaction.date.strftime('%d/%m/%Y') }}</td>
-            <td>{{ transaction.type }}</td>
-            <td>{{ transaction.description }}</td>
-            <td>{{ transaction.montant }} €</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+    <input type="radio" name="tabs" id="tab3">
+    <label for="tab3">Transactions</label>
+    <div class="tab">
+        <h2>Transactions</h2>
+        <table class="full-width-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th>Description</th>
+                    <th>Projet</th>
+                    <th class="right-align">Montant</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for transaction in transactions %}
+                <tr>
+                    <td>{{ transaction.date.strftime('%d/%m/%Y') }}</td>
+                    <td>{{ transaction.type }}</td>
+                    <td>{{ transaction.description }}</td>
+                    <td>
+                        {% if transaction.projet %}
+                            {{ transaction.projet.nom }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td class="right-align">{{ transaction.montant }} €</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
 
-<h2>Solde</h2>
-<p>Total payé : {{ total_paye }} €</p>
-<p>Total dû : {{ total_du }} €</p>
-<p><strong>Solde net : {{ solde }} €</strong></p>
+    <input type="radio" name="tabs" id="tab4">
+    <label for="tab4">Solde</label>
+    <div class="tab">
+        <h2>Solde</h2>
+        <p>Total payé : {{ total_paye }} €</p>
+        <p>Total dû : {{ total_du }} €</p>
+        <p><strong>Solde net : {{ solde }} €</strong></p>
+    </div>
+</div>
+
+<style>
+    /* Style pour les onglets */
+    .tabs {
+        display: flex;
+        flex-wrap: wrap;
+        width: 100%;
+    }
+
+    .tabs input[type="radio"] {
+        display: none;
+    }
+
+    .tabs label {
+        padding: 10px 20px;
+        background: #eee;
+        border: 1px solid #ccc;
+        cursor: pointer;
+        margin-right: 2px;
+        border-bottom: none;
+    }
+
+    .tabs .tab {
+        width: 100%;
+        padding: 20px;
+        background: #fff;
+        border: 1px solid #ccc;
+        order: 1;
+        display: none;
+        
+    }
+
+    .tabs input[type="radio"]:checked + label {
+        background: #fff;
+        border-bottom: 1px solid #fff;
+    }
+
+    .tabs input[type="radio"]:checked + label + .tab {
+        display: block;
+    }
+
+    /* Style pour les tableaux */
+    .full-width-table {
+        width: 100%;
+        border-collapse: collapse; /* Fusionne les bordures des cellules */
+    }
+
+    .full-width-table th,
+    .full-width-table td {
+        padding: 8px;
+        text-align: left;
+    }
+
+    .right-align {
+        text-align: right;
+    }
+
+    /* Style pour le survol de la souris */
+    .full-width-table tbody tr:hover {
+        background-color: #f0f0f0; /* Gris clair au survol */
+        cursor: pointer;
+    }
+    /* Style pour les lignes cliquables */
+    .clickable-row{
+        cursor: pointer;
+    }
+</style>
 
 {% endblock %}
