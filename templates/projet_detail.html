@@ -1,3 +1,4 @@
+<!-- templates/projet_detail.html -->
 {% extends 'base.html' %}
 
 {% block content %}
@@ -10,19 +11,15 @@
     <p>Statut : {{ projet.statut }}</p>
     <p>Prix total : {{ projet.prix_total }}</p>
     <p>Reste à facturer : {{ remaining_to_bill }}</p>
-
-    <a href="{{ url_for('projet_phases.ajouter_phase', projet_id=projet.id) }}" class="btn btn-primary">Ajouter une phase</a>
-    <a href="{{ url_for('projet_jalons.ajouter_jalon', projet_id=projet.id) }}" class="btn btn-primary">Ajouter un jalon</a>
+    <div class="progress">
+        <div class="progress-bar" role="progressbar" style="width: {{ avancement }}%;" aria-valuenow="{{ avancement }}" aria-valuemin="0" aria-valuemax="100">{{ avancement }}%</div>
+    </div>
 
     <h2>Phases</h2>
     <ul class="list-group">
         {% for phase in projet.phases %}
             <li class="list-group-item">
-                {{ phase.nom }} - {{ phase.statut }}
-                <a href="{{ url_for('projet_phases.modifier_phase', projet_id=projet.id, phase_id=phase.id) }}" class="btn btn-warning btn-sm">Modifier</a>
-                <form action="{{ url_for('projet_phases.supprimer_phase', projet_id=projet.id, phase_id=phase.id) }}" method="POST" style="display: inline;">
-                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette phase ?')">Supprimer</button>
-                </form>
+                {{ phase.nom }} - {{ phase.statut }} - {{ phase.date_debut.strftime('%d/%m/%Y') if phase.date_debut else 'Non définie' }} - {{ phase.date_fin.strftime('%d/%m/%Y') if phase.date_fin else 'Non définie' }}
             </li>
         {% endfor %}
     </ul>
@@ -32,10 +29,6 @@
         {% for jalon in projet.jalons %}
             <li class="list-group-item">
                 {{ jalon.nom }} - {{ jalon.date.strftime('%d/%m/%Y') }}
-                <a href="{{ url_for('projet_jalons.modifier_jalon', projet_id=projet.id, jalon_id=jalon.id) }}" class="btn btn-warning btn-sm">Modifier</a>
-                <form action="{{ url_for('projet_jalons.supprimer_jalon', projet_id=projet.id, jalon_id=jalon.id) }}" method="POST" style="display: inline;">
-                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce jalon ?')">Supprimer</button>
-                </form>
             </li>
         {% endfor %}
     </ul>

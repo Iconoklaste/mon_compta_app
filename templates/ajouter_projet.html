@@ -1,135 +1,196 @@
-
+<!-- templates/ajouter_projet.html -->
 {% extends 'base.html' %}
 
 {% block content %}
-    <h1>Ajouter un Projet</h1>
+    <h1>{{ title }}</h1>
 
-    <form method="POST" id="projetForm">
+    <form method="POST">
+        {{ form.hidden_tag() }}
         <div class="form-group">
-            <label for="nom">Nom du projet</label>
-            <input type="text" class="form-control" id="nom" name="nom" required>
+            {{ form.nom.label }}
+            {{ form.nom(class="form-control") }}
         </div>
         <div class="form-group">
-            <label for="client_id">Client</label>
-            <select class="form-control" id="client_id" name="client_id" required>
-                {% for client in clients %}
-                    <option value="{{ client.id }}">{{ client.nom }}</option>
-                {% endfor %}
-            </select>
+            {{ form.client_id.label }}
+            {{ form.client_id(class="form-control") }}
         </div>
         <div class="form-group">
-            <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#addClientModal">
-                Ajouter un nouveau client
-            </button>
+            {{ form.date_debut.label }}
+            {{ form.date_debut(class="form-control") }}
         </div>
         <div class="form-group">
-            <label for="date_debut">Date de début</label>
-            <input type="date" class="form-control" id="date_debut" name="date_debut">
+            {{ form.date_fin.label }}
+            {{ form.date_fin(class="form-control") }}
         </div>
         <div class="form-group">
-            <label for="date_fin">Date de fin</label>
-            <input type="date" class="form-control" id="date_fin" name="date_fin">
+            {{ form.statut.label }}
+            {{ form.statut(class="form-control") }}
         </div>
         <div class="form-group">
-            <label for="statut">Statut</label>
-            <select class="form-control" id="statut" name="statut">
-                {% for status in status_options %}
-                    <option value="{{ status }}" {% if status == 'En attente' %}selected{% endif %}>{{ status }}</option>
-                {% endfor %}
-            </select>
+            {{ form.prix_total.label }}
+            {{ form.prix_total(class="form-control") }}
         </div>
-        <div class="form-group">
-            <label for="prix_total">Prix total</label>
-            <input type="number" class="form-control" id="prix_total" name="prix_total">
+
+        <h2>Phases</h2>
+        <div id="phases-container">
+            {% for phase_form in form.phases %}
+                <div class="phase-form">
+                    {{ phase_form.hidden_tag() }}
+                    <div class="form-group">
+                        {{ phase_form.nom.label }}
+                        {{ phase_form.nom(class="form-control") }}
+                    </div>
+                    <div class="form-group">
+                        {{ phase_form.date_debut.label }}
+                        {{ phase_form.date_debut(class="form-control") }}
+                    </div>
+                    <div class="form-group">
+                        {{ phase_form.date_fin.label }}
+                        {{ phase_form.date_fin(class="form-control") }}
+                    </div>
+                    <div class="form-group">
+                        {{ phase_form.statut.label }}
+                        {{ phase_form.statut(class="form-control") }}
+                    </div>
+                    <button type="button" class="btn btn-danger btn-sm remove-phase">Supprimer</button>
+                </div>
+            {% endfor %}
         </div>
-        <button type="submit" class="btn btn-primary">Ajouter</button>
+        <button type="button" id="add-phase" class="btn btn-secondary btn-sm">Ajouter une phase</button>
+
+        <h2>Jalons</h2>
+        <div id="jalons-container">
+            {% for jalon_form in form.jalons %}
+                <div class="jalon-form">
+                    {{ jalon_form.hidden_tag() }}
+                    <div class="form-group">
+                        {{ jalon_form.nom.label }}
+                        {{ jalon_form.nom(class="form-control") }}
+                    </div>
+                    <div class="form-group">
+                        {{ jalon_form.date.label }}
+                        {{ jalon_form.date(class="form-control") }}
+                    </div>
+                    <button type="button" class="btn btn-danger btn-sm remove-jalon">Supprimer</button>
+                </div>
+            {% endfor %}
+        </div>
+        <button type="button" id="add-jalon" class="btn btn-secondary btn-sm">Ajouter un jalon</button>
+
+        <button type="submit" class="btn btn-primary">Ajouter le Projet</button>
     </form>
+{% endblock %}
 
-    <!-- Modal for adding a new client -->
-    <div class="modal fade" id="addClientModal" tabindex="-1" role="dialog" aria-labelledby="addClientModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="addClientModalLabel">Ajouter un nouveau client</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form id="addClientForm">
-                        <div class="form-group">
-                            <label for="newClientNom">Nom du client</label>
-                            <input type="text" class="form-control" id="newClientNom" name="newClientNom" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="newClientAdresse">Adresse</label>
-                            <input type="text" class="form-control" id="newClientAdresse" name="newClientAdresse">
-                        </div>
-                        <div class="form-group">
-                            <label for="newClientCodePostal">Code postal</label>
-                            <input type="text" class="form-control" id="newClientCodePostal" name="newClientCodePostal" pattern="[0-9]{5}" title="Le code postal doit contenir 5 chiffres">
-                        </div>
-                        <div class="form-group">
-                            <label for="newClientVille">Ville</label>
-                            <input type="text" class="form-control" id="newClientVille" name="newClientVille">
-                        </div>
-                        <div class="form-group">
-                            <label for="newClientTelephone">Téléphone</label>
-                            <input type="text" class="form-control" id="newClientTelephone" name="newClientTelephone">
-                        </div>
-                        <div class="form-group">
-                            <label for="newClientMail">Email</label>
-                            <input type="email" class="form-control" id="newClientMail" name="newClientMail">
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
-                    <button type="button" class="btn btn-primary" id="saveClient">Enregistrer</button>
-                </div>
-            </div>
-        </div>
-    </div>
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const addPhaseButton = document.getElementById('add-phase');
+        const phasesContainer = document.getElementById('phases-container');
+        const addJalonButton = document.getElementById('add-jalon');
+        const jalonsContainer = document.getElementById('jalons-container');
 
-    <script>
-        document.getElementById('saveClient').addEventListener('click', function() {
-            const nom = document.getElementById('newClientNom').value;
-            const adresse = document.getElementById('newClientAdresse').value;
-            const code_postal = document.getElementById('newClientCodePostal').value;
-            const ville = document.getElementById('newClientVille').value;
-            const telephone = document.getElementById('newClientTelephone').value;
-            const mail = document.getElementById('newClientMail').value;
+        let phaseCount = {{ form.phases|length }};
+        let jalonCount = {{ form.jalons|length }};
 
-            if (nom) {
-                fetch('/clients/ajouter_client', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ nom: nom, adresse: adresse, code_postal: code_postal, ville: ville, telephone: telephone, mail: mail }),
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        const select = document.getElementById('client_id');
-                        const option = document.createElement('option');
-                        option.value = data.client_id;
-                        option.text = nom;
-                        select.add(option);
-                        select.value = data.client_id;
-                        $('#addClientModal').modal('hide');
-                        // Clear the modal fields
-                        document.getElementById('newClientNom').value = '';
-                        document.getElementById('newClientAdresse').value = '';
-                        document.getElementById('newClientCodePostal').value = '';
-                        document.getElementById('newClientVille').value = '';
-                        document.getElementById('newClientTelephone').value = '';
-                        document.getElementById('newClientMail').value = '';
-                    } else {
-                        alert('Erreur lors de l\'ajout du client.');
+        function updatePhaseIndexes() {
+            const phaseForms = phasesContainer.querySelectorAll('.phase-form');
+            phaseForms.forEach((form, index) => {
+                form.querySelectorAll('input, select, label').forEach(element => {
+                    if (element.name && element.name.startsWith('phases-')) {
+                        element.name = element.name.replace(/phases-\d+/, `phases-${index}`);
+                    }
+                    if (element.id && element.id.startsWith('phases-')) {
+                        element.id = element.id.replace(/phases-\d+/, `phases-${index}`);
+                    }
+                    if (element.tagName === 'LABEL' && element.htmlFor && element.htmlFor.startsWith('phases-')) {
+                        element.htmlFor = element.htmlFor.replace(/phases-\d+/, `phases-${index}`);
                     }
                 });
+            });
+        }
+
+        function updateJalonIndexes() {
+            const jalonForms = jalonsContainer.querySelectorAll('.jalon-form');
+            jalonForms.forEach((form, index) => {
+                form.querySelectorAll('input, select, label').forEach(element => {
+                    if (element.name && element.name.startsWith('jalons-')) {
+                        element.name = element.name.replace(/jalons-\d+/, `jalons-${index}`);
+                    }
+                    if (element.id && element.id.startsWith('jalons-')) {
+                        element.id = element.id.replace(/jalons-\d+/, `jalons-${index}`);
+                    }
+                    if (element.tagName === 'LABEL' && element.htmlFor && element.htmlFor.startsWith('jalons-')) {
+                        element.htmlFor = element.htmlFor.replace(/jalons-\d+/, `jalons-${index}`);
+                    }
+                });
+            });
+        }
+
+        addPhaseButton.addEventListener('click', function() {
+            const newPhase = `
+                <div class="phase-form">
+                    <input type="hidden" name="phases-${phaseCount}-csrf_token" value="{{ form.csrf_token._value() }}">
+                    <div class="form-group">
+                        <label for="phases-${phaseCount}-nom">Nom</label>
+                        <input type="text" class="form-control" id="phases-${phaseCount}-nom" name="phases-${phaseCount}-nom">
+                    </div>
+                    <div class="form-group">
+                        <label for="phases-${phaseCount}-date_debut">Date de début</label>
+                        <input type="date" class="form-control" id="phases-${phaseCount}-date_debut" name="phases-${phaseCount}-date_debut">
+                    </div>
+                    <div class="form-group">
+                        <label for="phases-${phaseCount}-date_fin">Date de fin</label>
+                        <input type="date" class="form-control" id="phases-${phaseCount}-date_fin" name="phases-${phaseCount}-date_fin">
+                    </div>
+                    <div class="form-group">
+                        <label for="phases-${phaseCount}-statut">Statut</label>
+                        <select class="form-control" id="phases-${phaseCount}-statut" name="phases-${phaseCount}-statut">
+                            <option value="En cours">En cours</option>
+                            <option value="Terminée">Terminée</option>
+                            <option value="En attente">En attente</option>
+                        </select>
+                    </div>
+                    <button type="button" class="btn btn-danger btn-sm remove-phase">Supprimer</button>
+                </div>
+            `;
+            phasesContainer.insertAdjacentHTML('beforeend', newPhase);
+            phaseCount++;
+            updatePhaseIndexes();
+        });
+
+        addJalonButton.addEventListener('click', function() {
+            const newJalon = `
+                <div class="jalon-form">
+                    <input type="hidden" name="jalons-${jalonCount}-csrf_token" value="{{ form.csrf_token._value() }}">
+                    <div class="form-group">
+                        <label for="jalons-${jalonCount}-nom">Nom</label>
+                        <input type="text" class="form-control" id="jalons-${jalonCount}-nom" name="jalons-${jalonCount}-nom">
+                    </div>
+                    <div class="form-group">
+                        <label for="jalons-${jalonCount}-date">Date</label>
+                        <input type="date" class="form-control" id="jalons-${jalonCount}-date" name="jalons-${jalonCount}-date">
+                    </div>
+                    <button type="button" class="btn btn-danger btn-sm remove-jalon">Supprimer</button>
+                </div>
+            `;
+            jalonsContainer.insertAdjacentHTML('beforeend', newJalon);
+            jalonCount++;
+            updateJalonIndexes();
+        });
+
+        phasesContainer.addEventListener('click', function(event) {
+            if (event.target.classList.contains('remove-phase')) {
+                event.target.closest('.phase-form').remove();
+                updatePhaseIndexes();
             }
         });
-    </script>
+
+        jalonsContainer.addEventListener('click', function(event) {
+            if (event.target.classList.contains('remove-jalon')) {
+                event.target.closest('.jalon-form').remove();
+                updateJalonIndexes();
+            }
+        });
+    });
+</script>
 {% endblock %}
