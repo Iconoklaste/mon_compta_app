@@ -6,160 +6,70 @@
     <a href="{{ url_for('projets.modifier_projet', projet_id=projet.id) }}" class="btn btn-warning">Modifier le Projet</a>
     <a href="{{ url_for('projets.supprimer_projet', projet_id=projet.id) }}" class="btn btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce projet ? Cette action est irréversible.')">Supprimer le Projet</a>
     <p>Client : {{ client.nom }}</p>
-
-    <div class="tabs">
-        <input type="radio" name="tabs" id="tab1" checked="checked">
-        <label for="tab1" class="tab-label">Informations Générales</label>
-        <div class="tab">
-            <h2>Informations Générales</h2>
-            <p><span class="form-label">Date de Début :</span> {{ projet.date_debut.strftime('%d/%m/%Y') if projet.date_debut else 'Non définie' }}</p>
-            <p><span class="form-label">Date de Fin :</span> {{ projet.date_fin.strftime('%d/%m/%Y') if projet.date_fin else 'Non définie' }}</p>
-            <p><span class="form-label">Statut :</span> {{ projet.statut }}</p>
-            <p><span class="form-label">Prix total :</span> {{ projet.prix_total }}</p>
-            <p><span class="form-label">Reste à facturer :</span> {{ remaining_to_bill }}</p>
-            <div class="progress">
-                <div class="progress-bar" role="progressbar" style="width: {{ avancement }}%;" aria-valuenow="{{ avancement }}" aria-valuemin="0" aria-valuemax="100">{{ avancement }}%</div>
-            </div>
-        </div>
-
-        <input type="radio" name="tabs" id="tab2">
-        <label for="tab2" class="tab-label">Phases</label>
-        <div class="tab">
-            <h2>Phases</h2>
-            <ul class="list-group">
-                {% for phase in projet.phases %}
-                    <li class="list-group-item">
-                        {{ phase.nom }} - {{ phase.statut }} - {{ phase.date_debut.strftime('%d/%m/%Y') if phase.date_debut else 'Non définie' }} - {{ phase.date_fin.strftime('%d/%m/%Y') if phase.date_fin else 'Non définie' }}
-                    </li>
-                {% endfor %}
-            </ul>
-        </div>
-
-        <input type="radio" name="tabs" id="tab3">
-        <label for="tab3" class="tab-label">Jalons</label>
-        <div class="tab">
-            <h2>Jalons</h2>
-            <ul class="list-group">
-                {% for jalon in projet.jalons %}
-                    <li class="list-group-item">
-                        {{ jalon.nom }} - {{ jalon.date.strftime('%d/%m/%Y') }}
-                    </li>
-                {% endfor %}
-            </ul>
-        </div>
-
-        <input type="radio" name="tabs" id="tab4">
-        <label for="tab4" class="tab-label">Transactions</label>
-        <div class="tab">
-            <h2>Transactions</h2>
-            <table class="full-width-table">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Type</th>
-                        <th>Montant</th>
-                        <th>Description</th>
-                        <th>Mode de paiement</th>
-                        <th>Statut de règlement</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for transaction in transactions %}
-                    <tr>
-                        <td>{{ transaction.date.strftime('%d/%m/%Y') }}</td>
-                        <td>{{ transaction.type }}</td>
-                        <td class="right-align">{{ transaction.montant }} €</td>
-                        <td>{{ transaction.description }}</td>
-                        <td>{{ transaction.mode_paiement }}</td>
-                        <td>
-                            <form action="{{ url_for('transactions.modifier_reglement', transaction_id=transaction.id) }}" method="POST">
-                                <select name="reglement" onchange="this.form.submit()">
-                                    <option value="Non réglée" {% if transaction.reglement == "Non réglée" %}selected{% endif %}>Non réglée</option>
-                                    <option value="Réglée" {% if transaction.reglement == "Réglée" %}selected{% endif %}>Réglée</option>
-                                    <option value="Partiellement réglée" {% if transaction.reglement == "Partiellement réglée" %}selected{% endif %}>Partiellement réglée</option>
-                                </select>
-                            </form>
-                        </td>
-                        <td>
-                            <a href="{{ url_for('generer_facture', transaction_id=transaction.id) }}" target="_blank">Générer facture</a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-            <a href="{{ url_for('transactions.ajouter_transaction', projet_id=projet.id) }}" class="btn btn-primary">Ajouter une Transaction</a>
-        </div>
+    <p>Date de Début : {{ projet.date_debut.strftime('%d/%m/%Y') if projet.date_debut else 'Non définie' }}</p>
+    <p>Date de Fin : {{ projet.date_fin.strftime('%d/%m/%Y') if projet.date_fin else 'Non définie' }}</p>
+    <p>Statut : {{ projet.statut }}</p>
+    <p>Prix total : {{ projet.prix_total }}</p>
+    <p>Reste à facturer : {{ remaining_to_bill }}</p>
+    <div class="progress">
+        <div class="progress-bar" role="progressbar" style="width: {{ avancement }}%;" aria-valuenow="{{ avancement }}" aria-valuemin="0" aria-valuemax="100">{{ avancement }}%</div>
     </div>
-{% endblock %}
 
-{% block scripts %}
-<style>
-    /* Style pour les onglets (copié de client_dashboard.html) */
-    .tabs {
-        display: flex;
-        flex-wrap: wrap;
-        width: 100%;
-    }
+    <h2>Phases</h2>
+    <ul class="list-group">
+        {% for phase in projet.phases %}
+            <li class="list-group-item">
+                {{ phase.nom }} - {{ phase.statut }} - {{ phase.date_debut.strftime('%d/%m/%Y') if phase.date_debut else 'Non définie' }} - {{ phase.date_fin.strftime('%d/%m/%Y') if phase.date_fin else 'Non définie' }}
+            </li>
+        {% endfor %}
+    </ul>
 
-    .tabs input[type="radio"] {
-        display: none;
-    }
+    <h2>Jalons</h2>
+    <ul class="list-group">
+        {% for jalon in projet.jalons %}
+            <li class="list-group-item">
+                {{ jalon.nom }} - {{ jalon.date.strftime('%d/%m/%Y') }}
+            </li>
+        {% endfor %}
+    </ul>
 
-    .tabs label.tab-label {
-        padding: 10px 20px;
-        background: #eee;
-        border: 1px solid #ccc;
-        cursor: pointer;
-        margin-right: 2px;
-        border-bottom: none;
-    }
+    <h2>Transactions</h2>
+    <table>
+        <thead>
+            <tr>
+                <th>Date</th>
+                <th>Type</th>
+                <th>Montant</th>
+                <th>Description</th>
+                <th>Mode de paiement</th>
+                <th>Statut de règlement</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for transaction in transactions %}
+            <tr>
+                <td>{{ transaction.date.strftime('%d/%m/%Y') }}</td>
+                <td>{{ transaction.type }}</td>
+                <td>{{ transaction.montant }} €</td>
+                <td>{{ transaction.description }}</td>
+                <td>{{ transaction.mode_paiement }}</td>
+                <td>
+                    <form action="{{ url_for('transactions.modifier_reglement', transaction_id=transaction.id) }}" method="POST">
+                        <select name="reglement" onchange="this.form.submit()">
+                            <option value="Non réglée" {% if transaction.reglement == "Non réglée" %}selected{% endif %}>Non réglée</option>
+                            <option value="Réglée" {% if transaction.reglement == "Réglée" %}selected{% endif %}>Réglée</option>
+                            <option value="Partiellement réglée" {% if transaction.reglement == "Partiellement réglée" %}selected{% endif %}>Partiellement réglée</option>
+                        </select>
+                    </form>
+                </td>
+                <td>
+                    <a href="{{ url_for('generer_facture', transaction_id=transaction.id) }}" target="_blank">Générer facture</a>
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 
-    .tabs .tab {
-        width: 100%;
-        padding: 20px;
-        background: #fff;
-        border: 1px solid #ccc;
-        order: 1;
-        display: none;
-    }
-
-    .tabs input[type="radio"]:checked + label.tab-label {
-        background: #fff;
-        border-bottom: 1px solid #fff;
-    }
-
-    .tabs input[type="radio"]:checked + label.tab-label + .tab {
-        display: block;
-    }
-    /* Fin du style pour les onglets */
-    /* Style pour les labels des formulaires */
-    .form-label {
-        display: inline-block;
-        font-weight: bold;
-        color: #333;
-        min-width: 150px;
-    }
-    /* Style pour les tableaux */
-    .full-width-table {
-        width: 100%;
-        border-collapse: collapse; /* Fusionne les bordures des cellules */
-    }
-
-    .full-width-table th,
-    .full-width-table td {
-        padding: 8px;
-        text-align: left;
-        border: 1px solid #ccc; /* Ajout de bordures aux cellules */
-    }
-
-    .right-align {
-        text-align: right;
-    }
-
-    /* Style pour le survol de la souris */
-    .full-width-table tbody tr:hover {
-        background-color: #f0f0f0; /* Gris clair au survol */
-    }
-</style>
+    <a href="{{ url_for('transactions.ajouter_transaction', projet_id=projet.id) }}" class="btn btn-primary">Ajouter une Transaction</a>
 {% endblock %}
