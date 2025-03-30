@@ -2,83 +2,170 @@
 
 {% block content %}
     <h1>Détails du Projet : {{ projet.nom }}</h1>
-    <a href="{{ url_for('projets.modifier_projet', projet_id=projet.id) }}" class="btn btn-warning">Modifier le Projet</a>
-    <form action="{{ url_for('projets.supprimer_projet', projet_id=projet.id) }}" method="POST" style="display: inline;">
-        <button type="submit" class="btn btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce projet ? Cette action est irréversible.')">Supprimer le Projet</button>
-    </form>
-    <p>Client : {{ client.nom }}</p>
-    <p>Date de Début : {{ projet.date_debut.strftime('%d/%m/%Y') if projet.date_debut else 'Non définie' }}</p>
-    <p>Date de Fin : {{ projet.date_fin.strftime('%d/%m/%Y') if projet.date_fin else 'Non définie' }}</p>
-    <p>Statut : {{ projet.statut }}</p>
-    <p>Prix total : {{ projet.prix_total }}</p>
-    <p>Reste à facturer : {{ remaining_to_bill }}</p>
 
-    <a href="{{ url_for('projet_phases.ajouter_phase', projet_id=projet.id) }}" class="btn btn-primary">Ajouter une phase</a>
-    <a href="{{ url_for('projet_jalons.ajouter_jalon', projet_id=projet.id) }}" class="btn btn-primary">Ajouter un jalon</a>
+    <div class="action-buttons">
+        <a href="{{ url_for('projets.modifier_projet', projet_id=projet.id) }}" class="btn btn-warning">Modifier le Projet</a>
+        <form action="{{ url_for('projets.supprimer_projet', projet_id=projet.id) }}" method="POST" style="display: inline;">
+            <button type="submit" class="btn btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce projet ? Cette action est irréversible.')">Supprimer le Projet</button>
+        </form>
+    </div>
 
-    <h2>Phases</h2>
-    <ul class="list-group">
-        {% for phase in projet.phases %}
-            <li class="list-group-item">
-                {{ phase.nom }} - {{ phase.statut }}
-                <a href="{{ url_for('projet_phases.modifier_phase', projet_id=projet.id, phase_id=phase.id) }}" class="btn btn-warning btn-sm">Modifier</a>
-                <form action="{{ url_for('projet_phases.supprimer_phase', projet_id=projet.id, phase_id=phase.id) }}" method="POST" style="display: inline;">
-                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette phase ?')">Supprimer</button>
-                </form>
-            </li>
-        {% endfor %}
-    </ul>
+    <div class="tabs">
+        <input type="radio" name="tabs" id="tab1" checked="checked">
+        <label for="tab1">Informations Générales</label>
+        <div class="tab">
+            <h2>Informations Générales</h2>
+            <p>Client : {{ client.nom }}</p>
+            <p>Date de Début : {{ projet.date_debut.strftime('%d/%m/%Y') if projet.date_debut else 'Non définie' }}</p>
+            <p>Date de Fin : {{ projet.date_fin.strftime('%d/%m/%Y') if projet.date_fin else 'Non définie' }}</p>
+            <p>Statut : {{ projet.statut }}</p>
+            <p>Prix total : {{ projet.prix_total }}</p>
+            <p>Reste à facturer : {{ remaining_to_bill }}</p>
+        </div>
 
-    <h2>Jalons</h2>
-    <ul class="list-group">
-        {% for jalon in projet.jalons %}
-            <li class="list-group-item">
-                {{ jalon.nom }} - {{ jalon.date.strftime('%d/%m/%Y') }}
-                <a href="{{ url_for('projet_jalons.modifier_jalon', projet_id=projet.id, jalon_id=jalon.id) }}" class="btn btn-warning btn-sm">Modifier</a>
-                <form action="{{ url_for('projet_jalons.supprimer_jalon', projet_id=projet.id, jalon_id=jalon.id) }}" method="POST" style="display: inline;">
-                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce jalon ?')">Supprimer</button>
-                </form>
-            </li>
-        {% endfor %}
-    </ul>
+        <input type="radio" name="tabs" id="tab2">
+        <label for="tab2">Phases et Jalons</label>
+        <div class="tab">
+            <div class="action-buttons">
+                <a href="{{ url_for('projet_phases.ajouter_phase', projet_id=projet.id) }}" class="btn btn-primary">Ajouter une phase</a>
+                <a href="{{ url_for('projet_jalons.ajouter_jalon', projet_id=projet.id) }}" class="btn btn-primary">Ajouter un jalon</a>
+            </div>
+            <h2>Phases</h2>
+            <ul class="list-group">
+                {% for phase in projet.phases %}
+                    <li class="list-group-item">
+                        {{ phase.nom }} - {{ phase.statut }}
+                        <a href="{{ url_for('projet_phases.modifier_phase', projet_id=projet.id, phase_id=phase.id) }}" class="btn btn-warning btn-sm">Modifier</a>
+                        <form action="{{ url_for('projet_phases.supprimer_phase', projet_id=projet.id, phase_id=phase.id) }}" method="POST" style="display: inline;">
+                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette phase ?')">Supprimer</button>
+                        </form>
+                    </li>
+                {% endfor %}
+            </ul>
 
-    <h2>Transactions</h2>
-    <table>
-        <thead>
-            <tr>
-                <th>Date</th>
-                <th>Type</th>
-                <th>Montant</th>
-                <th>Description</th>
-                <th>Mode de paiement</th>
-                <th>Statut de règlement</th>
-                <th>Actions</th>
-            </tr>
-        </thead>
-        <tbody>
-            {% for transaction in transactions %}
-            <tr>
-                <td>{{ transaction.date.strftime('%d/%m/%Y') }}</td>
-                <td>{{ transaction.type }}</td>
-                <td>{{ transaction.montant }} €</td>
-                <td>{{ transaction.description }}</td>
-                <td>{{ transaction.mode_paiement }}</td>
-                <td>
-                    <form action="{{ url_for('transactions.modifier_reglement', transaction_id=transaction.id) }}" method="POST">
-                        <select name="reglement" onchange="this.form.submit()">
-                            <option value="Non réglée" {% if transaction.reglement == "Non réglée" %}selected{% endif %}>Non réglée</option>
-                            <option value="Réglée" {% if transaction.reglement == "Réglée" %}selected{% endif %}>Réglée</option>
-                            <option value="Partiellement réglée" {% if transaction.reglement == "Partiellement réglée" %}selected{% endif %}>Partiellement réglée</option>
-                        </select>
-                    </form>
-                </td>
-                <td>
-                    <a href="{{ url_for('generer_facture', transaction_id=transaction.id) }}" target="_blank">Générer facture</a>
-                </td>
-            </tr>
-            {% endfor %}
-        </tbody>
-    </table>
+            <h2>Jalons</h2>
+            <ul class="list-group">
+                {% for jalon in projet.jalons %}
+                    <li class="list-group-item">
+                        {{ jalon.nom }} - {{ jalon.date.strftime('%d/%m/%Y') }}
+                        <a href="{{ url_for('projet_jalons.modifier_jalon', projet_id=projet.id, jalon_id=jalon.id) }}" class="btn btn-warning btn-sm">Modifier</a>
+                        <form action="{{ url_for('projet_jalons.supprimer_jalon', projet_id=projet.id, jalon_id=jalon.id) }}" method="POST" style="display: inline;">
+                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce jalon ?')">Supprimer</button>
+                        </form>
+                    </li>
+                {% endfor %}
+            </ul>
+        </div>
 
-    <a href="{{ url_for('transactions.ajouter_transaction', projet_id=projet.id) }}" class="btn btn-primary">Ajouter une Transaction</a>
+        <input type="radio" name="tabs" id="tab3">
+        <label for="tab3">Transactions</label>
+        <div class="tab">
+            <div class="action-buttons">
+                <a href="{{ url_for('transactions.ajouter_transaction', projet_id=projet.id) }}" class="btn btn-primary">Ajouter une Transaction</a>
+            </div>
+            <h2>Transactions</h2>
+            <table class="full-width-table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th class="right-align">Montant</th>
+                        <th>Description</th>
+                        <th>Mode de paiement</th>
+                        <th>Statut de règlement</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for transaction in transactions %}
+                    <tr>
+                        <td>{{ transaction.date.strftime('%d/%m/%Y') }}</td>
+                        <td>{{ transaction.type }}</td>
+                        <td class="right-align">{{ transaction.montant }} €</td>
+                        <td>{{ transaction.description }}</td>
+                        <td>{{ transaction.mode_paiement }}</td>
+                        <td>
+                            <form action="{{ url_for('transactions.modifier_reglement', transaction_id=transaction.id) }}" method="POST">
+                                <select name="reglement" onchange="this.form.submit()">
+                                    <option value="Non réglée" {% if transaction.reglement == "Non réglée" %}selected{% endif %}>Non réglée</option>
+                                    <option value="Réglée" {% if transaction.reglement == "Réglée" %}selected{% endif %}>Réglée</option>
+                                    <option value="Partiellement réglée" {% if transaction.reglement == "Partiellement réglée" %}selected{% endif %}>Partiellement réglée</option>
+                                </select>
+                            </form>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('generer_facture', transaction_id=transaction.id) }}" target="_blank">Générer facture</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <style>
+        /* Style pour les onglets (copié de client_dashboard.html) */
+        .tabs {
+            display: flex;
+            flex-wrap: wrap;
+            width: 100%;
+        }
+
+        .tabs input[type="radio"] {
+            display: none;
+        }
+
+        .tabs label {
+            padding: 10px 20px;
+            background: #eee;
+            border: 1px solid #ccc;
+            cursor: pointer;
+            margin-right: 2px;
+            border-bottom: none;
+        }
+
+        .tabs .tab {
+            width: 100%;
+            padding: 20px;
+            background: #fff;
+            border: 1px solid #ccc;
+            order: 1;
+            display: none;
+        }
+
+        .tabs input[type="radio"]:checked + label {
+            background: #fff;
+            border-bottom: 1px solid #fff;
+        }
+
+        .tabs input[type="radio"]:checked + label + .tab {
+            display: block;
+        }
+
+        /* Style pour les tableaux (copié de client_dashboard.html) */
+        .full-width-table {
+            width: 100%;
+            border-collapse: collapse; /* Fusionne les bordures des cellules */
+        }
+
+        .full-width-table th,
+        .full-width-table td {
+            padding: 8px;
+            text-align: left;
+        }
+
+        .right-align {
+            text-align: right;
+        }
+
+        /* Style pour le survol de la souris */
+        .full-width-table tbody tr:hover {
+            background-color: #f0f0f0; /* Gris clair au survol */
+            cursor: pointer;
+        }
+        /* Style pour les boutons d'action */
+        .action-buttons{
+            margin-bottom: 10px;
+        }
+    </style>
 {% endblock %}

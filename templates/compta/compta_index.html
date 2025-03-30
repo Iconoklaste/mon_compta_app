@@ -4,8 +4,24 @@
 {% block content %}
     <h1>Comptabilité - Tableau de Bord</h1>
 
-    <!-- Financial Summary -->
+    <!-- Quick Access -->
     <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Accès Rapide</h5>
+                    <a href="{{ url_for('clients.clients') }}" class="btn btn-primary">Clients</a>
+                    <a href="#" class="btn btn-primary">Factures</a>
+                    <a href="#" class="btn btn-primary">Dépenses</a>
+                    <a href="{{ url_for('projets.projets') }}" class="btn btn-primary">Projets</a>
+                    <a href="#" class="btn btn-success">Nouvelle Transaction</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Financial Summary -->
+    <div class="row mt-4">
         <div class="col-md-3">
             <div class="card">
                 <div class="card-body">
@@ -104,21 +120,7 @@
         </div>
     </div>
 
-    <!-- Quick Access -->
-    <div class="row mt-4">
-        <div class="col-md-12">
-            <div class="card">
-                <div class="card-body">
-                    <h5 class="card-title">Accès Rapide</h5>
-                    <a href="{{ url_for('clients.clients') }}" class="btn btn-primary">Clients</a>
-                    <a href="#" class="btn btn-primary">Factures</a>
-                    <a href="#" class="btn btn-primary">Dépenses</a>
-                    <a href="{{ url_for('projets.projets') }}" class="btn btn-primary">Projets</a>
-                    <a href="#" class="btn btn-success">Nouvelle Transaction</a>
-                </div>
-            </div>
-        </div>
-    </div>
+    
 
     <!-- Alerts and Reminders -->
     <div class="row mt-4">
