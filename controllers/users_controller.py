@@ -32,7 +32,7 @@ def index():
                 session['organisation_id'] = organisation.id
                 session['username'] = user.nom
                 flash('Connexion réussie!', 'success')
-                return redirect(url_for('projets.projets'))  # Redirect to projets page after login
+                return redirect(url_for('users.index'))  # Redirect to projets page after login
             else:
                 flash("L'utilisateur n'a pas d'organisation associée.", 'danger')
                 return render_template('index.html')
