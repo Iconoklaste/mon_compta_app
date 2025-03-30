@@ -1,261 +1,76 @@
-<!-- templates/projet_edit.html -->
 {% extends 'base.html' %}
 
 {% block content %}
     <h1>Modifier le Projet : {{ projet.nom }}</h1>
 
     <form method="POST">
-        <div class="tabs">
-            <input type="radio" name="tabs" id="tab1" checked="checked">
-            <label for="tab1" class="tab-label">Informations Générales</label>
-            <div class="tab">
-                <h2>Informations Générales</h2>
-                {{ form.hidden_tag() }}
-                <div class="form-group">
-                    {{ form.nom.label(class="form-label") }}
-                    {{ form.nom(class="form-control") }}
-                    {% if form.nom.errors %}
-                        <ul class="errors">
-                            {% for error in form.nom.errors %}
-                                <li>{{ error }}</li>
-                            {% endfor %}
-                        </ul>
-                    {% endif %}
-                </div>
-                <div class="form-group">
-                    {{ form.client_id.label(class="form-label") }}
-                    {{ form.client_id(class="form-control") }}
-                    {% if form.client_id.errors %}
-                        <ul class="errors">
-                            {% for error in form.client_id.errors %}
-                                <li>{{ error }}</li>
-                            {% endfor %}
-                        </ul>
-                    {% endif %}
-                </div>
-                <div class="form-group">
-                    {{ form.date_debut.label(class="form-label") }}
-                    {{ form.date_debut(class="form-control") }}
-                    {% if form.date_debut.errors %}
-                        <ul class="errors">
-                            {% for error in form.date_debut.errors %}
-                                <li>{{ error }}</li>
-                            {% endfor %}
-                        </ul>
-                    {% endif %}
-                </div>
-                <div class="form-group">
-                    {{ form.date_fin.label(class="form-label") }}
-                    {{ form.date_fin(class="form-control") }}
-                    {% if form.date_fin.errors %}
-                        <ul class="errors">
-                            {% for error in form.date_fin.errors %}
-                                <li>{{ error }}</li>
-                            {% endfor %}
-                        </ul>
-                    {% endif %}
-                </div>
-                <div class="form-group">
-                    {{ form.statut.label(class="form-label") }}
-                    {{ form.statut(class="form-control") }}
-                    {% if form.statut.errors %}
-                        <ul class="errors">
-                            {% for error in form.statut.errors %}
-                                <li>{{ error }}</li>
-                            {% endfor %}
-                        </ul>
-                    {% endif %}
-                </div>
-                <div class="form-group">
-                    {{ form.prix_total.label(class="form-label") }}
-                    {{ form.prix_total(class="form-control") }}
-                    {% if form.prix_total.errors %}
-                        <ul class="errors">
-                            {% for error in form.prix_total.errors %}
-                                <li>{{ error }}</li>
-                            {% endfor %}
-                        </ul>
-                    {% endif %}
-                </div>
-            </div>
-
-            <input type="radio" name="tabs" id="tab2">
-            <label for="tab2" class="tab-label">Phases</label>
-            <div class="tab">
-                <h2>Phases</h2>
-                <div id="phases-container">
-                    {% for phase_form in form.phases %}
-                        <div class="phase-form">
-                            {{ phase_form.hidden_tag() }}
-                            <div class="form-group">
-                                {{ phase_form.nom.label(class="form-label") }}
-                                {{ phase_form.nom(class="form-control") }}
-                            </div>
-                            <div class="form-group">
-                                {{ phase_form.date_debut.label(class="form-label") }}
-                                {{ phase_form.date_debut(class="form-control") }}
-                            </div>
-                            <div class="form-group">
-                                {{ phase_form.date_fin.label(class="form-label") }}
-                                {{ phase_form.date_fin(class="form-control") }}
-                            </div>
-                            <div class="form-group">
-                                {{ phase_form.statut.label(class="form-label") }}
-                                {{ phase_form.statut(class="form-control") }}
-                            </div>
-                            <button type="button" class="btn btn-danger btn-sm remove-phase">Supprimer</button>
-                        </div>
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+            {{ form.nom.label }}
+            {{ form.nom(class="form-control") }}
+            {% if form.nom.errors %}
+                <ul class="errors">
+                    {% for error in form.nom.errors %}
+                        <li>{{ error }}</li>
                     {% endfor %}
-                </div>
-                <button type="button" id="add-phase" class="btn btn-secondary btn-sm">Ajouter une phase</button>
-            </div>
-
-            <input type="radio" name="tabs" id="tab3">
-            <label for="tab3" class="tab-label">Jalons</label>
-            <div class="tab">
-                <h2>Jalons</h2>
-                <div id="jalons-container">
-                    {% for jalon_form in form.jalons %}
-                        <div class="jalon-form">
-                            {{ jalon_form.hidden_tag() }}
-                            <div class="form-group">
-                                {{ jalon_form.nom.label(class="form-label") }}
-                                {{ jalon_form.nom(class="form-control") }}
-                            </div>
-                            <div class="form-group">
-                                {{ jalon_form.date.label(class="form-label") }}
-                                {{ jalon_form.date(class="form-control") }}
-                            </div>
-                            <button type="button" class="btn btn-danger btn-sm remove-jalon">Supprimer</button>
-                        </div>
+                </ul>
+            {% endif %}
+        </div>
+        <div class="form-group">
+            {{ form.client_id.label }}
+            {{ form.client_id(class="form-control") }}
+            {% if form.client_id.errors %}
+                <ul class="errors">
+                    {% for error in form.client_id.errors %}
+                        <li>{{ error }}</li>
                     {% endfor %}
-                </div>
-                <button type="button" id="add-jalon" class="btn btn-secondary btn-sm">Ajouter un jalon</button>
-            </div>
+                </ul>
+            {% endif %}
+        </div>
+        <div class="form-group">
+            {{ form.date_debut.label }}
+            {{ form.date_debut(class="form-control") }}
+            {% if form.date_debut.errors %}
+                <ul class="errors">
+                    {% for error in form.date_debut.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        <div class="form-group">
+            {{ form.date_fin.label }}
+            {{ form.date_fin(class="form-control") }}
+            {% if form.date_fin.errors %}
+                <ul class="errors">
+                    {% for error in form.date_fin.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        <div class="form-group">
+            {{ form.statut.label }}
+            {{ form.statut(class="form-control") }}
+            {% if form.statut.errors %}
+                <ul class="errors">
+                    {% for error in form.statut.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+        <div class="form-group">
+            {{ form.prix_total.label }}
+            {{ form.prix_total(class="form-control") }}
+            {% if form.prix_total.errors %}
+                <ul class="errors">
+                    {% for error in form.prix_total.errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
         </div>
         <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
     </form>
-{% endblock %}
-
-{% block scripts %}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const addPhaseButton = document.getElementById('add-phase');
-        const phasesContainer = document.getElementById('phases-container');
-        const addJalonButton = document.getElementById('add-jalon');
-        const jalonsContainer = document.getElementById('jalons-container');
-
-        let phaseCount = {{ form.phases|length }};
-        let jalonCount = {{ form.jalons|length }};
-
-        addPhaseButton.addEventListener('click', function() {
-            phaseCount++;
-            const newPhase = `
-                <div class="phase-form">
-                    <input type="hidden" name="phases-${phaseCount}-csrf_token" value="{{ form.csrf_token._value() }}">
-                    <div class="form-group">
-                        <label for="phases-${phaseCount}-nom" class="form-label">Nom</label>
-                        <input type="text" class="form-control" id="phases-${phaseCount}-nom" name="phases-${phaseCount}-nom">
-                    </div>
-                    <div class="form-group">
-                        <label for="phases-${phaseCount}-date_debut" class="form-label">Date de début</label>
-                        <input type="date" class="form-control" id="phases-${phaseCount}-date_debut" name="phases-${phaseCount}-date_debut">
-                    </div>
-                    <div class="form-group">
-                        <label for="phases-${phaseCount}-date_fin" class="form-label">Date de fin</label>
-                        <input type="date" class="form-control" id="phases-${phaseCount}-date_fin" name="phases-${phaseCount}-date_fin">
-                    </div>
-                    <div class="form-group">
-                        <label for="phases-${phaseCount}-statut" class="form-label">Statut</label>
-                        <select class="form-control" id="phases-${phaseCount}-statut" name="phases-${phaseCount}-statut">
-                            <option value="En cours">En cours</option>
-                            <option value="Terminée">Terminée</option>
-                            <option value="En attente">En attente</option>
-                        </select>
-                    </div>
-                    <button type="button" class="btn btn-danger btn-sm remove-phase">Supprimer</button>
-                </div>
-            `;
-            phasesContainer.insertAdjacentHTML('beforeend', newPhase);
-        });
-
-        addJalonButton.addEventListener('click', function() {
-            jalonCount++;
-            const newJalon = `
-                <div class="jalon-form">
-                    <input type="hidden" name="jalons-${jalonCount}-csrf_token" value="{{ form.csrf_token._value() }}">
-                    <div class="form-group">
-                        <label for="jalons-${jalonCount}-nom" class="form-label">Nom</label>
-                        <input type="text" class="form-control" id="jalons-${jalonCount}-nom" name="jalons-${jalonCount}-nom">
-                    </div>
-                    <div class="form-group">
-                        <label for="jalons-${jalonCount}-date" class="form-label">Date</label>
-                        <input type="date" class="form-control" id="jalons-${jalonCount}-date" name="jalons-${jalonCount}-date">
-                    </div>
-                    <button type="button" class="btn btn-danger btn-sm remove-jalon">Supprimer</button>
-                </div>
-            `;
-            jalonsContainer.insertAdjacentHTML('beforeend', newJalon);
-        });
-
-        phasesContainer.addEventListener('click', function(event) {
-            if (event.target.classList.contains('remove-phase')) {
-                event.target.closest('.phase-form').remove();
-            }
-        });
-
-        jalonsContainer.addEventListener('click', function(event) {
-            if (event.target.classList.contains('remove-jalon')) {
-                event.target.closest('.jalon-form').remove();
-            }
-        });
-    });
-</script>
-<style>
-    /* Style pour les onglets (copié de client_dashboard.html) */
-    .tabs {
-        display: flex;
-        flex-wrap: wrap;
-        width: 100%;
-    }
-
-    .tabs input[type="radio"] {
-        display: none;
-    }
-
-    .tabs label.tab-label {
-        padding: 10px 20px;
-        background: #eee;
-        border: 1px solid #ccc;
-        cursor: pointer;
-        margin-right: 2px;
-        border-bottom: none;
-    }
-
-    .tabs .tab {
-        width: 100%;
-        padding: 20px;
-        background: #fff;
-        border: 1px solid #ccc;
-        order: 1;
-        display: none;
-    }
-
-    .tabs input[type="radio"]:checked + label.tab-label {
-        background: #fff;
-        border-bottom: 1px solid #fff;
-    }
-
-    .tabs input[type="radio"]:checked + label.tab-label + .tab {
-        display: block;
-    }
-    /* Fin du style pour les onglets */
-    /* Style pour les labels des formulaires */
-    .form-label {
-        display: block;
-        margin-bottom: 0.5rem;
-        font-weight: bold; /* Exemple : Mettre les labels en gras */
-        color: #333; /* Exemple : Changer la couleur du texte */
-    }
-</style>
 {% endblock %}

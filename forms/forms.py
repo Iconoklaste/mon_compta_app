@@ -1,19 +1,9 @@
 # forms/forms.py
 from flask_wtf import FlaskForm
-from wtforms import StringField, DateField, SelectField, BooleanField, SubmitField, IntegerField, FloatField, FieldList, FormField
+from wtforms import StringField, DateField, SelectField, BooleanField, SubmitField, IntegerField, FloatField
 from wtforms.validators import DataRequired
 from models.clients import Client
 from datetime import date
-
-class PhaseForm(FlaskForm):
-    nom = StringField('Nom', validators=[DataRequired()])
-    date_debut = DateField('Date de début', default=date.today)
-    date_fin = DateField('Date de fin', default=date.today)
-    statut = SelectField('Statut', choices=[('En cours', 'En cours'), ('Terminée', 'Terminée'), ('En attente', 'En attente')])
-
-class JalonForm(FlaskForm):
-    nom = StringField('Nom', validators=[DataRequired()])
-    date = DateField('Date', validators=[DataRequired()], default=date.today)
 
 class ProjetForm(FlaskForm):
     nom = StringField('Nom', validators=[DataRequired()])
@@ -22,10 +12,19 @@ class ProjetForm(FlaskForm):
     date_fin = DateField('Date de fin', validators=[DataRequired()])
     statut = SelectField('Statut', choices=[('En attente', 'En attente'), ('En cours', 'En cours'), ('Terminé', 'Terminé'), ('Annulé', 'Annulé')], validators=[DataRequired()])
     prix_total = IntegerField('Prix total', validators=[DataRequired()])
-    phases = FieldList(FormField(PhaseForm))
-    jalons = FieldList(FormField(JalonForm))
-    submit = SubmitField('Enregistrer')
 
     def __init__(self, *args, **kwargs):
         super(ProjetForm, self).__init__(*args, **kwargs)
         self.client_id.choices = [(client.id, client.nom) for client in Client.query.all()]
+
+class PhaseForm(FlaskForm):
+    nom = StringField('Nom', validators=[DataRequired()])
+    date_debut = DateField('Date de début', default=date.today)
+    date_fin = DateField('Date de fin', default=date.today)
+    statut = SelectField('Statut', choices=[('En cours', 'En cours'), ('Terminée', 'Terminée'), ('En attente', 'En attente')])
+    submit = SubmitField('Enregistrer')
+
+class JalonForm(FlaskForm):
+    nom = StringField('Nom', validators=[DataRequired()])
+    date = DateField('Date', validators=[DataRequired()], default=date.today)
+    submit = SubmitField('Enregistrer')
