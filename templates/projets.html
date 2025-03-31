@@ -1,7 +1,10 @@
 {% extends 'base.html' %}
 
+{% block page_title %}
+    MES PROJETS
+{% endblock %}
+
 {% block content %}
-    <h1>Liste des Projets</h1>
     <ul class="list-group">
         {% for projet in projets %}
             <li class="list-group-item">

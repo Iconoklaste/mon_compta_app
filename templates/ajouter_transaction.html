@@ -1,8 +1,11 @@
 {# ajouter_transaction.html #}
 {% extends 'base.html' %}
 
+{% block page_title %}
+<span style="text-transform: uppercase;">{{projet.nom}}</span> | AJOUT D'UNE TRANSATION. 
+{% endblock %}
+
 {% block content %}
-    <h1>Ajouter une Transaction pour le projet : {{ projet.nom }}</h1>
     {# Display flashed messages in the form #}
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}

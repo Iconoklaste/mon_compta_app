@@ -119,6 +119,11 @@ nav ul li {
     z-index: 101;
 }
 
+#navbar-title {
+    font-weight: bold;
+    font-size: 1.25rem;
+  }
+
 /* Tabs Styles */
 .tabs {
     display: flex;

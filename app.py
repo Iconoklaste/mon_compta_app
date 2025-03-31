@@ -10,6 +10,7 @@ from controllers.transactions_controller import transactions_bp
 from controllers.compta_controller import compta_bp
 from controllers.projet_phases import projet_phases_bp
 from controllers.projet_jalons import projet_jalons_bp
+from controllers.whiteboard_controller import whiteboard_bp # Import the whiteboard blueprint
 from models import *  # Import all models
 #from models.clients import Client # Import the Client model
 from models.organisations import Organisation
@@ -47,6 +48,7 @@ app.register_blueprint(transactions_bp)
 app.register_blueprint(compta_bp)
 app.register_blueprint(projet_phases_bp)
 app.register_blueprint(projet_jalons_bp)
+app.register_blueprint(whiteboard_bp) # Register the whiteboard blueprint
 
 
 @app.route('/generer_facture/<int:transaction_id>')
@@ -62,24 +64,24 @@ def generer_facture(transaction_id):
     return response
 
 # Stockage temporaire (à remplacer par une base de données)
-whiteboard_data = {}
+#whiteboard_data = {} #remove this line
 
-@app.route('/whiteboard')
-def whiteboard():
-    return render_template('whiteboard.html')
+#@app.route('/whiteboard') #remove this line
+#def whiteboard(): #remove this line
+#    return render_template('whiteboard.html') #remove this line
 
-@app.route('/save', methods=['POST'])
-def save():
-    data = request.get_json()
-    whiteboard_data['state'] = data
-    return jsonify({'message': 'Whiteboard sauvegardé'})
+#@app.route('/save', methods=['POST']) #remove this line
+#def save(): #remove this line
+#    data = request.get_json() #remove this line
+#    whiteboard_data['state'] = data #remove this line
+#    return jsonify({'message': 'Whiteboard sauvegardé'}) #remove this line
 
-@app.route('/load', methods=['GET'])
-def load():
-    if 'state' in whiteboard_data:
-        return jsonify(whiteboard_data['state'])
-    else:
-        return jsonify({'message': 'Aucune donnée sauvegardée'})
+#@app.route('/load', methods=['GET']) #remove this line
+#def load(): #remove this line
+#    if 'state' in whiteboard_data: #remove this line
+#        return jsonify(whiteboard_data['state']) #remove this line
+#    else: #remove this line
+#        return jsonify({'message': 'Aucune donnée sauvegardée'}) #remove this line
 
 if __name__ == '__main__':
     with app.app_context():

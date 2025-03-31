@@ -10,9 +10,12 @@
 
 {% endblock %}
 
-{% block content %}
-    <h1>Détails du Projet : {{ projet.nom }}</h1>
+{% block page_title %}
+<span style="text-transform: uppercase;">{{projet.nom}} | VUE D'ENSEMBLE.</span>  
+{% endblock %}
 
+{% block content %}
+    
     <div class="action-buttons">
         
 
@@ -142,6 +145,14 @@
                 </tbody>
             </table>
         </div>
+        <input type="radio" name="tabs" id="tab4">
+        <label for="tab4">Tableau Blanc</label>
+        <div class="tab"></div>
+        <script>
+            document.querySelector('label[for="tab4"]').addEventListener('click', function() {
+                window.location.href = "{{ url_for('whiteboard.whiteboard_view', projet_id=projet.id) }}"; 
+            });
+        </script>
     </div>
 
     
