@@ -29,6 +29,10 @@ app.config['SECRET_KEY'] = 'your_secret_key' # Add a secret key
 app.config['MAX_LOGO_SIZE'] = 2 * 1024 * 1024 # 2MB max size for logo
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'} # Allowed extensions for logo
 
+# Configuration du dossier static
+app.static_folder = 'static'
+app.static_url_path = '/static'
+
 init_db(app)
 from controllers.db_manager import db
 
@@ -57,7 +61,25 @@ def generer_facture(transaction_id):
     response.headers['Content-Disposition'] = 'inline; filename=facture_transaction_{}.pdf'.format(transaction_id)
     return response
 
+# Stockage temporaire (à remplacer par une base de données)
+whiteboard_data = {}
 
+@app.route('/whiteboard')
+def whiteboard():
+    return render_template('whiteboard.html')
+
+@app.route('/save', methods=['POST'])
+def save():
+    data = request.get_json()
+    whiteboard_data['state'] = data
+    return jsonify({'message': 'Whiteboard sauvegardé'})
+
+@app.route('/load', methods=['GET'])
+def load():
+    if 'state' in whiteboard_data:
+        return jsonify(whiteboard_data['state'])
+    else:
+        return jsonify({'message': 'Aucune donnée sauvegardée'})
 
 if __name__ == '__main__':
     with app.app_context():

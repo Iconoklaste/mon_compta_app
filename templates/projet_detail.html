@@ -26,6 +26,39 @@
         <input type="radio" name="tabs" id="tab2">
         <label for="tab2">Phases et Jalons</label>
         <div class="tab">
+            <div class="timeline-container">
+                <h2>Timeline du Projet</h2>
+                <div class="timeline">
+                    {% if projet.date_debut and projet.date_fin %}
+                        <div class="timeline-item timeline-start">
+                            <div class="timeline-content">
+                                <p>Début du projet : {{ projet.date_debut.strftime('%d/%m/%Y') }}</p>
+                            </div>
+                        </div>
+                        {% for phase in projet.phases %}
+                            <div class="timeline-item timeline-phase">
+                                <div class="timeline-content">
+                                    <p>Phase : {{ phase.nom }} - {{ phase.statut }}</p>
+                                </div>
+                            </div>
+                        {% endfor %}
+                        {% for jalon in projet.jalons %}
+                            <div class="timeline-item timeline-jalon">
+                                <div class="timeline-content">
+                                    <p>Jalon : {{ jalon.nom }} - {{ jalon.date.strftime('%d/%m/%Y') }}</p>
+                                </div>
+                            </div>
+                        {% endfor %}
+                        <div class="timeline-item timeline-end">
+                            <div class="timeline-content">
+                                <p>Fin du projet : {{ projet.date_fin.strftime('%d/%m/%Y') }}</p>
+                            </div>
+                        </div>
+                    {% else %}
+                        <p>Dates de début et/ou de fin du projet non définies.</p>
+                    {% endif %}
+                </div>
+            </div>
             <div class="action-buttons">
                 <a href="{{ url_for('projet_phases.ajouter_phase', projet_id=projet.id) }}" class="btn btn-primary">Ajouter une phase</a>
                 <a href="{{ url_for('projet_jalons.ajouter_jalon', projet_id=projet.id) }}" class="btn btn-primary">Ajouter un jalon</a>
@@ -166,6 +199,56 @@
         /* Style pour les boutons d'action */
         .action-buttons{
             margin-bottom: 10px;
+        }
+
+        /* Style pour la timeline */
+        .timeline-container {
+            margin-bottom: 20px;
+        }
+
+        .timeline {
+            border-left: 2px solid #ccc;
+            padding-left: 20px;
+            position: relative;
+        }
+
+        .timeline-item {
+            margin-bottom: 15px;
+            position: relative;
+        }
+
+        .timeline-item::before {
+            content: '';
+            position: absolute;
+            left: -10px;
+            top: 5px;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #ccc;
+        }
+
+        .timeline-start::before {
+            background-color: green;
+        }
+
+        .timeline-end::before {
+            background-color: red;
+        }
+
+        .timeline-phase::before {
+            background-color: blue;
+        }
+
+        .timeline-jalon::before {
+            background-color: orange;
+        }
+
+        .timeline-content {
+            background-color: #f0f0f0;
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
         }
     </style>
 {% endblock %}

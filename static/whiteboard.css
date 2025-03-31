@@ -1,0 +1,27 @@
+body {
+    margin: 0;
+    overflow: hidden; /* Empêche les barres de défilement */
+}
+#toolbar {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 100; /* Assure que la barre d'outils est au-dessus du canvas */
+    background-color: #eee;
+    padding: 10px;
+    border-radius: 5px;
+}
+#canvas {
+    width: 100vw;
+    height: 100vh;
+    cursor: grab;
+}
+#zoom-indicator {
+    position: fixed;
+    bottom: 10px;
+    left: 10px;
+    z-index: 100;
+    background-color: #eee;
+    padding: 5px;
+    border-radius: 5px;
+}
