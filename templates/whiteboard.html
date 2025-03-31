@@ -13,11 +13,15 @@
         <button id="add-text">Ajouter du texte</button>
         <button id="zoom-in">Zoom In</button>
         <button id="zoom-out">Zoom Out</button>
-        <button id="save">Sauvegarder</button>
+        <button id="saveButton">Sauvegarder</button>
         <button id="delete">Supprimer</button>
     </div>
     <canvas id="canvas"></canvas>
     <div id="zoom-indicator">Zoom: 100%</div>
+
+    <script>
+        window.projetId = {{ projet_id }}; // Store projetId in a global variable
+    </script>
 
     <script src="{{ url_for('static', filename='js/whiteboard.js') }}"></script>
 </body>

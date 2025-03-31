@@ -63,25 +63,6 @@ def generer_facture(transaction_id):
     response.headers['Content-Disposition'] = 'inline; filename=facture_transaction_{}.pdf'.format(transaction_id)
     return response
 
-# Stockage temporaire (à remplacer par une base de données)
-#whiteboard_data = {} #remove this line
-
-#@app.route('/whiteboard') #remove this line
-#def whiteboard(): #remove this line
-#    return render_template('whiteboard.html') #remove this line
-
-#@app.route('/save', methods=['POST']) #remove this line
-#def save(): #remove this line
-#    data = request.get_json() #remove this line
-#    whiteboard_data['state'] = data #remove this line
-#    return jsonify({'message': 'Whiteboard sauvegardé'}) #remove this line
-
-#@app.route('/load', methods=['GET']) #remove this line
-#def load(): #remove this line
-#    if 'state' in whiteboard_data: #remove this line
-#        return jsonify(whiteboard_data['state']) #remove this line
-#    else: #remove this line
-#        return jsonify({'message': 'Aucune donnée sauvegardée'}) #remove this line
 
 if __name__ == '__main__':
     with app.app_context():

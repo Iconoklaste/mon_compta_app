@@ -115,18 +115,23 @@
         });
 
         // Sauvegarder
-        document.getElementById('save').addEventListener('click', () => {
-            const json = canvas.toJSON();
-            fetch('/save', {
+        document.getElementById('saveButton').addEventListener('click', () => { // Line 118
+            const state = canvas.toJSON();
+            fetch(`/save_whiteboard/${window.projetId}`, { // Line 120: Use the global variable
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(json)
+                body: JSON.stringify(state)
             })
             .then(response => response.json())
             .then(data => {
-                console.log('Sauvegarde réussie:', data);
+                console.log('Success:', data);
+                alert('Whiteboard sauvegardé !');
+            })
+            .catch((error) => {
+                console.error('Error:', error);
+                alert('Erreur lors de la sauvegarde du whiteboard.');
             });
         });
 
@@ -136,10 +141,20 @@
         }
 
         // Exemple de chargement (à adapter)
-        fetch('/load')
+        fetch(`/load/${projetId}`)
             .then(response => response.json())
             .then(data => {
-                loadCanvas(data);
+                if (data.message) {
+                    console.log(data.message);
+                    if (initialData) {
+                        loadCanvas(initialData);
+                    }
+                } else {
+                    loadCanvas(data);
+                }
+            })
+            .catch((error) => {
+                console.error('Error:', error);
             });
 
         // Supprimer un objet

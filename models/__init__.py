@@ -7,3 +7,5 @@ from .clients import Client
 from .exercices import ExerciceComptable
 from .phases import Phase
 from .jalons import Jalon
+from .whiteboard import Whiteboard
+    

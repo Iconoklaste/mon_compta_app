@@ -7,8 +7,8 @@ class Jalon(db.Model):
     nom = db.Column(db.String(255), nullable=False)
     date = db.Column(db.Date, nullable=False)
     atteint = db.Column(db.Boolean, default=False)
-    projet_id = db.Column(db.Integer, db.ForeignKey('projet.id'), nullable=False)
-    projet = db.relationship('Projet', backref=db.backref('jalons', lazy=True))
+    projet_id = db.Column(db.Integer, db.ForeignKey('projet.id', ondelete="CASCADE"), nullable=False)
+    projet = db.relationship('Projet', back_populates='jalons', lazy='select') # Add back_populates
 
     def __repr__(self):
         return f"<Jalon {self.nom}>"
