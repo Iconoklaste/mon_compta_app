@@ -1,11 +1,108 @@
+/* General Styles */
 body {
     font-family: sans-serif;
     display: flex;
     flex-direction: column;
     min-height: 100vh;
-    margin: 0; /* Merged from base.html, overrides the previous margin: 20px */
+    margin: 0;
 }
 
+.app-container {
+    display: flex;
+    flex-grow: 1;
+}
+
+/* Sidebar and Main Content Layout */
+.sidebar {
+    width: 250px;
+    background-color: #f8f9fa;
+    border-right: 1px solid #dee2e6;
+    flex-shrink: 0;
+    overflow-y: auto; /* Keep overflow on sidebar for its content */
+    display: flex;
+    flex-direction: column;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+}
+
+.main-content {
+    flex-grow: 1;
+    display: flex;
+    flex-direction: column;
+}
+
+.content {
+    flex-grow: 1;
+    padding: 20px;
+    overflow-y: auto; /* Permet le défilement */
+    max-height: calc(100vh - 5vh); /* Ajuste en fonction de la hauteur de ta navbar */
+}
+
+.container {
+    overflow-y: auto;
+    height: 100%;
+}
+
+
+/* Sidebar Content */
+.sidebar ul {
+    list-style: none;
+    padding: 0;
+}
+
+.sidebar li {
+    margin-bottom: 10px;
+}
+
+.sidebar a {
+    display: block;
+    padding: 8px 15px;
+    text-decoration: none;
+    color: #333;
+    border-radius: 5px;
+}
+
+.sidebar a:hover {
+    background-color: #e9ecef;
+}
+
+.sidebar-icon {
+    margin-right: 10px;
+}
+
+.sidebar-brand {
+    height: 5vh;
+    padding: 15px;
+    text-align: center;
+    font-weight: bold;
+    border-bottom: 1px solid #dee2e6;
+    display: block;
+}
+
+#sidebar-content {
+    flex-grow: 1;
+    overflow-y: auto; /* Add scrollbar if content overflows */
+}
+
+#sidebar-content ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+#sidebar-content li a {
+    display: block;
+    padding: 10px 20px;
+    text-decoration: none;
+    color: #333;
+}
+
+#sidebar-content li a:hover {
+    background-color: #e9ecef;
+}
+
+/* Navigation Bar Styles */
 nav ul {
     list-style: none;
     padding: 0;
@@ -16,7 +113,13 @@ nav ul li {
     margin-right: 20px;
 }
 
-/* Style pour les onglets (copié de client_dashboard.html) */
+.navbar {
+    width: 100%;
+    height: 5vh;
+    z-index: 101;
+}
+
+/* Tabs Styles */
 .tabs {
     display: flex;
     flex-wrap: wrap;
@@ -54,10 +157,10 @@ nav ul li {
     display: block;
 }
 
-/* Style pour les tableaux (copié de client_dashboard.html) */
+/* Table Styles */
 .full-width-table {
     width: 100%;
-    border-collapse: collapse; /* Fusionne les bordures des cellules */
+    border-collapse: collapse;
 }
 
 .full-width-table th,
@@ -70,17 +173,17 @@ nav ul li {
     text-align: right;
 }
 
-/* Style pour le survol de la souris */
 .full-width-table tbody tr:hover {
-    background-color: #f0f0f0; /* Gris clair au survol */
+    background-color: #f0f0f0;
     cursor: pointer;
 }
-/* Style pour les boutons d'action */
-.action-buttons{
+
+/* Action Buttons */
+.action-buttons {
     margin-bottom: 10px;
 }
 
-/* Style pour la timeline */
+/* Timeline Styles */
 .timeline-container {
     margin-bottom: 20px;
 }
@@ -130,59 +233,15 @@ nav ul li {
     border: 1px solid #ccc;
 }
 
-/* Styles moved from base.html */
-.navbar {
-    width: 100%;
-    position: fixed;
-    top: 0;
-    z-index: 101;
-}
-
-.main-content {
-    display: flex;
-    flex-grow: 1;
-    margin-top: 56px;
-}
-
-.sidebar {
-    width: 250px;
-    background-color: #f8f9fa;
-    border-right: 1px solid #dee2e6;
-    padding: 20px;
-    flex-shrink: 0;
-    left: 0;
-    z-index: 100;
-    height: calc(100vh - 56px);
-    overflow-y: auto;
-}
-
-
-.content {
-    flex-grow: 1;
-    padding: 20px;
-}
-
-
-.sidebar ul {
-    list-style: none;
-    padding: 0;
-}
-
-.sidebar li {
-    margin-bottom: 10px;
-}
-
-.sidebar a {
-    display: block;
-    padding: 8px 15px;
-    text-decoration: none;
-    color: #333;
-    border-radius: 5px;
-}
-
-.sidebar a:hover {
-    background-color: #e9ecef;
-}
-.sidebar-icon {
-    margin-right: 10px;
+/* Responsive adjustments (optional) */
+@media (max-width: 768px) {
+    .sidebar {
+        width: 100%;
+        height: auto;
+        position: relative;
+        top: auto;
+    }
+    .app-container{
+        flex-direction: column;
+    }
 }

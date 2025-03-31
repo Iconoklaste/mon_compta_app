@@ -5,70 +5,67 @@
     <title>LOOVA – Logiciel Optimisé pour l’Organisation et la Visibilité des Activités</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='whiteboard.css') }}">
 
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </head>
 <body>
-    <nav class="navbar navbar-expand-lg navbar-light bg-light">
-        <a class="navbar-brand" href="{{ url_for('users.index') }}">LOOVA</a>
-        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarNav">
-            <ul class="navbar-nav ml-auto">
-                {% if session['user_id'] %}
-                    <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                            Mon Compte
-                        </a>
-                        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
-                            <a class="dropdown-item" href="{{ url_for('users.modifier_profil') }}">Modifier mon profil</a>
-                            <a class="dropdown-item" href="{{ url_for('organisations.modifier_organisation') }}">Modifier mon organisation</a>
-                            <div class="dropdown-divider"></div>
-                            <a class="dropdown-item" href="{{ url_for('users.logout') }}">Déconnexion</a>
-                        </div>
-                    </li>
-                {% else %}
-                    <li class="nav-item">
-                        <form method="POST" action="{{ url_for('users.index') }}">
-                            <input type="email" name="email" placeholder="Email" required>
-                            <input type="password" name="password" placeholder="Mot de passe" required>
-                            <button type="submit">Se connecter</button>
-                        </form>
-                    </li>
-                {% endif %}
-            </ul>
-        </div>
-    </nav>
-
-    <div class="main-content">
+    <div class="app-container">
         <div class="sidebar">
-
+            <a class="navbar-brand sidebar-brand" href="{{ url_for('users.index') }}">LOOVA</a>
             <div id="sidebar-content">
-                <!-- Default sidebar content -->
                 <ul>
                     <li><a href="{{ url_for('users.index') }}"><span class="sidebar-icon">&#127968;</span><span class="sidebar-text">Accueil</span></a></li>
-                                    
-                    {% block sidebar %}
                     {% if session['user_id'] %}
                     <li><a href="{{ url_for('projets.projets') }}"><span class="sidebar-icon">&#128195;</span><span class="sidebar-text">Projets</span></a></li>
                     <li><a href="{{ url_for('projets.ajouter_projet') }}"><span class="sidebar-icon">&#10133;</span><span class="sidebar-text">Ajouter un projet</span></a></li>
                     {% endif %}
-                </ul>
+                    {% block sidebar %}
                     {% endblock %}
+                </ul>
             </div>
         </div>
 
-        <div class="content">
-            <div class="container">
-                {% block content %}
-                {% endblock %}
+        <div class="main-content">
+            <nav class="navbar navbar-expand-lg navbar-light bg-light">
+                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ml-auto">
+                        {% if session['user_id'] %}
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    Mon Compte
+                                </a>
+                                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
+                                    <a class="dropdown-item" href="{{ url_for('users.modifier_profil') }}">Modifier mon profil</a>
+                                    <a class="dropdown-item" href="{{ url_for('organisations.modifier_organisation') }}">Modifier mon organisation</a>
+                                    <div class="dropdown-divider"></div>
+                                    <a class="dropdown-item" href="{{ url_for('users.logout') }}">Déconnexion</a>
+                                </div>
+                            </li>
+                        {% else %}
+                            <li class="nav-item">
+                                <form method="POST" action="{{ url_for('users.index') }}">
+                                    <input type="email" name="email" placeholder="Email" required>
+                                    <input type="password" name="password" placeholder="Mot de passe" required>
+                                    <button type="submit">Se connecter</button>
+                                </form>
+                            </li>
+                        {% endif %}
+                    </ul>
+                </div>
+            </nav>
+            <div class="content">
+                <div class="container">
+                    {% block content %}
+                    {% endblock %}
+                </div>
             </div>
         </div>
     </div>
-
-
 </body>
 </html>

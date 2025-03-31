@@ -1,21 +1,21 @@
 {% extends 'base.html' %}
 
 {% block sidebar %}
-    <ul>
-        <li><a href="#">Page Specific Link 1</a></li>
-        <li><a href="#">Page Specific Link 2</a></li>
+
+        <li><a href="{{ url_for('projets.modifier_projet', projet_id=projet.id) }}" class="btn btn-warning">Modifier le Projet</a></li>
+        <li><form action="{{ url_for('projets.supprimer_projet', projet_id=projet.id) }}" method="POST" style="display: inline;">
+            <button type="submit" class="btn btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce projet ? Cette action est irréversible.')">Supprimer le Projet</button>
+        </form></li>
         <!-- ... other links ... -->
-    </ul>
+
 {% endblock %}
 
 {% block content %}
     <h1>Détails du Projet : {{ projet.nom }}</h1>
 
     <div class="action-buttons">
-        <a href="{{ url_for('projets.modifier_projet', projet_id=projet.id) }}" class="btn btn-warning">Modifier le Projet</a>
-        <form action="{{ url_for('projets.supprimer_projet', projet_id=projet.id) }}" method="POST" style="display: inline;">
-            <button type="submit" class="btn btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce projet ? Cette action est irréversible.')">Supprimer le Projet</button>
-        </form>
+        
+
     </div>
 
     <div class="tabs">
