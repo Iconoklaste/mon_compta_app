@@ -47,16 +47,17 @@
         <div class="sidebar">
 
             <div id="sidebar-content">
-                {% block sidebar %}
                 <!-- Default sidebar content -->
                 <ul>
                     <li><a href="{{ url_for('users.index') }}"><span class="sidebar-icon">&#127968;</span><span class="sidebar-text">Accueil</span></a></li>
+                                    
+                    {% block sidebar %}
                     {% if session['user_id'] %}
                     <li><a href="{{ url_for('projets.projets') }}"><span class="sidebar-icon">&#128195;</span><span class="sidebar-text">Projets</span></a></li>
                     <li><a href="{{ url_for('projets.ajouter_projet') }}"><span class="sidebar-icon">&#10133;</span><span class="sidebar-text">Ajouter un projet</span></a></li>
                     {% endif %}
                 </ul>
-                {% endblock %}
+                    {% endblock %}
             </div>
         </div>
 
