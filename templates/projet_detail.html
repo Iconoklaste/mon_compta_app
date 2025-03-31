@@ -1,5 +1,13 @@
 {% extends 'base.html' %}
 
+{% block sidebar %}
+    <ul>
+        <li><a href="#">Page Specific Link 1</a></li>
+        <li><a href="#">Page Specific Link 2</a></li>
+        <!-- ... other links ... -->
+    </ul>
+{% endblock %}
+
 {% block content %}
     <h1>Détails du Projet : {{ projet.nom }}</h1>
 
@@ -136,119 +144,5 @@
         </div>
     </div>
 
-    <style>
-        /* Style pour les onglets (copié de client_dashboard.html) */
-        .tabs {
-            display: flex;
-            flex-wrap: wrap;
-            width: 100%;
-        }
-
-        .tabs input[type="radio"] {
-            display: none;
-        }
-
-        .tabs label {
-            padding: 10px 20px;
-            background: #eee;
-            border: 1px solid #ccc;
-            cursor: pointer;
-            margin-right: 2px;
-            border-bottom: none;
-        }
-
-        .tabs .tab {
-            width: 100%;
-            padding: 20px;
-            background: #fff;
-            border: 1px solid #ccc;
-            order: 1;
-            display: none;
-        }
-
-        .tabs input[type="radio"]:checked + label {
-            background: #fff;
-            border-bottom: 1px solid #fff;
-        }
-
-        .tabs input[type="radio"]:checked + label + .tab {
-            display: block;
-        }
-
-        /* Style pour les tableaux (copié de client_dashboard.html) */
-        .full-width-table {
-            width: 100%;
-            border-collapse: collapse; /* Fusionne les bordures des cellules */
-        }
-
-        .full-width-table th,
-        .full-width-table td {
-            padding: 8px;
-            text-align: left;
-        }
-
-        .right-align {
-            text-align: right;
-        }
-
-        /* Style pour le survol de la souris */
-        .full-width-table tbody tr:hover {
-            background-color: #f0f0f0; /* Gris clair au survol */
-            cursor: pointer;
-        }
-        /* Style pour les boutons d'action */
-        .action-buttons{
-            margin-bottom: 10px;
-        }
-
-        /* Style pour la timeline */
-        .timeline-container {
-            margin-bottom: 20px;
-        }
-
-        .timeline {
-            border-left: 2px solid #ccc;
-            padding-left: 20px;
-            position: relative;
-        }
-
-        .timeline-item {
-            margin-bottom: 15px;
-            position: relative;
-        }
-
-        .timeline-item::before {
-            content: '';
-            position: absolute;
-            left: -10px;
-            top: 5px;
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background-color: #ccc;
-        }
-
-        .timeline-start::before {
-            background-color: green;
-        }
-
-        .timeline-end::before {
-            background-color: red;
-        }
-
-        .timeline-phase::before {
-            background-color: blue;
-        }
-
-        .timeline-jalon::before {
-            background-color: orange;
-        }
-
-        .timeline-content {
-            background-color: #f0f0f0;
-            padding: 10px;
-            border-radius: 5px;
-            border: 1px solid #ccc;
-        }
-    </style>
+    
 {% endblock %}
