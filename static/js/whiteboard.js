@@ -1,10 +1,13 @@
 
         // Initialisation du canvas Fabric.js
         const canvas = new fabric.Canvas('canvas');
+        const colorPicker = document.getElementById('color-picker');
 
         // Définir la taille du canvas à la taille de la fenêtre
         canvas.setWidth(window.innerWidth);
         canvas.setHeight(window.innerHeight);
+
+
 
         // Variables pour la gestion du déplacement du canvas
         let isDraggingCanvas = false;
@@ -162,5 +165,14 @@
             const activeObject = canvas.getActiveObject();
             if (activeObject) {
                 canvas.remove(activeObject);
+            }
+        });
+
+        colorPicker.addEventListener('change', () => {
+            const selectedColor = colorPicker.value;
+            const activeObject = canvas.getActiveObject();
+            if (activeObject) {
+                activeObject.set('fill', selectedColor);
+                canvas.renderAll();
             }
         });
