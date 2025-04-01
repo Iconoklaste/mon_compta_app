@@ -40,6 +40,7 @@ body {
 }
 .content.no-padding {
     padding: 0; /* Remove padding */
+    background-color: #f8f9fa; /* Keep the gray background */
 }
 
 .container {

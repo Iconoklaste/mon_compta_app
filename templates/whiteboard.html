@@ -8,7 +8,10 @@
     {{ super() }}
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
+    
+
     <link rel="stylesheet" href="{{ url_for('static', filename='whiteboard.css') }}">
+    <link rel="stylesheet" href="https://unpkg.com/vanilla-picker@2/dist/vanilla-picker.min.css">
 {% endblock %}
 
 {% block sidebar %}
@@ -30,16 +33,10 @@
             <button id="zoom-out">Zoom Out</button>
             <button id="saveButton">Sauvegarder</button>
             <button id="delete">Supprimer</button>
-            <select id="color-picker">
-                <option value="red">Rouge</option>
-                <option value="blue">Bleu</option>
-                <option value="green">Vert</option>
-                <option value="yellow">Jaune</option>
-                <option value="orange">Orange</option>
-                <option value="purple">Violet</option>
-                <option value="black">Noir</option>
-                <option value="white">Blanc</option>
-            </select>
+            <div id="color-picker-container"></div>
+            <button id="open-color-picker">Select Color</button>
+
+
 
             <label for="font-family-selector">Font Family:</label>
             <select id="font-family-selector">
@@ -79,6 +76,6 @@
             }
         });
     </script>
-
+    <script src="https://unpkg.com/vanilla-picker@2/dist/vanilla-picker.min.js"></script>
     <script type="module" src="{{ url_for('static', filename='js/whiteboard/main.js') }}"></script>
 {% endblock %}

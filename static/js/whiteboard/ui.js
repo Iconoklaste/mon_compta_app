@@ -5,13 +5,27 @@ import { zoomIn, zoomOut } from './canvas.js';
 import { saveCanvasState } from './state.js';
 
 export function initializeUI(canvas, projetId) {
-    const colorPicker = document.getElementById('color-picker');
+    // const colorPicker = document.getElementById('color-picker'); // Remove old color picker
     const fontSizeSelector = document.getElementById('font-size-selector');
     const fontFamilySelector = document.getElementById('font-family-selector');
 
-    colorPicker.addEventListener('change', () => {
-        const selectedColor = colorPicker.value;
-        changeObjectColor(canvas, selectedColor);
+    // Initialize vanilla-picker
+    const parent = document.getElementById('color-picker-container');
+    const openPickerButton = document.getElementById('open-color-picker');
+    const picker = new Picker({
+        parent: parent,
+        popup: 'bottom', // Display the picker below the button
+        color: 'rgb(255, 0, 0)', // Initial color
+        alpha: true, // Enable alpha channel
+        editor: true, // Enable color code editor
+        editorFormat: 'hex', // Set the color code format
+        onChange: function(color) {
+            changeObjectColor(canvas, color.rgbaString); // Use rgbaString
+        },
+    });
+    picker.hide();
+    openPickerButton.addEventListener('click', () => {
+        picker.show();
     });
 
     fontSizeSelector.addEventListener('change', () => {
