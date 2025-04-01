@@ -38,6 +38,9 @@ body {
     overflow-y: auto; /* Permet le défilement */
     max-height: calc(100vh - 5vh); /* Ajuste en fonction de la hauteur de ta navbar */
 }
+.content.no-padding {
+    padding: 0; /* Remove padding */
+}
 
 .container {
     overflow-y: auto;

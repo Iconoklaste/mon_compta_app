@@ -1,9 +1,17 @@
+/* whiteboard.css */
 body {
     margin: 0;
-    overflow: hidden; /* Empêche les barres de défilement */
 }
+
+#canvas-container {
+    position: relative; /* Add this line */
+    width: 100%;
+    height: 100%;
+    /* margin-left: 250px; Remove this line */
+}
+
 #toolbar {
-    position: fixed;
+    position: absolute; /* Change to absolute */
     top: 10px;
     left: 10px;
     z-index: 100; /* Assure que la barre d'outils est au-dessus du canvas */
@@ -11,13 +19,14 @@ body {
     padding: 10px;
     border-radius: 5px;
 }
+
 #canvas {
-    width: 100vw;
-    height: 100vh;
     cursor: grab;
+    
 }
+
 #zoom-indicator {
-    position: fixed;
+    position: absolute; /* Change to absolute */
     bottom: 10px;
     left: 10px;
     z-index: 100;

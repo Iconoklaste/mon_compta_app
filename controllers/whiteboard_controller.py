@@ -9,24 +9,12 @@ whiteboard_bp = Blueprint('whiteboard', __name__)
 
 @whiteboard_bp.route('/whiteboard/<int:projet_id>')
 def whiteboard_view(projet_id):
-    # projet = Projet.query.get_or_404(projet_id) # remove this line
-    whiteboard = Whiteboard.query.filter_by(projet_id=projet_id).first()
-
-    if whiteboard:
-        whiteboard_data = json.loads(whiteboard.data)
-    else:
-        # Create a new Whiteboard record if one doesn't exist
-        whiteboard = Whiteboard(data=json.dumps({"elements": []}), projet_id=projet_id) # add a default value
-        db.session.add(whiteboard)
-        db.session.commit()
-        whiteboard_data = json.loads(whiteboard.data)
-
-    return render_template('whiteboard.html', projet_id=projet_id, whiteboard_data=whiteboard_data)
+    projet = Projet.query.get_or_404(projet_id)
+    return render_template('whiteboard.html', projet=projet, projet_id=projet_id)
 
 
-@whiteboard_bp.route('/save_whiteboard/<int:projet_id>', methods=['POST']) # change the route here
-def save_whiteboard(projet_id): # change the function name here
-    # projet = Projet.query.get_or_404(projet_id) # remove this line
+@whiteboard_bp.route('/save_whiteboard/<int:projet_id>', methods=['POST'])
+def save_whiteboard(projet_id):
     data = request.get_json()
     data_json = json.dumps(data)
 
@@ -45,6 +33,6 @@ def save_whiteboard(projet_id): # change the function name here
 def load(projet_id):
     whiteboard = Whiteboard.query.filter_by(projet_id=projet_id).first()
     if whiteboard:
-        return jsonify(json.loads(whiteboard.data))
+        return jsonify(whiteboard_data=json.loads(whiteboard.data)) # change the response here
     else:
-        return jsonify({'message': 'Aucune donnée sauvegardée'})
+        return jsonify({'whiteboard_data': None}) # change the response here

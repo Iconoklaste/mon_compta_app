@@ -1,3 +1,4 @@
+<!-- c:\wamp\www\mon_compta_app\templates\projet_detail.html -->
 {% extends 'base.html' %}
 
 {% block sidebar %}
@@ -147,10 +148,31 @@
         </div>
         <input type="radio" name="tabs" id="tab4">
         <label for="tab4">Tableau Blanc</label>
-        <div class="tab"></div>
+        <div class="tab tab-whiteboard"></div>
         <script>
             document.querySelector('label[for="tab4"]').addEventListener('click', function() {
                 window.location.href = "{{ url_for('whiteboard.whiteboard_view', projet_id=projet.id) }}"; 
+            });
+            document.addEventListener('DOMContentLoaded', function() {
+                const content = document.querySelector('.content');
+                const tab1 = document.querySelector('#tab1');
+                const tab2 = document.querySelector('#tab2');
+                const tab3 = document.querySelector('#tab3');
+                if (tab1) {
+                    tab1.addEventListener('click', function() {
+                        content.classList.remove('no-padding');
+                    });
+                }
+                if (tab2) {
+                    tab2.addEventListener('click', function() {
+                        content.classList.remove('no-padding');
+                    });
+                }
+                if (tab3) {
+                    tab3.addEventListener('click', function() {
+                        content.classList.remove('no-padding');
+                    });
+                }
             });
         </script>
     </div>

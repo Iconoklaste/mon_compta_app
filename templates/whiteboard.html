@@ -1,64 +1,84 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-    <meta charset="UTF-8">
+{% extends 'base.html' %}
+
+{% block page_title %}
+    Whiteboard inclus dans base
+{% endblock %}
+
+{% block extra_head %}
+    {{ super() }}
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Whiteboard</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='whiteboard.css') }}">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
-</head>
-<body>
-    <div id="toolbar">
-        <button id="add-rect">Ajouter une boîte</button>
-        <button id="add-text">Ajouter du texte</button>
-        <button id="zoom-in">Zoom In</button>
-        <button id="zoom-out">Zoom Out</button>
-        <button id="saveButton">Sauvegarder</button>
-        <button id="delete">Supprimer</button>
-        <!-- Add the color picker dropdown here -->
-        <select id="color-picker">
-            <option value="red">Rouge</option>
-            <option value="blue">Bleu</option>
-            <option value="green">Vert</option>
-            <option value="yellow">Jaune</option>
-            <option value="orange">Orange</option>
-            <option value="purple">Violet</option>
-            <option value="black">Noir</option>
-            <option value="white">Blanc</option>
-        </select>
+    <link rel="stylesheet" href="{{ url_for('static', filename='whiteboard.css') }}">
+{% endblock %}
 
-        <label for="font-family-selector">Font Family:</label>
-        <select id="font-family-selector">
-            <option value="Arial" selected>Arial</option>
-            <option value="Times New Roman">Times New Roman</option>
-            <option value="Verdana">Verdana</option>
-            <option value="Courier New">Courier New</option>
-            <option value="Georgia">Georgia</option>
-            <!-- Add more font options here -->
-        </select>
+{% block sidebar %}
+    {{ super() }}
+    <li><a href="{{ url_for('projets.modifier_projet', projet_id=projet.id) }}" class="btn btn-warning">Modifier le Projet</a></li>
+    <li>
+        <form action="{{ url_for('projets.supprimer_projet', projet_id=projet.id) }}" method="POST" style="display: inline;">
+            <button type="submit" class="btn btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce projet ? Cette action est irréversible.')">Supprimer le Projet</button>
+        </form>
+    </li>
+{% endblock %}
 
-        <label for="font-size-selector">Font Size:</label>
-        <select id="font-size-selector">
-            <option value="12">12</option>
-            <option value="14">14</option>
-            <option value="16">16</option>
-            <option value="18">18</option>
-            <option value="20" selected>20</option>
-            <option value="24">24</option>
-            <option value="28">28</option>
-            <option value="32">32</option>
-            <option value="36">36</option>
-            <option value="48">48</option>
-            <option value="72">72</option>
-        </select>
+{% block content %}
+    <div id="canvas-container" class="canvas-container">
+        <div id="toolbar">
+            <button id="add-rect">Ajouter une boîte</button>
+            <button id="add-text">Ajouter du texte</button>
+            <button id="zoom-in">Zoom In</button>
+            <button id="zoom-out">Zoom Out</button>
+            <button id="saveButton">Sauvegarder</button>
+            <button id="delete">Supprimer</button>
+            <select id="color-picker">
+                <option value="red">Rouge</option>
+                <option value="blue">Bleu</option>
+                <option value="green">Vert</option>
+                <option value="yellow">Jaune</option>
+                <option value="orange">Orange</option>
+                <option value="purple">Violet</option>
+                <option value="black">Noir</option>
+                <option value="white">Blanc</option>
+            </select>
+
+            <label for="font-family-selector">Font Family:</label>
+            <select id="font-family-selector">
+                <option value="Arial" selected>Arial</option>
+                <option value="Times New Roman">Times New Roman</option>
+                <option value="Verdana">Verdana</option>
+                <option value="Courier New">Courier New</option>
+                <option value="Georgia">Georgia</option>
+            </select>
+
+            <label for="font-size-selector">Font Size:</label>
+            <select id="font-size-selector">
+                <option value="12">12</option>
+                <option value="14">14</option>
+                <option value="16">16</option>
+                <option value="18">18</option>
+                <option value="20" selected>20</option>
+                <option value="24">24</option>
+                <option value="28">28</option>
+                <option value="32">32</option>
+                <option value="36">36</option>
+                <option value="48">48</option>
+                <option value="72">72</option>
+            </select>
+        </div>
+        <canvas id="canvas"></canvas>
+        <div id="zoom-indicator">Zoom: 100%</div>
     </div>
-    <canvas id="canvas"></canvas>
-    <div id="zoom-indicator">Zoom: 100%</div>
 
     <script>
         window.projetId = {{ projet_id }}; // Store projetId in a global variable
+        // Add the no-padding class to the content when the canvas-container is displayed
+        document.addEventListener('DOMContentLoaded', function() {
+            const content = document.querySelector('.content');
+            if (content) {
+                content.classList.add('no-padding');
+            }
+        });
     </script>
 
-    <script src="{{ url_for('static', filename='js/whiteboard.js') }}"></script>
-</body>
-</html>
+    <script type="module" src="{{ url_for('static', filename='js/whiteboard/main.js') }}"></script>
+{% endblock %}

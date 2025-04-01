@@ -10,6 +10,9 @@
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+    {% block extra_head %}
+    {% endblock %}
 </head>
 <body>
     <div class="app-container">
@@ -20,7 +23,7 @@
                     <li><a href="{{ url_for('users.index') }}"><span class="sidebar-icon">&#127968;</span><span class="sidebar-text">Accueil</span></a></li>
                     {% if session['user_id'] %}
                     <li><a href="{{ url_for('projets.projets') }}"><span class="sidebar-icon">&#128195;</span><span class="sidebar-text">Projets</span></a></li>
-                    <li><a href="{{ url_for('projets.ajouter_projet') }}"><span class="sidebar-icon">&#10133;</span><span class="sidebar-text">Ajouter un projet</span></a></li>
+                    <li><a href="{{ url_for('compta.index') }}"><span class="sidebar-icon">&#128184;</span><span class="sidebar-text">Comptabilité</span></a></li>
                     {% endif %}
                     {% block sidebar %}
                     {% endblock %}
