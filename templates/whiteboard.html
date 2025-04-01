@@ -11,7 +11,8 @@
     
 
     <link rel="stylesheet" href="{{ url_for('static', filename='whiteboard.css') }}">
-    <link rel="stylesheet" href="https://unpkg.com/vanilla-picker@2/dist/vanilla-picker.min.css">
+    <!--<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vanilla-picker@2.12.3/dist/vanilla-picker.min.css">-->
+
 {% endblock %}
 
 {% block sidebar %}
@@ -33,6 +34,12 @@
             <button id="zoom-out">Zoom Out</button>
             <button id="saveButton">Sauvegarder</button>
             <button id="delete">Supprimer</button>
+
+            <button id="send-to-back">Send to Back</button>
+            <button id="bring-to-front">Bring to Front</button>
+            <button id="send-backward">Send Backward</button>
+            <button id="bring-forward">Bring Forward</button>
+
             <div id="color-picker-container"></div>
             <button id="open-color-picker">Select Color</button>
 

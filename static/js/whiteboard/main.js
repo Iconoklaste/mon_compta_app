@@ -1,6 +1,6 @@
 // main.js
 import { initializeCanvas } from './canvas.js';
-import { addRectangle, addText, deleteActiveObject } from './objects.js';
+import { addRectangle, addText, deleteActiveObject, sendToBack, bringToFront, sendBackward, bringForward } from './objects.js'; // Corrected import
 import { initializeUI, updateFontSizeSelector, updateFontFamilySelector, loadData } from './ui.js';
 import { undo, redo } from './state.js';
 
@@ -33,6 +33,20 @@ document.addEventListener('DOMContentLoaded', () => {
     // Supprimer un objet
     document.getElementById('delete').addEventListener('click', () => {
         deleteActiveObject(canvas);
+    });
+
+    // Z-Order Controls
+    document.getElementById('send-to-back').addEventListener('click', () => {
+        sendToBack(canvas);
+    });
+    document.getElementById('bring-to-front').addEventListener('click', () => {
+        bringToFront(canvas);
+    });
+    document.getElementById('send-backward').addEventListener('click', () => {
+        sendBackward(canvas);
+    });
+    document.getElementById('bring-forward').addEventListener('click', () => {
+        bringForward(canvas);
     });
 
     canvas.on('selection:created', () => {

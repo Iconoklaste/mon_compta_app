@@ -94,3 +94,44 @@ export function changeObjectColor(canvas, color) {
         saveCanvasState(canvas);
     }
 }
+
+// New functions for Z-Order
+export function sendToBack(canvas) {
+    const activeObject = canvas.getActiveObject();
+    if (activeObject) {
+        canvas.sendToBack(activeObject);
+        canvas.discardActiveObject(); // Deselect the object
+        canvas.requestRenderAll(); // Re-render the canvas
+        saveCanvasState(canvas);
+    }
+}
+
+export function bringToFront(canvas) {
+    const activeObject = canvas.getActiveObject();
+    if (activeObject) {
+        canvas.bringToFront(activeObject);
+        canvas.discardActiveObject(); // Deselect the object
+        canvas.requestRenderAll(); // Re-render the canvas
+        saveCanvasState(canvas);
+    }
+}
+
+export function sendBackward(canvas) {
+    const activeObject = canvas.getActiveObject();
+    if (activeObject) {
+        canvas.sendBackwards(activeObject);
+        canvas.discardActiveObject(); // Deselect the object
+        canvas.requestRenderAll(); // Re-render the canvas
+        saveCanvasState(canvas);
+    }
+}
+
+export function bringForward(canvas) {
+    const activeObject = canvas.getActiveObject();
+    if (activeObject) {
+        canvas.bringForward(activeObject);
+        canvas.discardActiveObject(); // Deselect the object
+        canvas.requestRenderAll(); // Re-render the canvas
+        saveCanvasState(canvas);
+    }
+}
