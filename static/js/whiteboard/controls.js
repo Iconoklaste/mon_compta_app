@@ -13,25 +13,25 @@ deleteImg.src = deleteIcon;
 export const cloneImg = document.createElement('img'); // Add export here
 cloneImg.src = cloneIcon;
 
-export function addDuplicateControl(object) {
+// **NEW** Function to add the duplicate control to an object
+export function addDuplicateControl(object, canvas) {
     object.cornerStyle = 'circle';
     object.cornerSize = 15;
     object.controls.duplicateControl = new fabric.Control({
-        x: 0.5, // Position on the right side
+        x: -0.5, // Position on the left side
         y: -0.5, // Position on the top
-        offsetX: 15,
+        offsetX: -15,
         offsetY: -15,
         cursorStyle: 'pointer',
-        mouseUpHandler: duplicateObject,
+        mouseUpHandler: (eventData, transform) => duplicateObject(eventData, transform, canvas), // Pass canvas here
         render: renderIcon(cloneImg),
         cornerSize: 24
     });
 }
 
 // **NEW** Function to duplicate an object
-function duplicateObject(eventData, transform) {
+function duplicateObject(eventData, transform, canvas) {
     const target = transform.target;
-    const canvas = target.canvas;
     target.clone((cloned) => {
         cloned.set({
             left: cloned.left + 20,
@@ -39,7 +39,7 @@ function duplicateObject(eventData, transform) {
             evented: true,
         });
         // **NEW** Add the duplicate control to the cloned object
-        addDuplicateControl(cloned);
+        addDuplicateControl(cloned, canvas);
         canvas.add(cloned);
         canvas.setActiveObject(cloned);
         canvas.requestRenderAll();
@@ -71,15 +71,13 @@ export function renderIcon(icon) {
     };
 }
 // **NEW** Function to delete an object
-export function deleteObject(_eventData, transform) {
-    const canvas = transform.target.canvas;
+export function deleteObject(_eventData, transform, canvas) {
     canvas.remove(transform.target);
     canvas.requestRenderAll();
     saveCanvasState(canvas); // Pass canvas here
 }
 // **NEW** Function to clone an object
-export function cloneObject(_eventData, transform) {
-    const canvas = transform.target.canvas;
+export function cloneObject(_eventData, transform, canvas) {
     transform.target.clone((cloned) => {
         cloned.set({
             left: cloned.left + 10,
