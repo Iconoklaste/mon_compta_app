@@ -4,14 +4,17 @@ import { saveCanvasState } from './state.js';
 
 export function addRectangle(canvas) {
     const rect = new fabric.Rect({
-        left: 100,
-        top: 100,
+        // Calculate center position
+        left: canvas.getWidth() / 2,
+        top: canvas.getHeight() / 2,
         fill: 'yellow',
         width: 200,
         height: 100,
         objectCaching: false,
         stroke: 'lightgreen',
         strokeWidth: 4,
+        originX: 'center', // Set origin to center
+        originY: 'center', // Set origin to center
     });
     rect.controls.deleteControl = new fabric.Control({
         x: 0.5,   // Top-right corner
@@ -42,8 +45,9 @@ export function addRectangle(canvas) {
 
 export function addText(canvas) {
     const text = new fabric.Textbox('Texte', {
-        left: 100,
-        top: 100,
+        // Calculate center position
+        left: canvas.getWidth() / 2,
+        top: canvas.getHeight() / 2,
         fill: 'black',
         fontSize: 20,
         width: 150,
@@ -52,6 +56,8 @@ export function addText(canvas) {
         hasControls: true,
         hasRotatingPoint: true,
         lockScalingFlip: true,
+        originX: 'center', // Set origin to center
+        originY: 'center', // Set origin to center
     });
     // Add the delete control to the text object
     text.controls.deleteControl = new fabric.Control({
@@ -75,6 +81,7 @@ export function addText(canvas) {
         cornerSize: 24,
     });
     canvas.add(text);
+    canvas.setActiveObject(text);
     saveCanvasState(canvas); // Pass canvas here
 }
 

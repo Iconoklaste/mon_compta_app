@@ -48,6 +48,14 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('bring-forward').addEventListener('click', () => {
         bringForward(canvas);
     });
+    canvas.on('object:selected', (options) => {
+        console.log("object:selected event triggered");
+        console.log("Selected object:", options.target);
+        console.log("Current z-index:", canvas.getObjects().indexOf(options.target));
+    
+        options.target.moveTo(canvas.getObjects().indexOf(options.target));
+    });
+    
 
     canvas.on('selection:created', () => {
         updateFontSizeSelector(canvas);

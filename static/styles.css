@@ -37,6 +37,7 @@ body {
     padding: 20px;
     overflow-y: auto; /* Permet le défilement */
     max-height: calc(100vh - 5vh); /* Ajuste en fonction de la hauteur de ta navbar */
+    background-color: #f8f9fa;
 }
 .content.no-padding {
     padding: 0; /* Remove padding */
