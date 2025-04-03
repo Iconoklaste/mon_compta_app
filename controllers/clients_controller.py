@@ -11,7 +11,9 @@ clients_bp = Blueprint('clients', __name__, url_prefix='/clients')
 @login_required
 def clients():
     clients = Client.query.all()
-    return render_template('clients.html', clients=clients)
+    return render_template('clients.html',
+                           clients=clients,
+                           current_page='CRM')
 
 @clients_bp.route('/ajouter_client', methods=['POST'])
 @login_required

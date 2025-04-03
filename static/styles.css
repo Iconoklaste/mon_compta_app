@@ -154,10 +154,14 @@ nav#sidebar-content {
     display: flex;
     justify-content: space-between;
     align-items: center; /* Vertically center items */
-    position: relative;
+    position: fixed; /* Make the navbar fixed */
+    top: 0; /* Align to the top */
+    left: 250px; /* Start the navbar to the right of the sidebar */
+    width: calc(100% - 250px);
+    z-index: 200; /* Ensure it's above the sidebar and other content */
     flex-shrink: 0;
-    width: 100%;
     min-height: 4rem; /* Set a fixed minimum height */
+    transition: left 0.3s ease, width 0.3s ease
 }
 
 .navbar-title-container {
@@ -335,19 +339,27 @@ nav#sidebar-content {
 }
 
 .sidebar {
-    width: 250px; /* Largeur de la sidebar */
-    flex-shrink: 0; /* La sidebar ne doit pas se réduire */
+    width: 250px; /* Initial width of the sidebar */
+    flex-shrink: 0; /* Sidebar should not shrink */
+    position: fixed; /* Make the sidebar fixed */
+    top: 0; /* Align to the top */
+    left: 0; /* Align to the left */
+    height: 100vh; /* Make the sidebar full height */
+    z-index: 100; /* Ensure it's above other content */
 }
 
+
 .main-content {
-    flex-grow: 1; /* Le contenu principal prend tout l'espace disponible */
+    flex-grow: 1; /* Main content takes up available space */
     display: flex;
     flex-direction: column;
+    margin-left: 250px; /* Add a left margin to the main content */
+    transition: margin-left 0.3s ease; /* Add a transition for smooth resizing */
 }
 
 .content {
     flex-grow: 1;
-    padding-top: 2rem;
+    padding-top: 6rem;
     padding-left: 1rem;
     padding-right: 1rem;
     overflow-y: auto; /* Add a vertical scrollbar if content overflows */

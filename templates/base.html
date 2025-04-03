@@ -42,6 +42,18 @@
                             <span class="sidebar-text">Comptabilité</span>
                         </a>
                     </li>
+                    <li class="{% if current_page == 'CRM' %}active{% endif %}">
+                        <a href="{{ url_for('clients.clients') }}">
+                            <i class="fas fa-user-group sidebar-icon"></i>
+                            <span class="sidebar-text">CRM</span>
+                        </a>
+                    </li>
+                    <li class="{% if current_page == 'Paramètres' %}active{% endif %}">
+                        <a href="">
+                            <i class="fas fa-wrench sidebar-icon"></i>
+                            <span class="sidebar-text">Parmètres</span>
+                        </a>
+                    </li>
                     {% endif %}
                     {% block sidebar %}
                     {% endblock %}
