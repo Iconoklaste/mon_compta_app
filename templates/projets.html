@@ -19,14 +19,18 @@
         {% for projet in projets %}
         <div class="col-md-4 mb-4">
             <div class="card h-100">
-                <div class="card-header">
-                    <h5 class="card-title mb-0">{{ projet.nom }}</h5>
+                <div class="card-header rounded-top card-header-custom two-line-header">
+                    <div class="card-title-wrapper">
+                        <h5 class="card-title mb-0">{{ projet.nom }}</h5>
+                    </div>
                 </div>
+                
+                
                 <div class="card-body">
                     <p class="card-text">
                         <small class="text-muted">Client:</small>
                         {% if projet.client %}
-                        <small class="text-muted">{{ projet.client.nom }}</small>  {# Access the 'nom' attribute of the Client object #}
+                        <small>{{ projet.client.nom }}</small>  {# Access the 'nom' attribute of the Client object #}
                         {% else %}
                         <span class="text-muted">Non défini</span>
                         {% endif %}
@@ -42,18 +46,17 @@
                             <small>{{ projet.statut }}</small>
                         </span>
                     </p>
-                    
-                    
-                    
-                    
                     <p class="card-text">
-                        <small class="text-muted">Date de fin:</small>
+                        <small class="text-muted">
+                            <i class="fa-regular fa-calendar"></i> Fin:
+                        </small>
                         {% if projet.date_fin %}
-                        {{ projet.date_fin.strftime('%d/%m/%Y') }}
+                        <small>{{ projet.date_fin.strftime('%d %b %Y') }}</small>
                         {% else %}
                         <span class="text-muted">Non définie</span>
                         {% endif %}
                     </p>
+
                     <p class="card-text">
                         <small class="text-muted">Montant total:</small>
                         {% if projet.montant_total %}
@@ -64,9 +67,6 @@
                     </p>
                 </div>
                 <div class="card-footer">
-                    <a href="{{ url_for('projets.modifier_projet', projet_id=projet.id) }}" class="btn btn-warning btn-sm">
-                        <i class="fas fa-edit"></i> Éditer
-                    </a>
                     <a href="{{ url_for('projets.projet_detail', projet_id=projet.id) }}" class="btn btn-primary btn-sm">
                         <i class="fas fa-eye"></i> Détails
                     </a>

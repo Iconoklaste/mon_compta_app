@@ -73,11 +73,82 @@ a:hover {
     box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     transition: all 0.3s ease;
     background-color: var(--white); /* Fond des cartes en blanc */
+    position: relative; /* Needed for z-index to work */
 }
 
 .card:hover {
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    transform: scale(1.02); /* Scale up by 2% on hover */
+    z-index: 10; /* Bring to the foreground on hover */
 }
+
+.card .card-header.card-header-custom {
+    background-color: inherit; /* Inherit the background color from the parent (card) */
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+
+.card-header-custom {
+    border-top-left-radius: 10px !important; /* Or any value that matches your card's radius */
+    border-top-right-radius: 10px !important;
+    background-color: inherit; /* Inherit the background color from the parent (card) */
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+/* Ensure card headers are always two lines high */
+.two-line-header {
+    min-height: 3.5em; /* Adjust this value if needed, based on your font size and line height */
+    display: flex;
+    align-items: center; /* Vertically center the title */
+    padding: 10px; /* Add some padding */
+    position: relative; /* Needed for absolute positioning of the title */
+    overflow: hidden; /* Hide any overflow */
+}
+
+/* Style the title wrapper */
+.card-title-wrapper {
+    width: 100%;
+    height: 100%; /* Make the wrapper take up the full height */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute; /* Position the wrapper absolutely */
+    top: 0;
+    left: 0;
+    padding: 0 10px; /* Add horizontal padding to the wrapper */
+}
+
+/* Style the title */
+.two-line-header .card-title {
+    margin: 0;
+    line-height: 1.2em; /* Adjust as needed */
+    max-height: 2.4em; /* 2 lines * line-height */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* Number of lines to show */
+    -webkit-box-orient: vertical;
+    word-break: break-word;
+    text-align: center;
+    width: 100%; /* Ensure the title takes up the full width */
+}
+
+
+
+
+/* Informational Cards */
+.info-card {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* Lighter shadow */
+    background-color: var(--white);
+    transition: box-shadow 0.3s ease; /* Only transition the shadow */
+}
+
+.info-card:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Slightly darker shadow on hover */
+}
+
 
 /* Sidebar */
 .sidebar {
@@ -378,9 +449,12 @@ nav#sidebar-content {
     overflow-y: auto; /* Add a vertical scrollbar if content overflows */
 }
 
-/* Page Liste des projets */
+
 
 /* Page Liste des projets */
+
+
+
 
 .custom-badge {
     padding: 0.05rem 0.3rem 0.15rem;
