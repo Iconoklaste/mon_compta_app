@@ -1,257 +1,354 @@
-/* General Styles */
-body {
-    font-family: sans-serif;
-    display: flex;
-    flex-direction: column;
-    min-height: 100vh;
-    margin: 0;
+@import url('https://fonts.googleapis.com/css2?family=Outfit:wght@400;700&family=Roboto:wght@400;700&display=swap');
+
+/* Palette de couleurs */
+:root {
+    --dark-blue: #2c3e50; /* Bleu foncé (principal) */
+    --light-dark-blue: #34495e; /* Bleu foncé plus clair (sidebar) */
+    --dark-red: #b00; /* Rouge foncé (accents) */
+    --light-red: #d93a3a; /* Rouge vif (concours) */
+    --light-red-80: rgba(217, 58, 58, 0.6);
+    --dark-green: #07857A; /* Vert foncé (emploi) */
+    --light-green: #21993b; /* Vert vif */
+    --gold: #dba400; /* Jaune */
+    --blue: #1a77d1; /* Bleu */
+    --light-gray: #e3e3e3; /* Gris clair (fonds) */
+    --very-light-gray: #f5f5f5; /* Gris très clair (fonds) */
+    --white: #FFFFFF; /* Blanc */
 }
 
-.app-container {
+/* Typographie */
+body {
+    font-family: 'Roboto', sans-serif;
+    color: var(--dark-blue); /* Texte en bleu foncé */
+    background-color: var(--very-light-gray); /* Fond en gris très clair */
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', sans-serif; /* Police Outfit pour les titres */
+    font-weight: 700;
+    color: var(--dark-blue); /* Titres en bleu foncé */
+}
+
+/* Liens */
+a {
+    color: var(--dark-red); /* Liens en rouge foncé */
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Boutons */
+.btn-primary {
+    background-color: var(--light-green); /* Boutons en vert vif */
+    border-color: var(--light-green);
+    border-radius: 5px;
+    transition: all 0.3s ease;
+    color: var(--white); /* Texte des boutons en blanc */
+}
+
+.btn-primary:hover {
+    background-color: #155; /* Boutons en vert foncé au survol */
+    border-color: #155;
+}
+
+.btn-secondary {
+    background-color: var(--light-gray); /* Boutons en gris clair */
+    border-color: var(--light-gray);
+    border-radius: 5px;
+    transition: all 0.3s ease;
+    color: var(--dark-blue); /* Texte des boutons en bleu foncé */
+}
+
+.btn-secondary:hover {
+    background-color: #E5E5E5; /* Boutons en gris clair plus sombre au survol */
+    border-color: #E5E5E5;
+}
+
+/* Cartes */
+.card {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    background-color: var(--white); /* Fond des cartes en blanc */
+}
+
+.card:hover {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* Sidebar */
+.sidebar {
+    background-color: var(--dark-blue); /* Fond de la sidebar en bleu foncé plus clair */
+    color: var(--white); /* Texte de la sidebar en blanc */
     display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+nav#sidebar-content {
+    padding: 0 0.5rem; /* Add padding to the left and right */
     flex-grow: 1;
 }
 
-/* Sidebar and Main Content Layout */
-.sidebar {
-    width: 250px;
-    background-color: #f8f9fa;
-    border-right: 1px solid #dee2e6;
+.sidebar ul {
+    list-style: none; /* Supprimer les puces */
+    padding: 0; /* Supprimer le padding par défaut */
+    margin-top: 1rem;
+    flex-grow: 1;
+}
+
+.sidebar li {
+    margin-bottom: 0.5rem; /* Augmenter l'espace entre les éléments */
+    border-radius: 5px; /* Add border-radius to the li */
+    transition: background-color 0.2s ease; 
+}
+
+.sidebar li:hover {
+    background-color: var(--light-red-80); /* Fond des liens de la sidebar en rouge vif au survol */
+    
+}
+
+.sidebar li.active {
+    background-color: var(--light-red); /* Light orange color for active item */
+}
+
+.sidebar a {
+    color: var(--white); /* Liens de la sidebar en blanc */
+    padding: 0.5rem 1rem;
+    display: block;
+    text-decoration: none; /* Remove underline */
+}
+
+.sidebar a:hover {
+    background-color: transparent; /* Remove background color on a hover */
+}
+.sidebar-brand {
+    color: var(--white);
+    font-weight: bold;
+    font-size: 1.5rem;
+    padding: 1rem;
+    display: block;
+    text-align: center;
+    line-height: 2rem;
+    margin-bottom: 1rem;
+}
+
+.sidebar-brand:hover {
+    background-color: transparent; /* Supprimer le hover */
+    padding-right: 1rem;
+}
+
+.sidebar-icon {
+    margin-right: 0.5rem;
+}
+
+/* Navbar */
+.navbar {
+    background-color: var(--white);
+    color: var(--dark-blue);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 0.5rem 1rem; /* Add horizontal padding */
+    display: flex;
+    justify-content: space-between;
+    align-items: center; /* Vertically center items */
+    position: relative;
     flex-shrink: 0;
-    overflow-y: auto; /* Keep overflow on sidebar for its content */
+    width: 100%;
+    min-height: 4rem; /* Set a fixed minimum height */
+}
+
+.navbar-title-container {
     display: flex;
     flex-direction: column;
-    position: sticky;
-    top: 0;
-    height: 100vh;
+    justify-content: center; /* Center content vertically */
+    align-items: flex-start;
+    width: auto; /* Adjust width to content */
+    gap: 0.25rem; /* Add a small gap between h1 and p */
+}
+
+.navbar-title-container h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    line-height: 1.5rem;
+}
+
+.navbar-title-container p {
+    margin: 0;
+    line-height: 1rem;
+    font-size: 0.9rem;
+}
+
+
+.navbar p {
+    font-size: 0.9rem;
+    margin-left: 0;
+    margin-bottom: 0;
+    color: var(--dark-blue);
+}
+
+
+#navbar-title {
+    color: var(--white); /* Texte de la navbar en blanc */
+}
+
+.navbar-brand {
+    background-color: transparent;
+    color: var(--white); /* Texte de la navbar en blanc */
+    padding: 0;
+}
+
+#navbarNav {
+    display: flex; /* Make navbarNav a flex container */
+    align-items: center; /* Vertically center items */
+    margin-left: auto; /* Push navbarNav to the right */
+    height: 100%; /* Add height to the navbarNav */
+}
+
+.navbar-nav {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    align-items: center;
+    gap: 1rem;
+    height: 100%; /* Add height to the navbar-nav */
+}
+
+.nav-item {
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+    padding: 0 1rem; /* Add padding to the left and right */
+}
+
+.nav-item:hover,
+.nav-item:focus-within {
+    background-color: var(--light-dark-blue);
+}
+
+.nav-link {
+    color: var(--dark-blue);
+    padding: 0.5rem 0; /* Remove horizontal padding */
+    display: block;
+    transition: color 0.3s ease;
+}
+
+.nav-link:hover,
+.nav-link:focus {
+    color: var(--white);
+}
+
+.nav-link.active {
+    background-color: var(--light-green);
+    color: var(--white);
+}
+
+#userDropdownMenu {
+    background-color: var(--white);
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: absolute; /* Positionnement absolu */
+    top: 100%; /* Placer le menu juste en dessous du lien */
+    right: 0; /* Aligner le menu à droite */
+    z-index: 1000; /* S'assurer que le menu est au-dessus du reste du contenu */
+}
+
+.dropdown-item {
+    color: var(--dark-blue);
+}
+
+/* Tableaux */
+.table {
+    border-collapse: separate;
+    border-spacing: 0 10px;
+}
+
+.table thead th {
+    border-bottom: none;
+}
+
+.table tbody tr {
+    background-color: var(--white);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.table tbody tr:hover {
+    background-color: var(--light-gray); /* Fond des lignes du tableau plus clair au survol */
+}
+
+/* Compta Index */
+.card-body {
+    padding: 1.5rem;
+}
+
+.card-title {
+    margin-bottom: 1rem;
+    font-weight: bold;
+}
+
+.card-text {
+    font-size: 1.2rem;
+    color: var(--dark-gray); /* Texte des cartes en gris foncé */
+}
+
+.badge {
+    font-size: 1rem;
+    padding: 0.5rem 0.75rem;
+}
+
+.list-group-item {
+    border: none;
+    margin-bottom: 0.5rem;
+    border-radius: 0.25rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.list-group-item-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.list-group-item-warning {
+    background-color: var(--light-red); /* Fond des alertes en rouge vif */
+    color: var(--white);
+}
+
+/* Formulaire */
+.form-control {
+    border-radius: 5px;
+    border: 1px solid #ced4da;
+    padding: 0.5rem 0.75rem;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-control:focus {
+    border-color: var(--dark-blue);
+    box-shadow: 0 0 0 0.2rem rgba(30, 58, 80, 0.25);
+}
+
+/* Layout */
+.app-container {
+    display: flex; /* Utilisation de Flexbox pour le conteneur principal */
+    min-height: 100vh; /* Le conteneur prend toute la hauteur de la fenêtre */
+}
+
+.sidebar {
+    width: 250px; /* Largeur de la sidebar */
+    flex-shrink: 0; /* La sidebar ne doit pas se réduire */
 }
 
 .main-content {
-    flex-grow: 1;
+    flex-grow: 1; /* Le contenu principal prend tout l'espace disponible */
     display: flex;
     flex-direction: column;
 }
 
 .content {
     flex-grow: 1;
-    padding: 20px;
-    overflow-y: auto; /* Permet le défilement */
-    max-height: calc(100vh - 5vh); /* Ajuste en fonction de la hauteur de ta navbar */
-    background-color: #f8f9fa;
-}
-.content.no-padding {
-    padding: 0; /* Remove padding */
-    background-color: #f8f9fa; /* Keep the gray background */
-}
-
-.container {
-    overflow-y: auto;
-    height: 100%;
-}
-
-
-/* Sidebar Content */
-.sidebar ul {
-    list-style: none;
-    padding: 0;
-}
-
-.sidebar li {
-    margin-bottom: 10px;
-}
-
-.sidebar a {
-    display: block;
-    padding: 8px 15px;
-    text-decoration: none;
-    color: #333;
-    border-radius: 5px;
-}
-
-.sidebar a:hover {
-    background-color: #e9ecef;
-}
-
-.sidebar-icon {
-    margin-right: 10px;
-}
-
-.sidebar-brand {
-    height: 5vh;
-    padding: 15px;
-    text-align: center;
-    font-weight: bold;
-    border-bottom: 1px solid #dee2e6;
-    display: block;
-}
-
-#sidebar-content {
-    flex-grow: 1;
-    overflow-y: auto; /* Add scrollbar if content overflows */
-}
-
-#sidebar-content ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-#sidebar-content li a {
-    display: block;
-    padding: 10px 20px;
-    text-decoration: none;
-    color: #333;
-}
-
-#sidebar-content li a:hover {
-    background-color: #e9ecef;
-}
-
-/* Navigation Bar Styles */
-nav ul {
-    list-style: none;
-    padding: 0;
-}
-
-nav ul li {
-    display: inline;
-    margin-right: 20px;
-}
-
-.navbar {
-    width: 100%;
-    height: 5vh;
-    z-index: 101;
-}
-
-#navbar-title {
-    font-weight: bold;
-    font-size: 1.25rem;
-  }
-
-/* Tabs Styles */
-.tabs {
-    display: flex;
-    flex-wrap: wrap;
-    width: 100%;
-}
-
-.tabs input[type="radio"] {
-    display: none;
-}
-
-.tabs label {
-    padding: 10px 20px;
-    background: #eee;
-    border: 1px solid #ccc;
-    cursor: pointer;
-    margin-right: 2px;
-    border-bottom: none;
-}
-
-.tabs .tab {
-    width: 100%;
-    padding: 20px;
-    background: #fff;
-    border: 1px solid #ccc;
-    order: 1;
-    display: none;
-}
-
-.tabs input[type="radio"]:checked + label {
-    background: #fff;
-    border-bottom: 1px solid #fff;
-}
-
-.tabs input[type="radio"]:checked + label + .tab {
-    display: block;
-}
-
-/* Table Styles */
-.full-width-table {
-    width: 100%;
-    border-collapse: collapse;
-}
-
-.full-width-table th,
-.full-width-table td {
-    padding: 8px;
-    text-align: left;
-}
-
-.right-align {
-    text-align: right;
-}
-
-.full-width-table tbody tr:hover {
-    background-color: #f0f0f0;
-    cursor: pointer;
-}
-
-/* Action Buttons */
-.action-buttons {
-    margin-bottom: 10px;
-}
-
-/* Timeline Styles */
-.timeline-container {
-    margin-bottom: 20px;
-}
-
-.timeline {
-    border-left: 2px solid #ccc;
-    padding-left: 20px;
-    position: relative;
-}
-
-.timeline-item {
-    margin-bottom: 15px;
-    position: relative;
-}
-
-.timeline-item::before {
-    content: '';
-    position: absolute;
-    left: -10px;
-    top: 5px;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background-color: #ccc;
-}
-
-.timeline-start::before {
-    background-color: green;
-}
-
-.timeline-end::before {
-    background-color: red;
-}
-
-.timeline-phase::before {
-    background-color: blue;
-}
-
-.timeline-jalon::before {
-    background-color: orange;
-}
-
-.timeline-content {
-    background-color: #f0f0f0;
-    padding: 10px;
-    border-radius: 5px;
-    border: 1px solid #ccc;
-}
-
-/* Responsive adjustments (optional) */
-@media (max-width: 768px) {
-    .sidebar {
-        width: 100%;
-        height: auto;
-        position: relative;
-        top: auto;
-    }
-    .app-container{
-        flex-direction: column;
-    }
+    padding-top: 2rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    overflow-y: auto; /* Add a vertical scrollbar if content overflows */
 }

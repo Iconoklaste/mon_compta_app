@@ -1,18 +1,20 @@
 {% extends 'base.html' %}
 
 {% block page_title %}
-    MES PROJETS
+    <h1>Projets</h1>
 {% endblock %}
 
 {% block content %}
     {% if projets %}
-        <ul class="list-group">
-            {% for projet in projets %}
-                <li class="list-group-item">
-                    <a href="{{ url_for('projets.projet_detail', projet_id=projet.id) }}">{{ projet.nom }}</a> - {{ projet.statut }}
-                </li>
-            {% endfor %}
-        </ul>
+        <section>
+            <ul class="list-group">
+                {% for projet in projets %}
+                    <li class="list-group-item">
+                        <a href="{{ url_for('projets.projet_detail', projet_id=projet.id) }}">{{ projet.nom }}</a> - {{ projet.statut }}
+                    </li>
+                {% endfor %}
+            </ul>
+        </section>
     {% else %}
         <p>Vous n'avez pas encore de projet :-(</p>
         <a href="{{ url_for('projets.ajouter_projet') }}" class="btn btn-primary">Ajouter un projet</a>

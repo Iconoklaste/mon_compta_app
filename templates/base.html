@@ -2,10 +2,13 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LOOVA – Logiciel Optimisé pour l’Organisation et la Visibilité des Activités</title>
     <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='whiteboard.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.1/dist/umd/popper.min.js"></script>
@@ -16,64 +19,75 @@
 </head>
 <body>
     <div class="app-container">
-        <div class="sidebar">
-            <a class="navbar-brand sidebar-brand" href="{{ url_for('users.index') }}">LOOVA</a>
-            <div id="sidebar-content">
+        <aside class="sidebar">
+            <div class="sidebar-brand">LOOVA</div>
+            <nav id="sidebar-content">
                 <ul>
-                    <li><a href="{{ url_for('users.index') }}"><span class="sidebar-icon">&#127968;</span><span class="sidebar-text">Accueil</span></a></li>
+                    <li class="{% if current_page == 'Accueil' %}active{% endif %}">
+                        <a href="{{ url_for('users.index') }}">
+                            <i class="fas fa-home sidebar-icon"></i>
+                            <span class="sidebar-text">Accueil</span>
+                        </a>
+                    </li>
                     {% if session['user_id'] %}
-                    <li><a href="{{ url_for('projets.projets') }}"><span class="sidebar-icon">&#128195;</span><span class="sidebar-text">Projets</span></a></li>
-                    <li><a href="{{ url_for('compta.index') }}"><span class="sidebar-icon">&#128184;</span><span class="sidebar-text">Comptabilité</span></a></li>
+                    <li class="{% if current_page == 'Projets' %}active{% endif %}">
+                        <a href="{{ url_for('projets.projets') }}">
+                            <i class="fas fa-tasks sidebar-icon"></i>
+                            <span class="sidebar-text">Projets</span>
+                        </a>
+                    </li>
+                    <li class="{% if current_page == 'Comptabilité' %}active{% endif %}">
+                        <a href="{{ url_for('compta.index') }}">
+                            <i class="fas fa-money-bill-wave sidebar-icon"></i>
+                            <span class="sidebar-text">Comptabilité</span>
+                        </a>
+                    </li>
                     {% endif %}
                     {% block sidebar %}
                     {% endblock %}
                 </ul>
-            </div>
-        </div>
+            </nav>
+        </aside>
+        
+        
 
-        <div class="main-content">
-            <nav class="navbar navbar-expand-lg navbar-light bg-light">
-                <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                
-                <div class="navbar-brand" id="navbar-title">
-                    {% block page_title %}{% endblock %}
+        <main class="main-content">
+            <header class="navbar" id="main-navbar">
+                <div id="navbar-title" class="navbar-title-container">
+                    {% block page_title %}
+                        <h1>Bienvenue sur LOOVA</h1>
+                    {% endblock %}
+                    {% block page_subtitle %}
+                    {% endblock %}
                 </div>
 
-                <div class="collapse navbar-collapse" id="navbarNav">
-                    <ul class="navbar-nav ml-auto">
+                <nav id="navbarNav">
+                    <ul class="navbar-nav">
                         {% if session['user_id'] %}
                             <li class="nav-item dropdown">
                                 <a class="nav-link dropdown-toggle" href="#" id="userDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                                     Mon Compte
                                 </a>
-                                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown">
+                                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="userDropdown" id="userDropdownMenu">
                                     <a class="dropdown-item" href="{{ url_for('users.modifier_profil') }}">Modifier mon profil</a>
                                     <a class="dropdown-item" href="{{ url_for('organisations.modifier_organisation') }}">Modifier mon organisation</a>
                                     <div class="dropdown-divider"></div>
                                     <a class="dropdown-item" href="{{ url_for('users.logout') }}">Déconnexion</a>
                                 </div>
                             </li>
-                        {% else %}
-                            <li class="nav-item">
-                                <form method="POST" action="{{ url_for('users.index') }}">
-                                    <input type="email" name="email" placeholder="Email" required>
-                                    <input type="password" name="password" placeholder="Mot de passe" required>
-                                    <button type="submit">Se connecter</button>
-                                </form>
-                            </li>
                         {% endif %}
                     </ul>
-                </div>
-            </nav>
+                </nav>
+            </header>
+
+
             <div class="content">
                 <div class="container-fluid">
                     {% block content %}
                     {% endblock %}
                 </div>
             </div>
-        </div>
+        </main>
     </div>
 </body>
 </html>

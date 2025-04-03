@@ -15,7 +15,9 @@ def projets():
     if not user:
         abort(404)
     projets = Projet.query.filter_by(user_id=user_id).all()
-    return render_template('projets.html', projets=projets)
+    return render_template('projets.html',
+                           projets=projets,
+                           current_page='Projets')
 
 
 @projets_bp.route('/projet/<int:projet_id>/modifier', methods=['GET', 'POST'])

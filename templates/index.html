@@ -1,46 +1,50 @@
-<!-- c:\wamp\www\mon_compta_app\templates\index.html -->
 {% extends 'base.html' %}
 
+{% block page_subtitle %}
+<p>Logiciel Optimisé pour l’Organisation et la Visibilité des Activités.</p>
+{% endblock %}
+
 {% block content %}
-    <h1>Bienvenue sur LOOVA</h1>
-    <p>Logiciel Optimisé pour l’Organisation et la Visibilité des Activités.</p>
     {% if session['user_id'] %}
         <div class="row">
             <div class="col-md-6">
-                <div class="card">
+                <article class="card">
                     <div class="card-body">
                         <h5 class="card-title">Gestion de Projet</h5>
                         <p class="card-text">Accédez à la liste de vos projets et gérez-les.</p>
                         <a href="{{ url_for('projets.projets') }}" class="btn btn-primary">Voir les Projets</a>
                     </div>
-                </div>
+                </article>
             </div>
             <div class="col-md-6">
-                <div class="card">
+                <article class="card">
                     <div class="card-body">
                         <h5 class="card-title">Comptabilité</h5>
                         <p class="card-text">Accédez à la partie comptabilité de l'application.</p>
                         <a href="{{ url_for('compta.index') }}" class="btn btn-secondary">Accéder à la Comptabilité</a>
                     </div>
-                </div>
+                </article>
             </div>
         </div>
     {% else %}
         {% if users %}
-            <h2>Connexion</h2>
-            <form method="POST" action="{{ url_for('users.index') }}">
-                <div class="form-group">
-                    <label for="email">Email</label>
-                    <input type="email" class="form-control" id="email" name="email" required>
+            <section class="card">
+                <div class="card-body">
+                    <h2 class="card-title">Connexion</h2>
+                    <form method="POST" action="{{ url_for('users.index') }}">
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <input type="email" class="form-control" id="email" name="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="password">Mot de passe</label>
+                            <input type="password" class="form-control" id="password" name="password" required>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Se connecter</button>
+                        <a href="{{ url_for('users.ajouter_user') }}" class="btn btn-secondary">Ajouter un utilisateur</a>
+                    </form>
                 </div>
-                <div class="form-group">
-                    <label for="password">Mot de passe</label>
-                    <input type="password" class="form-control" id="password" name="password" required>
-                </div>
-                <button type="submit" class="btn btn-primary">Se connecter</button>
-
-                <a href="{{ url_for('users.ajouter_user') }}" class="btn btn-secondary">Ajouter un utilisateur</a>
-            </form>
+            </section>
         {% else %}
             <div class="alert alert-warning" role="alert">
                 Aucun utilisateur n'a été trouvé. Veuillez créer au moins un utilisateur pour commencer.

@@ -3,7 +3,7 @@
 /* General Styles (Consistent with styles.css) */
 body {
     margin: 0;
-    font-family: sans-serif; /* Use the same font as the rest of the app */
+    font-family: 'Roboto', sans-serif; /* Use the same font as the rest of the app */
 }
 
 /* Canvas Container */
@@ -17,7 +17,7 @@ body {
 #canvas {
     cursor: grab;
     border: 1px solid #ccc; /* Keep the border */
-    background-color: #ffffff; /* Keep the gray background */
+    background-color: #ffffff; /* Keep the white background */
     width: 100%;
     height: 100%;
 }
@@ -41,7 +41,7 @@ body {
 
 /* Toolbar Buttons */
 #toolbar button {
-    background-color: #007bff; /* Bootstrap blue */
+    background-color: #21993b; /* Vert vif */
     border: none;
     color: white;
     padding: 8px 16px;
@@ -56,27 +56,27 @@ body {
 }
 
 #toolbar button:hover {
-    background-color: #0056b3; /* Darker blue on hover */
+    background-color: #155; /* Vert foncé on hover */
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
 }
 
 #toolbar button:active {
-    background-color: #004085; /* Even darker blue on click */
+    background-color: #07857A; /* Vert foncé on click */
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
     transform: translateY(1px);
 }
 
 /* Color Picker Button */
 #open-color-picker {
-    background-color: #6c757d; /* Gray */
+    background-color: #333333; /* Dark gray */
 }
 
 #open-color-picker:hover {
-    background-color: #5a6268; /* Darker gray on hover */
+    background-color: #262626; /* Darker gray on hover */
 }
 
 #open-color-picker:active {
-    background-color: #495054; /* Even darker gray on click */
+    background-color: #1A1A1A; /* Even darker gray on click */
 }
 
 /* Select Styling */
@@ -97,8 +97,8 @@ body {
 
 #toolbar select:focus {
     outline: none;
-    border-color: #007bff; /* Blue focus outline */
-    box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    border-color: #2c3e50; /* Dark blue focus outline */
+    box-shadow: 0 0 5px rgba(44, 62, 80, 0.5);
 }
 
 /* Zoom Indicator */
@@ -129,7 +129,7 @@ body {
 #toolbar #bring-to-front,
 #toolbar #send-backward,
 #toolbar #bring-forward {
-    background-color: #6c757d; /* Gray, similar to color picker */
+    background-color: #333333; /* Dark gray */
     border: none;
     color: white;
     padding: 8px 16px;
@@ -147,7 +147,7 @@ body {
 #toolbar #bring-to-front:hover,
 #toolbar #send-backward:hover,
 #toolbar #bring-forward:hover {
-    background-color: #5a6268; /* Darker gray on hover */
+    background-color: #262626; /* Darker gray on hover */
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
 }
 
@@ -155,7 +155,7 @@ body {
 #toolbar #bring-to-front:active,
 #toolbar #send-backward:active,
 #toolbar #bring-forward:active {
-    background-color: #495054; /* Even darker gray on click */
+    background-color: #1A1A1A; /* Even darker gray on click */
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
     transform: translateY(1px);
 }

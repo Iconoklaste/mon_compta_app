@@ -50,6 +50,9 @@ app.register_blueprint(projet_phases_bp)
 app.register_blueprint(projet_jalons_bp)
 app.register_blueprint(whiteboard_bp) # Register the whiteboard blueprint
 
+@app.route('/test/projet_detail')
+def test_projet_detail():
+    return render_template('test/test_projet_detail.html')
 
 @app.route('/generer_facture/<int:transaction_id>')
 @login_required

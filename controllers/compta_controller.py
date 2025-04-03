@@ -94,6 +94,7 @@ def index():
 
     return render_template(
         'compta/compta_index.html',
+        current_page='Comptabilité',
         overall_balance=overall_balance,
         pending_invoices=pending_invoices,
         received_payments=received_payments,
