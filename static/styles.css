@@ -41,8 +41,8 @@ a:hover {
 
 /* Boutons */
 .btn-primary {
-    background-color: var(--light-green); /* Boutons en vert vif */
-    border-color: var(--light-green);
+    background-color: var(--blue); /* Boutons en vert vif */
+    border-color: var(--blue);
     border-radius: 5px;
     transition: all 0.3s ease;
     color: var(--white); /* Texte des boutons en blanc */
@@ -150,27 +150,26 @@ nav#sidebar-content {
     background-color: var(--white);
     color: var(--dark-blue);
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    padding: 0.5rem 1rem; /* Add horizontal padding */
+    padding: 0.5rem 1rem;
     display: flex;
     justify-content: space-between;
-    align-items: center; /* Vertically center items */
-    position: fixed; /* Make the navbar fixed */
-    top: 0; /* Align to the top */
-    left: 250px; /* Start the navbar to the right of the sidebar */
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 250px;
     width: calc(100% - 250px);
-    z-index: 200; /* Ensure it's above the sidebar and other content */
+    z-index: 200;
     flex-shrink: 0;
-    min-height: 4rem; /* Set a fixed minimum height */
+    min-height: 4rem;
     transition: left 0.3s ease, width 0.3s ease
 }
 
 .navbar-title-container {
     display: flex;
     flex-direction: column;
-    justify-content: center; /* Center content vertically */
+    justify-content: center;
     align-items: flex-start;
-    width: auto; /* Adjust width to content */
-    gap: 0.25rem; /* Add a small gap between h1 and p */
+    gap: 0.25rem;
 }
 
 .navbar-title-container h1 {
@@ -185,7 +184,6 @@ nav#sidebar-content {
     font-size: 0.9rem;
 }
 
-
 .navbar p {
     font-size: 0.9rem;
     margin-left: 0;
@@ -193,22 +191,21 @@ nav#sidebar-content {
     color: var(--dark-blue);
 }
 
-
 #navbar-title {
-    color: var(--white); /* Texte de la navbar en blanc */
+    color: var(--white);
 }
 
 .navbar-brand {
     background-color: transparent;
-    color: var(--white); /* Texte de la navbar en blanc */
+    color: var(--white);
     padding: 0;
 }
 
 #navbarNav {
-    display: flex; /* Make navbarNav a flex container */
-    align-items: center; /* Vertically center items */
-    margin-left: auto; /* Push navbarNav to the right */
-    height: 100%; /* Add height to the navbarNav */
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+    height: 100%;
 }
 
 .navbar-nav {
@@ -218,23 +215,38 @@ nav#sidebar-content {
     padding: 0;
     align-items: center;
     gap: 1rem;
-    height: 100%; /* Add height to the navbar-nav */
+    height: 100%;
 }
 
 .nav-item {
     border-radius: 5px;
     transition: background-color 0.3s ease;
-    padding: 0 1rem; /* Add padding to the left and right */
+    padding: 0 1rem;
+    list-style: none;
 }
 
-.nav-item:hover,
-.nav-item:focus-within {
+.navbar-nav > li {
+    list-style: none; /* Removes the bullet point */
+}
+
+
+.navbar-nav > li.nav-item:not(.dropdown):hover {
+    background-color: transparent;
+}
+
+.navbar-nav .nav-item .btn:hover {
+    background-color: #0069d9;
+    border-color: #0062cc;
+}
+
+.navbar-nav .nav-item.dropdown:hover,
+.navbar-nav .nav-item.dropdown:focus-within {
     background-color: var(--light-dark-blue);
 }
 
 .nav-link {
     color: var(--dark-blue);
-    padding: 0.5rem 0; /* Remove horizontal padding */
+    padding: 0.5rem 0;
     display: block;
     transition: color 0.3s ease;
 }
@@ -253,15 +265,16 @@ nav#sidebar-content {
     background-color: var(--white);
     border: none;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    position: absolute; /* Positionnement absolu */
-    top: 100%; /* Placer le menu juste en dessous du lien */
-    right: 0; /* Aligner le menu à droite */
-    z-index: 1000; /* S'assurer que le menu est au-dessus du reste du contenu */
+    position: absolute;
+    top: 100%;
+    right: 0;
+    z-index: 1000;
 }
 
 .dropdown-item {
     color: var(--dark-blue);
 }
+
 
 /* Tableaux */
 .table {
@@ -363,4 +376,15 @@ nav#sidebar-content {
     padding-left: 1rem;
     padding-right: 1rem;
     overflow-y: auto; /* Add a vertical scrollbar if content overflows */
+}
+
+/* Page Liste des projets */
+
+/* Page Liste des projets */
+
+.custom-badge {
+    padding: 0.05rem 0.3rem 0.15rem;
+    border-radius: 0.25rem;
+    vertical-align: middle;
+    line-height: 1.2em;
 }
