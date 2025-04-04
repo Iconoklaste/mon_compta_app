@@ -59,15 +59,15 @@
 
                     <p class="card-text">
                         <small class="text-muted">Montant total:</small>
-                        {% if projet.montant_total %}
-                        {{ projet.montant_total }} €
+                        {% if projet.prix_total %}
+                        <small class="text-muted">{{ projet.prix_total|int }} €</small>
                         {% else %}
                         <span class="text-muted">Non défini</span>
                         {% endif %}
                     </p>
                 </div>
-                <div class="card-footer">
-                    <a href="{{ url_for('projets.projet_detail', projet_id=projet.id) }}" class="btn btn-primary btn-sm">
+                <div class="card-footer-custom">
+                    <a href="{{ url_for('projets.projet_detail', projet_id=projet.id) }}" class="btn btn-secondary btn-sm">
                         <i class="fas fa-eye"></i> Détails
                     </a>
                 </div>
