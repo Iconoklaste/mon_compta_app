@@ -2,180 +2,180 @@
 {% extends 'base.html' %}
 
 {% block sidebar %}
-
-        <li><a href="{{ url_for('projets.modifier_projet', projet_id=projet.id) }}" class="btn btn-warning">Modifier le Projet</a></li>
-        <li><form action="{{ url_for('projets.supprimer_projet', projet_id=projet.id) }}" method="POST" style="display: inline;">
-            <button type="submit" class="btn btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce projet ? Cette action est irréversible.')">Supprimer le Projet</button>
-        </form></li>
-        <!-- ... other links ... -->
-
+<li><a href="{{ url_for('projets.modifier_projet', projet_id=projet.id) }}" class="btn btn-warning">Modifier le Projet</a></li>
+<li>
+    <form action="{{ url_for('projets.supprimer_projet', projet_id=projet.id) }}" method="POST" style="display: inline;">
+        <button type="submit" class="btn btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce projet ? Cette action est irréversible.')">Supprimer le Projet</button>
+    </form>
+</li>
+<!-- ... other links ... -->
 {% endblock %}
 
 {% block page_title %}
-<span style="text-transform: uppercase;">{{projet.nom}} | VUE D'ENSEMBLE.</span>  
+<span style="text-transform: uppercase;">{{projet.nom}} | VUE D'ENSEMBLE.</span>
 {% endblock %}
 
 {% block content %}
-    
-    <div class="action-buttons">
-        
 
+<div class="action-buttons">
+
+
+</div>
+
+<div class="tabs">
+    <input type="radio" name="tabs" id="tab1" checked="checked">
+    <label for="tab1">Informations Générales</label>
+    <div class="tab">
+        <h2>Informations Générales</h2>
+        <p>Client : {{ client.nom }}</p>
+        <p>Date de Début : {{ projet.date_debut.strftime('%d/%m/%Y') if projet.date_debut else 'Non définie' }}</p>
+        <p>Date de Fin : {{ projet.date_fin.strftime('%d/%m/%Y') if projet.date_fin else 'Non définie' }}</p>
+        <p>Statut : {{ projet.statut }}</p>
+        <p>Prix total : {{ projet.prix_total }}</p>
+        <p>Reste à facturer : {{ remaining_to_bill }}</p>
     </div>
 
-    <div class="tabs">
-        <input type="radio" name="tabs" id="tab1" checked="checked">
-        <label for="tab1">Informations Générales</label>
-        <div class="tab">
-            <h2>Informations Générales</h2>
-            <p>Client : {{ client.nom }}</p>
-            <p>Date de Début : {{ projet.date_debut.strftime('%d/%m/%Y') if projet.date_debut else 'Non définie' }}</p>
-            <p>Date de Fin : {{ projet.date_fin.strftime('%d/%m/%Y') if projet.date_fin else 'Non définie' }}</p>
-            <p>Statut : {{ projet.statut }}</p>
-            <p>Prix total : {{ projet.prix_total }}</p>
-            <p>Reste à facturer : {{ remaining_to_bill }}</p>
-        </div>
-
-        <input type="radio" name="tabs" id="tab2">
-        <label for="tab2">Phases et Jalons</label>
-        <div class="tab">
-            <div class="timeline-container">
-                <h2>Timeline du Projet</h2>
-                <div class="timeline">
-                    {% if projet.date_debut and projet.date_fin %}
-                        <div class="timeline-item timeline-start">
-                            <div class="timeline-content">
-                                <p>Début du projet : {{ projet.date_debut.strftime('%d/%m/%Y') }}</p>
-                            </div>
-                        </div>
-                        {% for phase in projet.phases %}
-                            <div class="timeline-item timeline-phase">
-                                <div class="timeline-content">
-                                    <p>Phase : {{ phase.nom }} - {{ phase.statut }}</p>
-                                </div>
-                            </div>
-                        {% endfor %}
-                        {% for jalon in projet.jalons %}
-                            <div class="timeline-item timeline-jalon">
-                                <div class="timeline-content">
-                                    <p>Jalon : {{ jalon.nom }} - {{ jalon.date.strftime('%d/%m/%Y') }}</p>
-                                </div>
-                            </div>
-                        {% endfor %}
-                        <div class="timeline-item timeline-end">
-                            <div class="timeline-content">
-                                <p>Fin du projet : {{ projet.date_fin.strftime('%d/%m/%Y') }}</p>
-                            </div>
-                        </div>
-                    {% else %}
-                        <p>Dates de début et/ou de fin du projet non définies.</p>
-                    {% endif %}
+    <input type="radio" name="tabs" id="tab2">
+    <label for="tab2">Phases et Jalons</label>
+    <div class="tab">
+        <div class="timeline-container">
+            <h2>Timeline du Projet</h2>
+            <div class="timeline">
+                {% if projet.date_debut and projet.date_fin %}
+                <div class="timeline-item timeline-start">
+                    <div class="timeline-content">
+                        <p>Début du projet : {{ projet.date_debut.strftime('%d/%m/%Y') }}</p>
+                    </div>
                 </div>
-            </div>
-            <div class="action-buttons">
-                <a href="{{ url_for('projet_phases.ajouter_phase', projet_id=projet.id) }}" class="btn btn-primary">Ajouter une phase</a>
-                <a href="{{ url_for('projet_jalons.ajouter_jalon', projet_id=projet.id) }}" class="btn btn-primary">Ajouter un jalon</a>
-            </div>
-            <h2>Phases</h2>
-            <ul class="list-group">
                 {% for phase in projet.phases %}
-                    <li class="list-group-item">
-                        {{ phase.nom }} - {{ phase.statut }}
-                        <a href="{{ url_for('projet_phases.modifier_phase', projet_id=projet.id, phase_id=phase.id) }}" class="btn btn-warning btn-sm">Modifier</a>
-                        <form action="{{ url_for('projet_phases.supprimer_phase', projet_id=projet.id, phase_id=phase.id) }}" method="POST" style="display: inline;">
-                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette phase ?')">Supprimer</button>
-                        </form>
-                    </li>
+                <div class="timeline-item timeline-phase">
+                    <div class="timeline-content">
+                        <p>Phase : {{ phase.nom }} - {{ phase.statut }}</p>
+                    </div>
+                </div>
                 {% endfor %}
-            </ul>
-
-            <h2>Jalons</h2>
-            <ul class="list-group">
                 {% for jalon in projet.jalons %}
-                    <li class="list-group-item">
-                        {{ jalon.nom }} - {{ jalon.date.strftime('%d/%m/%Y') }}
-                        <a href="{{ url_for('projet_jalons.modifier_jalon', projet_id=projet.id, jalon_id=jalon.id) }}" class="btn btn-warning btn-sm">Modifier</a>
-                        <form action="{{ url_for('projet_jalons.supprimer_jalon', projet_id=projet.id, jalon_id=jalon.id) }}" method="POST" style="display: inline;">
-                            <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce jalon ?')">Supprimer</button>
-                        </form>
-                    </li>
+                <div class="timeline-item timeline-jalon">
+                    <div class="timeline-content">
+                        <p>Jalon : {{ jalon.nom }} - {{ jalon.date.strftime('%d/%m/%Y') }}</p>
+                    </div>
+                </div>
                 {% endfor %}
-            </ul>
-        </div>
-
-        <input type="radio" name="tabs" id="tab3">
-        <label for="tab3">Transactions</label>
-        <div class="tab">
-            <div class="action-buttons">
-                <a href="{{ url_for('transactions.ajouter_transaction', projet_id=projet.id) }}" class="btn btn-primary">Ajouter une Transaction</a>
+                <div class="timeline-item timeline-end">
+                    <div class="timeline-content">
+                        <p>Fin du projet : {{ projet.date_fin.strftime('%d/%m/%Y') }}</p>
+                    </div>
+                </div>
+                {% else %}
+                <p>Dates de début et/ou de fin du projet non définies.</p>
+                {% endif %}
             </div>
-            <h2>Transactions</h2>
-            <table class="full-width-table">
-                <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Type</th>
-                        <th class="right-align">Montant</th>
-                        <th>Description</th>
-                        <th>Mode de paiement</th>
-                        <th>Statut de règlement</th>
-                        <th>Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for transaction in transactions %}
-                    <tr>
-                        <td>{{ transaction.date.strftime('%d/%m/%Y') }}</td>
-                        <td>{{ transaction.type }}</td>
-                        <td class="right-align">{{ transaction.montant }} €</td>
-                        <td>{{ transaction.description }}</td>
-                        <td>{{ transaction.mode_paiement }}</td>
-                        <td>
-                            <form action="{{ url_for('transactions.modifier_reglement', transaction_id=transaction.id) }}" method="POST">
-                                <select name="reglement" onchange="this.form.submit()">
-                                    <option value="Non réglée" {% if transaction.reglement == "Non réglée" %}selected{% endif %}>Non réglée</option>
-                                    <option value="Réglée" {% if transaction.reglement == "Réglée" %}selected{% endif %}>Réglée</option>
-                                    <option value="Partiellement réglée" {% if transaction.reglement == "Partiellement réglée" %}selected{% endif %}>Partiellement réglée</option>
-                                </select>
-                            </form>
-                        </td>
-                        <td>
-                            <a href="{{ url_for('generer_facture', transaction_id=transaction.id) }}" target="_blank">Générer facture</a>
-                        </td>
-                    </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
         </div>
-        <input type="radio" name="tabs" id="tab4">
-        <label for="tab4">Tableau Blanc</label>
-        <div class="tab tab-whiteboard"></div>
-        <script>
-            document.querySelector('label[for="tab4"]').addEventListener('click', function() {
-                window.location.href = "{{ url_for('whiteboard.whiteboard_view', projet_id=projet.id) }}"; 
-            });
-            document.addEventListener('DOMContentLoaded', function() {
-                const content = document.querySelector('.content');
-                const tab1 = document.querySelector('#tab1');
-                const tab2 = document.querySelector('#tab2');
-                const tab3 = document.querySelector('#tab3');
-                if (tab1) {
-                    tab1.addEventListener('click', function() {
-                        content.classList.remove('no-padding');
-                    });
-                }
-                if (tab2) {
-                    tab2.addEventListener('click', function() {
-                        content.classList.remove('no-padding');
-                    });
-                }
-                if (tab3) {
-                    tab3.addEventListener('click', function() {
-                        content.classList.remove('no-padding');
-                    });
-                }
-            });
-        </script>
+        <div class="action-buttons">
+            <a href="{{ url_for('projet_phases.ajouter_phase', projet_id=projet.id) }}" class="btn btn-primary">Ajouter une phase</a>
+            <a href="{{ url_for('projet_jalons.ajouter_jalon', projet_id=projet.id) }}" class="btn btn-primary">Ajouter un jalon</a>
+        </div>
+        <h2>Phases</h2>
+        <ul class="list-group">
+            {% for phase in projet.phases %}
+            <li class="list-group-item">
+                {{ phase.nom }} - {{ phase.statut }}
+                <a href="{{ url_for('projet_phases.modifier_phase', projet_id=projet.id, phase_id=phase.id) }}" class="btn btn-warning btn-sm">Modifier</a>
+                <form action="{{ url_for('projet_phases.supprimer_phase', projet_id=projet.id, phase_id=phase.id) }}" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette phase ?')">Supprimer</button>
+                </form>
+            </li>
+            {% endfor %}
+        </ul>
+
+        <h2>Jalons</h2>
+        <ul class="list-group">
+            {% for jalon in projet.jalons %}
+            <li class="list-group-item">
+                {{ jalon.nom }} - {{ jalon.date.strftime('%d/%m/%Y') }}
+                <a href="{{ url_for('projet_jalons.modifier_jalon', projet_id=projet.id, jalon_id=jalon.id) }}" class="btn btn-warning btn-sm">Modifier</a>
+                <form action="{{ url_for('projet_jalons.supprimer_jalon', projet_id=projet.id, jalon_id=jalon.id) }}" method="POST" style="display: inline;">
+                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce jalon ?')">Supprimer</button>
+                </form>
+            </li>
+            {% endfor %}
+        </ul>
     </div>
 
-    
+    <input type="radio" name="tabs" id="tab3">
+    <label for="tab3">Transactions</label>
+    <div class="tab">
+        <div class="action-buttons">
+            <a href="{{ url_for('transactions.ajouter_transaction', projet_id=projet.id) }}" class="btn btn-primary">Ajouter une Transaction</a>
+        </div>
+        <h2>Transactions</h2>
+        <table class="full-width-table">
+            <thead>
+                <tr>
+                    <th>Date</th>
+                    <th>Type</th>
+                    <th class="right-align">Montant</th>
+                    <th>Description</th>
+                    <th>Mode de paiement</th>
+                    <th>Statut de règlement</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for transaction in transactions %}
+                <tr>
+                    <td>{{ transaction.date.strftime('%d/%m/%Y') }}</td>
+                    <td>{{ transaction.type }}</td>
+                    <td class="right-align">{{ transaction.montant }} €</td>
+                    <td>{{ transaction.description }}</td>
+                    <td>{{ transaction.mode_paiement }}</td>
+                    <td>
+                        <form action="{{ url_for('transactions.modifier_reglement', transaction_id=transaction.id) }}" method="POST">
+                            <select name="reglement" onchange="this.form.submit()">
+                                <option value="Non réglée" {% if transaction.reglement == "Non réglée" %}selected{% endif %}>Non réglée</option>
+                                <option value="Réglée" {% if transaction.reglement == "Réglée" %}selected{% endif %}>Réglée</option>
+                                <option value="Partiellement réglée" {% if transaction.reglement == "Partiellement réglée" %}selected{% endif %}>Partiellement réglée</option>
+                            </select>
+                        </form>
+                    </td>
+                    <td>
+                        <a href="{{ url_for('generer_facture', transaction_id=transaction.id) }}" target="_blank">Générer facture</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <input type="radio" name="tabs" id="tab4">
+    <label for="tab4">Tableau Blanc</label>
+    <div class="tab tab-whiteboard"></div>
+    <script>
+        document.querySelector('label[for="tab4"]').addEventListener('click', function() {
+            window.location.href = "{{ url_for('whiteboard.whiteboard_view', projet_id=projet.id) }}";
+        });
+        document.addEventListener('DOMContentLoaded', function() {
+            const content = document.querySelector('.content');
+            const tab1 = document.querySelector('#tab1');
+            const tab2 = document.querySelector('#tab2');
+            const tab3 = document.querySelector('#tab3');
+            if (tab1) {
+                tab1.addEventListener('click', function() {
+                    content.classList.remove('no-padding');
+                });
+            }
+            if (tab2) {
+                tab2.addEventListener('click', function() {
+                    content.classList.remove('no-padding');
+                });
+            }
+            if (tab3) {
+                tab3.addEventListener('click', function() {
+                    content.classList.remove('no-padding');
+                });
+            }
+        });
+    </script>
+</div>
+
+
 {% endblock %}

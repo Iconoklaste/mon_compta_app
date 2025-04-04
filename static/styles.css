@@ -462,3 +462,68 @@ nav#sidebar-content {
     vertical-align: middle;
     line-height: 1.2em;
 }
+
+/* Hide the radio inputs */
+.tabs input[type="radio"] {
+    display: none;
+}
+
+/* Style the labels as tabs */
+.tabs label {
+    display: inline-block;
+    padding: 10px 15px;
+    background-color: #eee;
+    border: 1px solid #ccc;
+    cursor: pointer;
+    margin-right: 5px;
+    border-radius: 5px 5px 0 0; /* Rounded top corners */
+    /* Add a position relative to the label */
+    position: relative;
+    z-index: 1; /* Ensure the label is above the content */
+}
+
+/* Style the selected tab */
+.tabs input[type="radio"]:checked + label {
+    background-color: #fff;
+    border-bottom: 1px solid #fff; /* Hide the bottom border */
+}
+
+/* Hide all tab content by default */
+.tabs .tab {
+    display: none;
+    padding: 20px;
+    border: 1px solid #ccc;
+    border-top: none; /* Remove the top border */
+    /* Add a position relative to the content */
+    position: relative;
+    top: -1px; /* Adjust the position to overlap the label's bottom border */
+}
+
+/* Show the content of the selected tab */
+.tabs input[type="radio"]:checked + label + .tab {
+    display: block;
+}
+
+/* Add a container for the tabs and content */
+.tabs {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+}
+
+/* Style the tab labels container */
+.tabs > label {
+    order: 1; /* Place the labels above the content */
+}
+
+/* Style the tab content container */
+.tabs > .tab {
+    order: 2; /* Place the content below the labels */
+}
+
+/* Style the tab labels container */
+.tabs .tabs-labels {
+    display: flex;
+    flex-direction: row;
+    order: 1;
+}
