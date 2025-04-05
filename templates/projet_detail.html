@@ -81,74 +81,63 @@
     </div>
 </div>
 
-<div class="tabs mt-4">
-    <input type="radio" name="tabs" id="tab2" checked>
-    <label for="tab2">Phases et Jalons</label>
+<div class="tabs-container">
+    <div class="tab-menu">
+        <button class="tab-button" data-tab="tab1-content active">Phases et Jalons</button>
+        <button class="tab-button" data-tab="tab2-content">Transactions</button>
+        <button class="tab-button" data-tab="tab3-content">Notes de Réunion</button>
+        <button class="tab-button" data-tab="tab4-content">Gantt Chart</button>
+    </div>
 
-    <input type="radio" name="tabs" id="tab3">
-    <label for="tab3">Transactions</label>
-
-    <input type="radio" name="tabs" id="tab4">
-    <label for="tab4">Notes de Réunion</label>
-
-    <!-- New Gantt Chart Tab -->
-    <input type="radio" name="tabs" id="tab5">
-    <label for="tab5">Gantt Chart</label>
-
-    <div class="tab-content">
-        <div class="tab" id="tab2-content">
-            <!-- <div class="timeline-container">
-                <h2>Timeline du Projet</h2>
-                <div class="timeline">
-                    {% if projet.date_debut and projet.date_fin %}
-                    <div class="timeline-item timeline-start">
-                        <div class="timeline-content">
-                            <p>Début du projet : {{ projet.date_debut.strftime('%d/%m/%Y') }}</p>
-                        </div>
-                    </div>
-                    {% for phase in projet.phases %}
-                    <div class="timeline-item timeline-phase">
-                        <div class="timeline-content">
-                            <p>Phase : {{ phase.nom }} - {{ phase.statut }}</p>
-                        </div>
-                    </div>
-                    {% endfor %}
-                    {% for jalon in projet.jalons %}
-                    <div class="timeline-item timeline-jalon">
-                        <div class="timeline-content">
-                            <p>Jalon : {{ jalon.nom }} - {{ jalon.date.strftime('%d/%m/%Y') }}</p>
-                        </div>
-                    </div>
-                    {% endfor %}
-                    <div class="timeline-item timeline-end">
-                        <div class="timeline-content">
-                            <p>Fin du projet : {{ projet.date_fin.strftime('%d/%m/%Y') }}</p>
-                        </div>
-                    </div>
-                    {% else %}
-                    <p>Dates de début et/ou de fin du projet non définies.</p>
-                    {% endif %}
-                </div>
+    <div class="tab-content-container">
+        <div id="tab1-content active" class="tab-content">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="card-title m-0">Phases du projet</h5>
+                <a href="{{ url_for('projet_phases.ajouter_phase', projet_id=projet.id) }}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus"></i> Nouvelle une phase
+                </a>
             </div>
-            <div class="action-buttons">
-                <a href="{{ url_for('projet_phases.ajouter_phase', projet_id=projet.id) }}"
-                    class="btn btn-primary">Ajouter une phase</a>
-                <a href="{{ url_for('projet_jalons.ajouter_jalon', projet_id=projet.id) }}"
-                    class="btn btn-primary">Ajouter un jalon</a>
-            </div> -->
-            <h2>Phases</h2>
-            <ul class="list-group">
+            <ul class="list-group phase-list">
                 {% for phase in projet.phases %}
                 <li class="list-group-item">
-                    {{ phase.nom }} - {{ phase.statut }}
-                    <a href="{{ url_for('projet_phases.modifier_phase', projet_id=projet.id, phase_id=phase.id) }}"
-                        class="btn btn-warning btn-sm">Modifier</a>
-                    <form action="{{ url_for('projet_phases.supprimer_phase', projet_id=projet.id, phase_id=phase.id) }}"
-                        method="POST" style="display: inline;">
-                        <button type="submit" class="btn btn-danger btn-sm"
-                            onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette phase ?')">Supprimer</button>
-                    </form>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="phase-header">
+                            <h6> Phase {{ loop.index }} : {{ phase.nom }}
+
+                            </h6>
+                            <p class="mb-0"><i class="fa-regular fa-calendar"></i>
+                                <small class="text-muted">
+                                    {{ phase.date_debut.strftime('%d %B %Y') if phase.date_debut else 'Non définie' }}
+                                    -
+                                    {{ phase.date_fin.strftime('%d %B %Y') if phase.date_fin else 'Non définie' }}</small>
+                                    <span class="badge badge-sm custom-badge
+                                    {% if phase.statut == 'En cours' %}badge-success
+                                    {% elif phase.statut == 'Terminé' %}badge-secondary
+                                    {% elif phase.statut == 'En attente' %}badge-warning
+                                    {% elif phase.statut == 'Annulé' %}badge-danger
+                                    {% else %}badge-info{% endif %}">
+                                    <small>{{ phase.statut }}</small>
+                                </span>
+                                </p>
+                        </div>
+                        <div class="phase-actions">
+                            <a href="{{ url_for('projet_phases.modifier_phase', projet_id=projet.id, phase_id=phase.id) }}"
+                                class="btn btn-secondary btn-sm">
+                                <i class="fas fa-edit"></i> Modifier</a>
+                            <form action="{{ url_for('projet_phases.supprimer_phase', projet_id=projet.id, phase_id=phase.id) }}"
+                                method="POST" style="display: inline;">
+                                <button type="submit" class="btn btn-danger btn-sm btn-icon-only"
+                                    onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette phase ?')"><i class="far fa-trash-alt"></i></button>
+                            </form>
+                        </div>
+                    </div>
+                    <small class="text-muted">Progression</small>
+                    <div class="progress mb-3">
+                        <div class="progress-bar" role="progressbar" style="width: 30%;" aria-valuenow="30" aria-valuemin="0"
+                            aria-valuemax="100">30%</div>
+                    </div>
                 </li>
+                
                 {% endfor %}
             </ul>
 
@@ -169,7 +158,7 @@
             </ul>
         </div>
 
-        <div class="tab" id="tab3-content">
+        <div id="tab2-content" class="tab-content">
             <div class="action-buttons">
                 <a href="{{ url_for('transactions.ajouter_transaction', projet_id=projet.id) }}"
                     class="btn btn-primary">Ajouter une Transaction</a>
@@ -218,18 +207,56 @@
                 </tbody>
             </table>
         </div>
-        <div class="tab" id="tab4-content">
+        <div id="tab3-content" class="tab-content">
             <h2>Notes de Réunion</h2>
             <p>Fonctionnalité à venir</p>
         </div>
         <!-- New Gantt Chart Tab Content -->
-        <div class="tab" id="tab5-content">
+        <div id="tab4-content" class="tab-content">
             <div id="gantt-chart"></div>
         </div>
     </div>
 </div>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/frappe-gantt@0.6.0/dist/frappe-gantt.min.css">
 <script src="https://cdn.jsdelivr.net/npm/frappe-gantt@0.6.0/dist/frappe-gantt.min.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+
+    // Function to activate a tab
+    function activateTab(button) {
+        // Remove active class from all buttons and content
+        tabButtons.forEach(btn => btn.classList.remove('active'));
+        tabContents.forEach(content => content.classList.remove('active'));
+
+        // Add active class to the clicked button
+        button.classList.add('active');
+
+        // Get the target tab content ID from the data-tab attribute
+        const targetTabId = button.dataset.tab;
+
+        // Add active class to the target tab content
+        const targetTab = document.getElementById(targetTabId);
+        if (targetTab) {
+            targetTab.classList.add('active');
+        }
+    }
+
+    // Add click event listeners to all buttons
+    tabButtons.forEach(button => {
+        button.addEventListener('click', () => {
+            activateTab(button);
+        });
+    });
+
+    // Activate the first tab on page load
+    if (tabButtons.length > 0) {
+        activateTab(tabButtons[0]);
+    }
+});
+
+</script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
         var tasks = [

@@ -66,6 +66,25 @@ a:hover {
     border-color: #E5E5E5;
 }
 
+.btn-icon-only {
+    background-color: transparent; /* Transparent background by default */
+    border: none; /* Remove the border */
+
+}
+
+.btn-icon-only i {
+    color: red; /* Make the icon red */
+}
+
+.btn-icon-only:hover {
+    background-color: rgba(255, 0, 0, 0.1); /* Light red background on hover (10% opacity) */
+}
+
+.btn-icon-only:focus {
+    box-shadow: none; /* Remove the focus outline */
+}
+
+
 /* Cartes */
 .card {
     border: none;
@@ -464,132 +483,65 @@ nav#sidebar-content {
 
 
 .custom-badge {
-    padding: 0.05rem 0.3rem 0.15rem;
-    border-radius: 0.25rem;
+    padding: 0rem 0.5rem 0.05rem;/* Remove top/bottom padding, keep horizontal padding */
+    border-radius: 1rem;
     vertical-align: middle;
-    line-height: 1.2em;
+    line-height: 1em;
 }
 
-/* ... your existing styles ... */
 
 /* Tabs */
-.tabs {
-    background-color: var(--blue); /* Same as the current button color */
-    padding: 10px;
-    border-radius: 5px;
-    display: flex; /* Use flexbox for horizontal alignment */
-    align-items: center; /* Vertically align items */
-    flex-wrap: wrap;
+.tabs-container {
     width: 100%;
+    margin-top: 20px;
 }
 
-.tabs label {
-    background-color: var(--white);
-    color: var(--blue); /* Text color to match the background */
-    padding: 10px 15px;
+.tab-menu {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.tab-button {
+    background-color: var(--light-gray);
+    color: var(--dark-blue);
     border: none;
+    padding: 10px 15px;
     border-radius: 5px;
     cursor: pointer;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Subtle shadow */
-    transition: box-shadow 0.3s ease; /* Smooth transition for hover effect */
-    margin-right: 5px; /* Add space between tabs */
-    white-space: nowrap; /* Prevent text from wrapping */
+    transition: background-color 0.3s ease;
 }
 
-.tabs label:hover {
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Enhanced shadow on hover */
+.tab-button:hover {
+    background-color: #ddd;
 }
 
-.tabs input[type="radio"]:checked+label {
-    background-color: var(--light-gray); /* Slightly darker gray */
-    color: var(--blue);
+.tab-button.active {
+    background-color: var(--blue);
+    color: var(--white);
 }
 
-.tabs input[type="radio"] {
-    display: none;
+.tab-content-container {
+    padding: 20px;
+    padding-left: 0;
+    border-radius: 5px;
 }
 
 .tab-content {
-    background-color: var(--white);
-    padding: 20px;
-    border-radius: 5px;
-    margin-top: 10px;
-    width: 100%;
-}
-
-.tabs .tab {
     display: none;
 }
 
-/* Show tab content when corresponding radio button is checked */
-#tab2:checked ~ .tab-content #tab2-content,
-#tab3:checked ~ .tab-content #tab3-content,
-#tab4:checked ~ .tab-content #tab4-content,
-#tab5:checked ~ .tab-content #tab5-content {
+.tab-content.active {
     display: block;
 }
 
-
-/* Highlight the active tab label */
-.tabs input[type="radio"]:checked + label {
-    background: #fff;
-    border-bottom: 1px solid #fff;
+.phase-list .list-group-item {
+    border-radius: 0.5rem; /* Increased border radius */
+    margin-bottom: 1rem; /* Increased spacing between cards */
+    border: 1px solid #e0e0e0; /* Thin, light gray border */
 }
 
-/* Timeline */
-.timeline-container {
-    width: 100%;
-    margin: 20px auto;
-}
 
-.timeline {
-    border-left: 2px solid #3498db;
-    padding-left: 20px;
-    position: relative;
-}
-
-.timeline-item {
-    margin-bottom: 20px;
-    position: relative;
-}
-
-.timeline-item::before {
-    content: '';
-    position: absolute;
-    left: -10px;
-    top: 5px;
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-    background-color: #3498db;
-}
-
-.timeline-content {
-    background-color: #f0f0f0;
-    padding: 10px;
-    border-radius: 5px;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-}
-
-.timeline-start .timeline-content {
-    background-color: #2ecc71;
-    color: white;
-}
-
-.timeline-end .timeline-content {
-    background-color: #e74c3c;
-    color: white;
-}
-
-.timeline-phase .timeline-content {
-    background-color: #f39c12;
-    color: white;
-}
-
-.timeline-jalon .timeline-content {
-    background-color: #9b59b6;
-    color: white;
-}
 
 /* Table */
 table {
