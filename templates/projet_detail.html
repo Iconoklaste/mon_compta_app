@@ -24,15 +24,37 @@
         <div class="info-card h-100">
             <div class="card-body">
                 <h5 class="card-title">Informations Générales</h5>
+                <div class="row align-items-center">
+                    <div class="col-6">
+                        <div class="mb-0">
+                            <small class="text-muted">
+                                Date de Début:
+                            </small>
+                            <p class="mb-1"><i class="fa-regular fa-calendar"></i> {{ projet.date_debut.strftime('%d %B %Y') if projet.date_debut else 'Non définie' }}</p>
+                        </div>
+                        <div class="mb-0">
+                            <small class="text-muted">
+                                Date de Fin:
+                            </small>
+                            <p class="mb-0"><i class="fa-regular fa-calendar"></i> {{ projet.date_fin.strftime('%d %B %Y') if projet.date_fin else 'Non définie' }}</p>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted">Progression</small>
+                        <div class="progress">
+                            <div class="progress-bar" role="progressbar" style="width: 60%;" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100">60%</div>
+                        </div>
+                        <p class="mt-2">Fonctionnalité à venir</p>
+                    </div>
+                </div>
+                <hr>
                 <p>Client : {{ client.nom }}</p>
-                <p>Date de Début : {{ projet.date_debut.strftime('%d/%m/%Y') if projet.date_debut else 'Non définie' }}</p>
-                <p>Date de Fin : {{ projet.date_fin.strftime('%d/%m/%Y') if projet.date_fin else 'Non définie' }}</p>
-                <p>Statut : {{ projet.statut }}</p>
                 <p>Prix total : {{ projet.prix_total }}</p>
                 <p>Reste à facturer : {{ remaining_to_bill }}</p>
             </div>
         </div>
     </div>
+    
     <div class="col-md-3">
         <div class="info-card h-100">
             <div class="card-body">
@@ -75,7 +97,7 @@
 
     <div class="tab-content">
         <div class="tab" id="tab2-content">
-            <div class="timeline-container">
+            <!-- <div class="timeline-container">
                 <h2>Timeline du Projet</h2>
                 <div class="timeline">
                     {% if projet.date_debut and projet.date_fin %}
@@ -113,7 +135,7 @@
                     class="btn btn-primary">Ajouter une phase</a>
                 <a href="{{ url_for('projet_jalons.ajouter_jalon', projet_id=projet.id) }}"
                     class="btn btn-primary">Ajouter un jalon</a>
-            </div>
+            </div> -->
             <h2>Phases</h2>
             <ul class="list-group">
                 {% for phase in projet.phases %}

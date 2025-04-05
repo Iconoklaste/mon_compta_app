@@ -474,30 +474,47 @@ nav#sidebar-content {
 
 /* Tabs */
 .tabs {
-    display: flex;
+    background-color: var(--blue); /* Same as the current button color */
+    padding: 10px;
+    border-radius: 5px;
+    display: flex; /* Use flexbox for horizontal alignment */
+    align-items: center; /* Vertically align items */
     flex-wrap: wrap;
     width: 100%;
+}
+
+.tabs label {
+    background-color: var(--white);
+    color: var(--blue); /* Text color to match the background */
+    padding: 10px 15px;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2); /* Subtle shadow */
+    transition: box-shadow 0.3s ease; /* Smooth transition for hover effect */
+    margin-right: 5px; /* Add space between tabs */
+    white-space: nowrap; /* Prevent text from wrapping */
+}
+
+.tabs label:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Enhanced shadow on hover */
+}
+
+.tabs input[type="radio"]:checked+label {
+    background-color: var(--light-gray); /* Slightly darker gray */
+    color: var(--blue);
 }
 
 .tabs input[type="radio"] {
     display: none;
 }
 
-.tabs label {
-    padding: 10px 20px;
-    background: #eee;
-    border: 1px solid #ccc;
-    cursor: pointer;
-    margin-right: 5px;
-    border-radius: 5px 5px 0 0;
-}
-
-.tabs .tab-content {
-    width: 100%;
-    border: 1px solid #ccc;
+.tab-content {
+    background-color: var(--white);
     padding: 20px;
-    order: 99; /* Ensure tab content comes after labels */
-    border-radius: 0 5px 5px 5px;
+    border-radius: 5px;
+    margin-top: 10px;
+    width: 100%;
 }
 
 .tabs .tab {
@@ -511,6 +528,7 @@ nav#sidebar-content {
 #tab5:checked ~ .tab-content #tab5-content {
     display: block;
 }
+
 
 /* Highlight the active tab label */
 .tabs input[type="radio"]:checked + label {
