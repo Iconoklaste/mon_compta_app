@@ -470,67 +470,132 @@ nav#sidebar-content {
     line-height: 1.2em;
 }
 
-/* Hide the radio inputs */
+/* ... your existing styles ... */
+
+/* Tabs */
+.tabs {
+    display: flex;
+    flex-wrap: wrap;
+    width: 100%;
+}
+
 .tabs input[type="radio"] {
     display: none;
 }
 
-/* Style the labels as tabs */
 .tabs label {
-    display: inline-block;
-    padding: 10px 15px;
-    background-color: #eee;
+    padding: 10px 20px;
+    background: #eee;
     border: 1px solid #ccc;
     cursor: pointer;
     margin-right: 5px;
-    border-radius: 5px 5px 0 0; /* Rounded top corners */
-    /* Add a position relative to the label */
-    position: relative;
-    z-index: 1; /* Ensure the label is above the content */
+    border-radius: 5px 5px 0 0;
 }
 
-/* Style the selected tab */
-.tabs input[type="radio"]:checked + label {
-    background-color: #fff;
-    border-bottom: 1px solid #fff; /* Hide the bottom border */
+.tabs .tab-content {
+    width: 100%;
+    border: 1px solid #ccc;
+    padding: 20px;
+    order: 99; /* Ensure tab content comes after labels */
+    border-radius: 0 5px 5px 5px;
 }
 
-/* Hide all tab content by default */
 .tabs .tab {
     display: none;
-    padding: 20px;
-    border: 1px solid #ccc;
-    border-top: none; /* Remove the top border */
-    /* Add a position relative to the content */
-    position: relative;
-    top: -1px; /* Adjust the position to overlap the label's bottom border */
 }
 
-/* Show the content of the selected tab */
-.tabs input[type="radio"]:checked + label + .tab {
+/* Show tab content when corresponding radio button is checked */
+#tab2:checked ~ .tab-content #tab2-content,
+#tab3:checked ~ .tab-content #tab3-content,
+#tab4:checked ~ .tab-content #tab4-content,
+#tab5:checked ~ .tab-content #tab5-content {
     display: block;
 }
 
-/* Add a container for the tabs and content */
-.tabs {
-    display: flex;
-    flex-direction: column;
+/* Highlight the active tab label */
+.tabs input[type="radio"]:checked + label {
+    background: #fff;
+    border-bottom: 1px solid #fff;
+}
+
+/* Timeline */
+.timeline-container {
     width: 100%;
+    margin: 20px auto;
 }
 
-/* Style the tab labels container */
-.tabs > label {
-    order: 1; /* Place the labels above the content */
+.timeline {
+    border-left: 2px solid #3498db;
+    padding-left: 20px;
+    position: relative;
 }
 
-/* Style the tab content container */
-.tabs > .tab {
-    order: 2; /* Place the content below the labels */
+.timeline-item {
+    margin-bottom: 20px;
+    position: relative;
 }
 
-/* Style the tab labels container */
-.tabs .tabs-labels {
-    display: flex;
-    flex-direction: row;
-    order: 1;
+.timeline-item::before {
+    content: '';
+    position: absolute;
+    left: -10px;
+    top: 5px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background-color: #3498db;
+}
+
+.timeline-content {
+    background-color: #f0f0f0;
+    padding: 10px;
+    border-radius: 5px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.timeline-start .timeline-content {
+    background-color: #2ecc71;
+    color: white;
+}
+
+.timeline-end .timeline-content {
+    background-color: #e74c3c;
+    color: white;
+}
+
+.timeline-phase .timeline-content {
+    background-color: #f39c12;
+    color: white;
+}
+
+.timeline-jalon .timeline-content {
+    background-color: #9b59b6;
+    color: white;
+}
+
+/* Table */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+table th,
+table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+table th {
+    background-color: #f0f0f0;
+}
+
+.right-align {
+    text-align: right;
+}
+
+/* Action Buttons */
+.action-buttons {
+    margin-bottom: 20px;
 }

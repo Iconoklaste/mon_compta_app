@@ -1,181 +1,271 @@
 <!-- c:\wamp\www\mon_compta_app\templates\projet_detail.html -->
 {% extends 'base.html' %}
 
-{% block sidebar %}
-<li><a href="{{ url_for('projets.modifier_projet', projet_id=projet.id) }}" class="btn btn-warning">Modifier le Projet</a></li>
-<li>
-    <form action="{{ url_for('projets.supprimer_projet', projet_id=projet.id) }}" method="POST" style="display: inline;">
-        <button type="submit" class="btn btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce projet ? Cette action est irréversible.')">Supprimer le Projet</button>
-    </form>
-</li>
-<!-- ... other links ... -->
+{% block page_title %}
+<h1>{{ projet.nom }}</h1>
 {% endblock %}
 
-{% block page_title %}
-<span style="text-transform: uppercase;">{{projet.nom}} | VUE D'ENSEMBLE.</span>
+{% block navbar_actions %}
+<a href="{{ url_for('projets.modifier_projet', projet_id=projet.id) }}" class="btn btn-warning">
+    <i class="fas fa-edit"></i> Modifier
+</a>
+
+<form action="{{ url_for('projets.supprimer_projet', projet_id=projet.id) }}" method="POST" style="display: inline;">
+    <button type="submit" class="btn btn-danger"
+        onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce projet ? Cette action est irréversible.')">
+        <i class="fas fa-trash-alt"></i> Supprimer
+    </button>
+</form>
 {% endblock %}
 
 {% block content %}
-
-<div class="action-buttons">
-    <a href="{{ url_for('projets.projets') }}" class="btn btn-secondary">
-        <i class="fas fa-arrow-left"></i> Retour aux Projets
-    </a>
-</div>
-
-
-<div class="tabs">
-    <input type="radio" name="tabs" id="tab1" checked="checked">
-    <label for="tab1">Informations Générales</label>
-    <div class="tab">
-        <h2>Informations Générales</h2>
-        <p>Client : {{ client.nom }}</p>
-        <p>Date de Début : {{ projet.date_debut.strftime('%d/%m/%Y') if projet.date_debut else 'Non définie' }}</p>
-        <p>Date de Fin : {{ projet.date_fin.strftime('%d/%m/%Y') if projet.date_fin else 'Non définie' }}</p>
-        <p>Statut : {{ projet.statut }}</p>
-        <p>Prix total : {{ projet.prix_total }}</p>
-        <p>Reste à facturer : {{ remaining_to_bill }}</p>
-    </div>
-
-    <input type="radio" name="tabs" id="tab2">
-    <label for="tab2">Phases et Jalons</label>
-    <div class="tab">
-        <div class="timeline-container">
-            <h2>Timeline du Projet</h2>
-            <div class="timeline">
-                {% if projet.date_debut and projet.date_fin %}
-                <div class="timeline-item timeline-start">
-                    <div class="timeline-content">
-                        <p>Début du projet : {{ projet.date_debut.strftime('%d/%m/%Y') }}</p>
-                    </div>
-                </div>
-                {% for phase in projet.phases %}
-                <div class="timeline-item timeline-phase">
-                    <div class="timeline-content">
-                        <p>Phase : {{ phase.nom }} - {{ phase.statut }}</p>
-                    </div>
-                </div>
-                {% endfor %}
-                {% for jalon in projet.jalons %}
-                <div class="timeline-item timeline-jalon">
-                    <div class="timeline-content">
-                        <p>Jalon : {{ jalon.nom }} - {{ jalon.date.strftime('%d/%m/%Y') }}</p>
-                    </div>
-                </div>
-                {% endfor %}
-                <div class="timeline-item timeline-end">
-                    <div class="timeline-content">
-                        <p>Fin du projet : {{ projet.date_fin.strftime('%d/%m/%Y') }}</p>
-                    </div>
-                </div>
-                {% else %}
-                <p>Dates de début et/ou de fin du projet non définies.</p>
-                {% endif %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="info-card h-100">
+            <div class="card-body">
+                <h5 class="card-title">Informations Générales</h5>
+                <p>Client : {{ client.nom }}</p>
+                <p>Date de Début : {{ projet.date_debut.strftime('%d/%m/%Y') if projet.date_debut else 'Non définie' }}</p>
+                <p>Date de Fin : {{ projet.date_fin.strftime('%d/%m/%Y') if projet.date_fin else 'Non définie' }}</p>
+                <p>Statut : {{ projet.statut }}</p>
+                <p>Prix total : {{ projet.prix_total }}</p>
+                <p>Reste à facturer : {{ remaining_to_bill }}</p>
             </div>
         </div>
-        <div class="action-buttons">
-            <a href="{{ url_for('projet_phases.ajouter_phase', projet_id=projet.id) }}" class="btn btn-primary">Ajouter une phase</a>
-            <a href="{{ url_for('projet_jalons.ajouter_jalon', projet_id=projet.id) }}" class="btn btn-primary">Ajouter un jalon</a>
-        </div>
-        <h2>Phases</h2>
-        <ul class="list-group">
-            {% for phase in projet.phases %}
-            <li class="list-group-item">
-                {{ phase.nom }} - {{ phase.statut }}
-                <a href="{{ url_for('projet_phases.modifier_phase', projet_id=projet.id, phase_id=phase.id) }}" class="btn btn-warning btn-sm">Modifier</a>
-                <form action="{{ url_for('projet_phases.supprimer_phase', projet_id=projet.id, phase_id=phase.id) }}" method="POST" style="display: inline;">
-                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette phase ?')">Supprimer</button>
-                </form>
-            </li>
-            {% endfor %}
-        </ul>
-
-        <h2>Jalons</h2>
-        <ul class="list-group">
-            {% for jalon in projet.jalons %}
-            <li class="list-group-item">
-                {{ jalon.nom }} - {{ jalon.date.strftime('%d/%m/%Y') }}
-                <a href="{{ url_for('projet_jalons.modifier_jalon', projet_id=projet.id, jalon_id=jalon.id) }}" class="btn btn-warning btn-sm">Modifier</a>
-                <form action="{{ url_for('projet_jalons.supprimer_jalon', projet_id=projet.id, jalon_id=jalon.id) }}" method="POST" style="display: inline;">
-                    <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce jalon ?')">Supprimer</button>
-                </form>
-            </li>
-            {% endfor %}
-        </ul>
     </div>
+    <div class="col-md-3">
+        <div class="info-card h-100">
+            <div class="card-body">
+                <h5 class="card-title">Équipe du Projet</h5>
+                <p>Fonctionnalité à venir</p>
+                <button class="btn btn-primary">Ajouter un membre</button>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="info-card h-100">
+            <div class="card-body">
+                <h5 class="card-title">Outils</h5>
+                <a href="{{ url_for('whiteboard.whiteboard_view', projet_id=projet.id) }}" target="_blank"
+                    class="btn btn-primary mb-2">
+                    <i class="fas fa-chalkboard"></i> Ouvrir le Tableau Blanc
+                </a>
+                <br>
+                <button class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Ajouter une note de réunion
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="tabs mt-4">
+    <input type="radio" name="tabs" id="tab2" checked>
+    <label for="tab2">Phases et Jalons</label>
 
     <input type="radio" name="tabs" id="tab3">
     <label for="tab3">Transactions</label>
-    <div class="tab">
-        <div class="action-buttons">
-            <a href="{{ url_for('transactions.ajouter_transaction', projet_id=projet.id) }}" class="btn btn-primary">Ajouter une Transaction</a>
-        </div>
-        <h2>Transactions</h2>
-        <table class="full-width-table">
-            <thead>
-                <tr>
-                    <th>Date</th>
-                    <th>Type</th>
-                    <th class="right-align">Montant</th>
-                    <th>Description</th>
-                    <th>Mode de paiement</th>
-                    <th>Statut de règlement</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for transaction in transactions %}
-                <tr>
-                    <td>{{ transaction.date.strftime('%d/%m/%Y') }}</td>
-                    <td>{{ transaction.type }}</td>
-                    <td class="right-align">{{ transaction.montant }} €</td>
-                    <td>{{ transaction.description }}</td>
-                    <td>{{ transaction.mode_paiement }}</td>
-                    <td>
-                        <form action="{{ url_for('transactions.modifier_reglement', transaction_id=transaction.id) }}" method="POST">
-                            <select name="reglement" onchange="this.form.submit()">
-                                <option value="Non réglée" {% if transaction.reglement == "Non réglée" %}selected{% endif %}>Non réglée</option>
-                                <option value="Réglée" {% if transaction.reglement == "Réglée" %}selected{% endif %}>Réglée</option>
-                                <option value="Partiellement réglée" {% if transaction.reglement == "Partiellement réglée" %}selected{% endif %}>Partiellement réglée</option>
-                            </select>
-                        </form>
-                    </td>
-                    <td>
-                        <a href="{{ url_for('generer_facture', transaction_id=transaction.id) }}" target="_blank">Générer facture</a>
-                    </td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
+
     <input type="radio" name="tabs" id="tab4">
-<a href="{{ url_for('whiteboard.whiteboard_view', projet_id=projet.id) }}" target="_blank" rel="noopener noreferrer" for="tab4" class="tab-label">Tableau Blanc</a>
-<div class="tab tab-whiteboard"></div>
+    <label for="tab4">Notes de Réunion</label>
+
+    <!-- New Gantt Chart Tab -->
+    <input type="radio" name="tabs" id="tab5">
+    <label for="tab5">Gantt Chart</label>
+
+    <div class="tab-content">
+        <div class="tab" id="tab2-content">
+            <div class="timeline-container">
+                <h2>Timeline du Projet</h2>
+                <div class="timeline">
+                    {% if projet.date_debut and projet.date_fin %}
+                    <div class="timeline-item timeline-start">
+                        <div class="timeline-content">
+                            <p>Début du projet : {{ projet.date_debut.strftime('%d/%m/%Y') }}</p>
+                        </div>
+                    </div>
+                    {% for phase in projet.phases %}
+                    <div class="timeline-item timeline-phase">
+                        <div class="timeline-content">
+                            <p>Phase : {{ phase.nom }} - {{ phase.statut }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    {% for jalon in projet.jalons %}
+                    <div class="timeline-item timeline-jalon">
+                        <div class="timeline-content">
+                            <p>Jalon : {{ jalon.nom }} - {{ jalon.date.strftime('%d/%m/%Y') }}</p>
+                        </div>
+                    </div>
+                    {% endfor %}
+                    <div class="timeline-item timeline-end">
+                        <div class="timeline-content">
+                            <p>Fin du projet : {{ projet.date_fin.strftime('%d/%m/%Y') }}</p>
+                        </div>
+                    </div>
+                    {% else %}
+                    <p>Dates de début et/ou de fin du projet non définies.</p>
+                    {% endif %}
+                </div>
+            </div>
+            <div class="action-buttons">
+                <a href="{{ url_for('projet_phases.ajouter_phase', projet_id=projet.id) }}"
+                    class="btn btn-primary">Ajouter une phase</a>
+                <a href="{{ url_for('projet_jalons.ajouter_jalon', projet_id=projet.id) }}"
+                    class="btn btn-primary">Ajouter un jalon</a>
+            </div>
+            <h2>Phases</h2>
+            <ul class="list-group">
+                {% for phase in projet.phases %}
+                <li class="list-group-item">
+                    {{ phase.nom }} - {{ phase.statut }}
+                    <a href="{{ url_for('projet_phases.modifier_phase', projet_id=projet.id, phase_id=phase.id) }}"
+                        class="btn btn-warning btn-sm">Modifier</a>
+                    <form action="{{ url_for('projet_phases.supprimer_phase', projet_id=projet.id, phase_id=phase.id) }}"
+                        method="POST" style="display: inline;">
+                        <button type="submit" class="btn btn-danger btn-sm"
+                            onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette phase ?')">Supprimer</button>
+                    </form>
+                </li>
+                {% endfor %}
+            </ul>
+
+            <h2>Jalons</h2>
+            <ul class="list-group">
+                {% for jalon in projet.jalons %}
+                <li class="list-group-item">
+                    {{ jalon.nom }} - {{ jalon.date.strftime('%d/%m/%Y') }}
+                    <a href="{{ url_for('projet_jalons.modifier_jalon', projet_id=projet.id, jalon_id=jalon.id) }}"
+                        class="btn btn-warning btn-sm">Modifier</a>
+                    <form action="{{ url_for('projet_jalons.supprimer_jalon', projet_id=projet.id, jalon_id=jalon.id) }}"
+                        method="POST" style="display: inline;">
+                        <button type="submit" class="btn btn-danger btn-sm"
+                            onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce jalon ?')">Supprimer</button>
+                    </form>
+                </li>
+                {% endfor %}
+            </ul>
+        </div>
+
+        <div class="tab" id="tab3-content">
+            <div class="action-buttons">
+                <a href="{{ url_for('transactions.ajouter_transaction', projet_id=projet.id) }}"
+                    class="btn btn-primary">Ajouter une Transaction</a>
+            </div>
+            <h2>Transactions</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th class="right-align">Montant</th>
+                        <th>Description</th>
+                        <th>Mode de paiement</th>
+                        <th>Statut de règlement</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for transaction in transactions %}
+                    <tr>
+                        <td>{{ transaction.date.strftime('%d/%m/%Y') }}</td>
+                        <td>{{ transaction.type }}</td>
+                        <td class="right-align">{{ transaction.montant }} €</td>
+                        <td>{{ transaction.description }}</td>
+                        <td>{{ transaction.mode_paiement }}</td>
+                        <td>
+                            <form
+                                action="{{ url_for('transactions.modifier_reglement', transaction_id=transaction.id) }}"
+                                method="POST">
+                                <select name="reglement" onchange="this.form.submit()">
+                                    <option value="Non réglée" {% if transaction.reglement == "Non réglée" %}selected
+                                        {% endif %}>Non réglée</option>
+                                    <option value="Réglée" {% if transaction.reglement == "Réglée" %}selected
+                                        {% endif %}>Réglée</option>
+                                    <option value="Partiellement réglée" {% if transaction.reglement == "Partiellement réglée" %}selected
+                                        {% endif %}>Partiellement réglée</option>
+                                </select>
+                            </form>
+                        </td>
+                        <td>
+                            <a href="{{ url_for('generer_facture', transaction_id=transaction.id) }}"
+                                target="_blank">Générer facture</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="tab" id="tab4-content">
+            <h2>Notes de Réunion</h2>
+            <p>Fonctionnalité à venir</p>
+        </div>
+        <!-- New Gantt Chart Tab Content -->
+        <div class="tab" id="tab5-content">
+            <div id="gantt-chart"></div>
+        </div>
+    </div>
+</div>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/frappe-gantt@0.6.0/dist/frappe-gantt.min.css">
+<script src="https://cdn.jsdelivr.net/npm/frappe-gantt@0.6.0/dist/frappe-gantt.min.js"></script>
 <script>
     document.addEventListener('DOMContentLoaded', function() {
-        const content = document.querySelector('.content');
-        const tab1 = document.querySelector('#tab1');
-        const tab2 = document.querySelector('#tab2');
-        const tab3 = document.querySelector('#tab3');
-        if (tab1) {
-            tab1.addEventListener('click', function() {
-                content.classList.remove('no-padding');
-            });
-        }
-        if (tab2) {
-            tab2.addEventListener('click', function() {
-                content.classList.remove('no-padding');
-            });
-        }
-        if (tab3) {
-            tab3.addEventListener('click', function() {
-                content.classList.remove('no-padding');
-            });
-        }
+        var tasks = [
+            {
+                id: 'Task 1',
+                name: 'Redesign website',
+                start: '2016-12-28',
+                end: '2016-12-31',
+                progress: 20,
+                dependencies: ''
+            },
+            {
+                id: 'Task 2',
+                name: 'Write new content',
+                start: '2016-12-29',
+                end: '2017-01-04',
+                progress: 50,
+                dependencies: 'Task 1'
+            },
+            {
+                id: 'Task 3',
+                name: 'Apply new styles',
+                start: '2017-01-04',
+                end: '2017-01-08',
+                progress: 0,
+                dependencies: 'Task 2'
+            },
+            {
+                id: 'Task 4',
+                name: 'Review',
+                start: '2017-01-08',
+                end: '2017-01-09',
+                progress: 0,
+                dependencies: 'Task 3'
+            },
+            {
+                id: 'Task 5',
+                name: 'Deploy',
+                start: '2017-01-10',
+                end: '2017-01-11',
+                progress: 0,
+                dependencies: 'Task 4'
+            }
+        ];
+
+        var gantt = new Gantt("#gantt-chart", tasks, {
+            header_height: 50,
+            column_width: 30,
+            step: 24,
+            view_modes: ['Day', 'Week', 'Month'],
+            bar_height: 20,
+            bar_corner_radius: 3,
+            arrow_curve: 5,
+            padding: 18,
+            view_mode: 'Week',
+            date_format: 'YYYY-MM-DD',
+            custom_popup_html: null
+        });
     });
 </script>
-
-</div>
-
-
 {% endblock %}
