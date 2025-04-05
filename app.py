@@ -1,5 +1,6 @@
 # c:\wamp\www\mon_compta_app\app.py
 from flask import Flask, render_template, request, redirect, url_for, send_file, make_response, jsonify, session, abort
+from flask_wtf.csrf import CSRFProtect
 from controllers.users_controller import login_required, users_bp
 from controllers.db_manager import init_db
 from controllers.projets_controller import projets_bp  # Import the blueprint
@@ -38,6 +39,8 @@ init_db(app)
 from controllers.db_manager import db
 
 migrate = Migrate(app, db)  # Initialize Migrate
+
+csrf = CSRFProtect(app)     # Initialise CSRFProtect
 
 # Register the blueprint
 app.register_blueprint(projets_bp)

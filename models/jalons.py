@@ -9,6 +9,7 @@ class Jalon(db.Model):
     atteint = db.Column(db.Boolean, default=False)
     projet_id = db.Column(db.Integer, db.ForeignKey('projet.id', ondelete="CASCADE"), nullable=False)
     projet = db.relationship('Projet', back_populates='jalons', lazy='select') # Add back_populates
+    phase_id = db.Column(db.Integer, db.ForeignKey('phase.id'), nullable=False)
 
     def __repr__(self):
         return f"<Jalon {self.nom}>"
