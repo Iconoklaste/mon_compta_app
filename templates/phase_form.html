@@ -56,11 +56,78 @@
                             </ul>
                             {% endif %}
                         </div>
-                        {{ form.submit(class="btn btn-primary") }}
+
+                        <h2 class="mt-4">Jalons</h2>
+                        <ul id="jalons-list">
+                            {% for jalon_form in form.jalons %}
+                            <li class="jalon-item">
+                                <div class="mb-3">
+                                    {{ jalon_form.nom.label(class="form-label") }}
+                                    {{ jalon_form.nom(class="form-control") }}
+                                    {% if jalon_form.nom.errors %}
+                                    <ul class="errors">
+                                        {% for error in jalon_form.nom.errors %}
+                                        <li class="text-danger">{{ error }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                    {% endif %}
+                                </div>
+                                <div class="mb-3">
+                                    {{ jalon_form.date.label(class="form-label") }}
+                                    {{ jalon_form.date(class="form-control") }}
+                                    {% if jalon_form.date.errors %}
+                                    <ul class="errors">
+                                        {% for error in jalon_form.date.errors %}
+                                        <li class="text-danger">{{ error }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                    {% endif %}
+                                </div>
+                                <button type="button" class="btn btn-danger btn-sm remove-jalon">Supprimer</button>
+                            </li>
+                            {% endfor %}
+                        </ul>
+                        <button type="button" id="add-jalon" class="btn btn-secondary">Ajouter un jalon</button>
+
+                        <div class="mt-4">
+                            {{ form.submit(class="btn btn-primary") }}
+                        </div>
                     </form>
                 </div>
             </div>
         </div>
     </div>
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const addJalonButton = document.getElementById('add-jalon');
+        const jalonsList = document.getElementById('jalons-list');
+
+        addJalonButton.addEventListener('click', function () {
+            const newJalonItem = document.createElement('li');
+            newJalonItem.classList.add('jalon-item');
+            const jalonCount = jalonsList.querySelectorAll('.jalon-item').length;
+
+            newJalonItem.innerHTML = `
+                <div class="mb-3">
+                    <label for="jalons-${jalonCount}-nom" class="form-label">Nom</label>
+                    <input class="form-control" id="jalons-${jalonCount}-nom" name="jalons-${jalonCount}-nom" type="text" value="" required>
+                </div>
+                <div class="mb-3">
+                    <label for="jalons-${jalonCount}-date" class="form-label">Date</label>
+                    <input class="form-control" id="jalons-${jalonCount}-date" name="jalons-${jalonCount}-date" type="date" value="" required>
+                </div>
+                <button type="button" class="btn btn-danger btn-sm remove-jalon">Supprimer</button>
+            `;
+
+            jalonsList.appendChild(newJalonItem);
+        });
+        jalonsList.addEventListener('click', function (event) {
+            if (event.target.classList.contains('remove-jalon')) {
+                event.target.closest('.jalon-item').remove();
+            }
+        });
+    });
+</script>
 {% endblock %}

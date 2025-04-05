@@ -2,7 +2,7 @@
 
 from flask import Blueprint, render_template, redirect, url_for, request, flash, abort, session
 from controllers.db_manager import db
-from models import Phase, Projet, User
+from models import Phase, Projet, Jalon
 from forms.forms import PhaseForm
 from controllers.users_controller import login_required
 from datetime import date
@@ -23,8 +23,20 @@ def ajouter_phase(projet_id):
             projet_id=projet_id
         )
         db.session.add(phase)
+        db.session.flush()  # Get the phase ID
+
+        # Add jalons
+        for jalon_form in form.jalons:
+            jalon = Jalon(
+                nom=jalon_form.nom.data,
+                date=jalon_form.date.data,
+                phase_id=phase.id,
+                projet_id=projet_id
+            )
+            db.session.add(jalon)
+
         db.session.commit()
-        flash('Phase ajoutée avec succès!', 'success')
+        flash('Phase et jalons ajoutés avec succès!', 'success')
         return redirect(url_for('projets.projet_detail', projet_id=projet_id))
     return render_template('phase_form.html', form=form, projet=projet, title="Ajouter une phase")
 
