@@ -51,6 +51,7 @@ class JalonForm(FlaskForm):
     id = HiddenField()
     nom = StringField('Nom', validators=[DataRequired()])
     date = DateField('Date', validators=[DataRequired()], widget=DateInput())
+    atteint = BooleanField('Atteint')
 
 class PhaseForm(FlaskForm):
     nom = StringField('Nom', validators=[DataRequired()])

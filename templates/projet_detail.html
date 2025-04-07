@@ -44,7 +44,7 @@
                     <div class="col-6">
                         <small class="text-muted">Progression globale</small>
                         <div class="progress">
-                            <div class="progress-bar" role="progressbar" style="width: 60%;" aria-valuenow="60" aria-valuemin="0" aria-valuemax="100">60%</div>
+                            <div class="progress-bar" role="progressbar" style="width: {{ projet.progress }}%;" aria-valuenow="{{ projet.progress }}" aria-valuemin="0" aria-valuemax="100">{{ projet.progress }}%</div>
                         </div>
                         <p class="mt-2">Fonctionnalité à venir</p>
                     </div>
@@ -135,17 +135,19 @@
                         </div>
                     </div>
                     
-                    <!-- Milestones Checkboxes -->
                     <div class="milestones-container">
                         {% for jalon in phase.jalons %}
                         <div class="form-check">
-                            <input class="form-check-input milestone-checkbox" type="checkbox" value="" id="jalon-{{ jalon.id }}" data-jalon-id="{{ jalon.id }}" {% if jalon.completed %}checked{% endif %}>
+                            <input class="form-check-input milestone-checkbox" type="checkbox" value="" id="jalon-{{ jalon.id }}"
+                                data-jalon-id="{{ jalon.id }}" data-phase-id="{{ phase.id }}" data-projet-id="{{ projet.id }}"
+                                {% if jalon.atteint %}checked{% endif %}>
                             <label class="form-check-label" for="jalon-{{ jalon.id }}">
                                 {{ jalon.nom }}
                             </label>
                         </div>
                         {% endfor %}
                     </div>
+                    
         
                     <small class="text-muted">Progression</small>
                     <div class="progress mb-3">
@@ -319,19 +321,21 @@ document.addEventListener('DOMContentLoaded', function () {
 </script>
 <script>
     document.addEventListener('DOMContentLoaded', function () {
-        // ... (Your existing tab activation code) ...
 
         const milestoneCheckboxes = document.querySelectorAll('.milestone-checkbox');
+        const overallProgressBar = document.querySelector('.progress-bar'); // Get the overall progress bar
 
         milestoneCheckboxes.forEach(checkbox => {
             checkbox.addEventListener('change', function () {
                 const jalonId = this.dataset.jalonId;
                 const isCompleted = this.checked;
+                const phaseId = this.dataset.phaseId; // Get the phase ID
+                const projetId = this.dataset.projetId;
                 const phaseItem = this.closest('.list-group-item'); // Get the parent phase item
                 const progressBar = phaseItem.querySelector('.progress-bar');
 
                 // AJAX request to update the milestone's completion status
-                fetch(`/projet/jalon/${jalonId}/update`, { // Replace with your actual URL
+                fetch(`/projets/${projetId}/phases/${phaseId}/jalons/${jalonId}/modifier_statut`, { // Replace with your actual URL
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -350,6 +354,9 @@ document.addEventListener('DOMContentLoaded', function () {
                         progressBar.style.width = `${progressPercentage}%`;
                         progressBar.setAttribute('aria-valuenow', progressPercentage);
                         progressBar.textContent = `${progressPercentage.toFixed(0)}%`;
+
+                        // Recalculate and update overall project progress
+                        recalculateOverallProgress(projetId);
                     } else {
                         console.error('Error updating milestone status:', data.error);
                         // Optionally, revert the checkbox state
@@ -363,8 +370,32 @@ document.addEventListener('DOMContentLoaded', function () {
                 });
             });
         });
+
+        function recalculateOverallProgress(projetId) {
+            // Get all phase progress values
+            const phaseProgressBars = document.querySelectorAll('.list-group-item .progress-bar');
+            let totalProgress = 0;
+            let validPhaseCount = 0;
+
+            phaseProgressBars.forEach(phaseProgressBar => {
+                const phaseProgress = parseFloat(phaseProgressBar.getAttribute('aria-valuenow'));
+                if (!isNaN(phaseProgress)) {
+                    totalProgress += phaseProgress;
+                    validPhaseCount++;
+                }
+            });
+
+            // Calculate overall progress
+            const overallProgress = validPhaseCount > 0 ? totalProgress / validPhaseCount : 0;
+
+            // Update overall progress bar
+            overallProgressBar.style.width = `${overallProgress}%`;
+            overallProgressBar.setAttribute('aria-valuenow', overallProgress);
+            overallProgressBar.textContent = `${overallProgress.toFixed(0)}%`;
+        }
     });
 </script>
+
 
 
 {% endblock %}

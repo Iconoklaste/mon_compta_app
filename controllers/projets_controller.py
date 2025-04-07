@@ -1,5 +1,7 @@
 from flask import Blueprint, render_template, redirect, session, url_for, request, abort, flash
 from flask_wtf.csrf import validate_csrf
+from sqlalchemy import func
+from sqlalchemy.orm import joinedload
 from controllers.db_manager import db
 from controllers.users_controller import login_required
 from models import User, Client, Transaction, Organisation, Projet
@@ -55,19 +57,34 @@ def supprimer_projet(projet_id):
     flash('Projet supprimé avec succès!', 'success')
     return redirect(url_for('projets.projets'))
 
-@projets_bp.route('/projet/<int:projet_id>')
+@projets_bp.route('/<int:projet_id>')
 @login_required
 def projet_detail(projet_id):
     projet = Projet.query.get_or_404(projet_id)
+    client = Client.query.get_or_404(projet.client_id)
     transactions = Transaction.query.filter_by(projet_id=projet_id).all()
-    total_billed = sum(transaction.montant for transaction in transactions)
-    remaining_to_bill = projet.prix_total - total_billed
-    client = projet.client
-    return render_template('projet_detail.html',
-                           projet=projet,
-                           transactions=transactions,
-                           remaining_to_bill=remaining_to_bill,
-                           client=client)
+
+    # Recalculate phase progress
+    for phase in projet.phases:
+        total_jalons = len(phase.jalons)
+        completed_jalons = sum(1 for j in phase.jalons if j.atteint)
+        phase.progress = (completed_jalons / total_jalons) * 100 if total_jalons > 0 else 0
+
+    # Recalculate overall project progress (example)
+    total_phases = len(projet.phases)
+    if total_phases > 0:
+        projet.progress = sum(phase.progress for phase in projet.phases) / total_phases
+    else:
+        projet.progress = 0
+
+    db.session.commit()
+
+    # Calculate remaining to bill
+    total_billed = db.session.query(func.sum(Transaction.montant)).filter(Transaction.projet_id == projet_id, Transaction.type == 'Facture').scalar() or 0
+    total_paid = db.session.query(func.sum(Transaction.montant)).filter(Transaction.projet_id == projet_id, Transaction.type == 'Paiement').scalar() or 0
+    remaining_to_bill = projet.prix_total - (total_billed - total_paid)
+
+    return render_template('projet_detail.html', projet=projet, client=client, transactions=transactions, remaining_to_bill=remaining_to_bill)
 
 @projets_bp.route('/ajouter_projet', methods=['GET', 'POST'])
 @login_required

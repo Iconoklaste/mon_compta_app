@@ -570,3 +570,38 @@ table th {
 .action-buttons {
     margin-bottom: 20px;
 }
+
+/* style.css */
+.jalon-box {
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+}
+
+.jalon-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.jalon-name {
+    flex-grow: 1;
+}
+
+.jalon-details {
+    display: flex;
+    align-items: center;
+}
+
+.jalon-date {
+    margin-right: 10px;
+}
+
+.jalon-date i {
+    margin-right: 5px;
+}
+.jalon-item{
+    list-style: none;
+}

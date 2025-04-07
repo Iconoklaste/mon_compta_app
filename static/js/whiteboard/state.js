@@ -87,10 +87,13 @@ export function loadCanvas(canvas, data) {
 
 export function saveWhiteboard(canvas, projetId) {
     const canvasData = canvas.toJSON(['deleteControl', 'duplicateControl']); // Add the controls to the toJSON method
+    const csrfToken = document.getElementById('csrfToken').value;
+    
     fetch(`/save_whiteboard/${projetId}`, { // change the route here
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken,
         },
         body: JSON.stringify(canvasData),
     })

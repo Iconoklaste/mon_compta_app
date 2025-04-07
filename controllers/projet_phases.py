@@ -77,11 +77,13 @@ def modifier_phase(projet_id, phase_id):
                 if jalon:
                     jalon.nom = jalon_form.nom.data
                     jalon.date = jalon_form.date.data
+                    jalon.atteint = jalon_form.atteint.data
             else:
                 # New jalon
                 new_jalon = Jalon(
                     nom=jalon_form.nom.data,
                     date=jalon_form.date.data,
+                    atteint = jalon_form.atteint.data,
                     phase_id=phase_id,
                     projet_id=projet_id
                 )
