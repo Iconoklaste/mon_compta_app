@@ -13,7 +13,7 @@ deleteImg.src = deleteIcon;
 export const cloneImg = document.createElement('img'); // Add export here
 cloneImg.src = cloneIcon;
 
-// **NEW** Function to add the duplicate control to an object
+// Function to add the duplicate control to an object
 export function addDuplicateControl(object, canvas) {
     object.cornerStyle = 'circle';
     object.cornerSize = 15;
@@ -29,7 +29,7 @@ export function addDuplicateControl(object, canvas) {
     });
 }
 
-// **NEW** Function to duplicate an object
+// Function to duplicate an object
 function duplicateObject(eventData, transform, canvas) {
     const target = transform.target;
     target.clone((cloned) => {
@@ -38,7 +38,7 @@ function duplicateObject(eventData, transform, canvas) {
             top: cloned.top + 20,
             evented: true,
         });
-        // **NEW** Add the duplicate control to the cloned object
+        // Add the duplicate control to the cloned object
         addDuplicateControl(cloned, canvas);
         canvas.add(cloned);
         canvas.setActiveObject(cloned);
@@ -47,19 +47,19 @@ function duplicateObject(eventData, transform, canvas) {
     });
 }
 
-// **NEW** Function to render the duplicate control
+// Function to render the duplicate control
 function renderDuplicateControl(ctx, left, top, styleOverride, fabricObject) {
     const size = 24;
     ctx.save();
     ctx.translate(left, top);
     ctx.rotate(fabric.util.degreesToRadians(fabricObject.angle));
-    // **NEW** Draw the icon
+    // Draw the icon
     const img = new Image();
     img.src = cloneIcon;
     ctx.drawImage(img, -size / 2, -size / 2, size, size);
     ctx.restore();
 }
-// **NEW** Function to render the icon
+// Function to render the icon
 export function renderIcon(icon) {
     return function (ctx, left, top, styleOverride, fabricObject) {
         const size = this.cornerSize;
@@ -70,13 +70,13 @@ export function renderIcon(icon) {
         ctx.restore();
     };
 }
-// **NEW** Function to delete an object
+// Function to delete an object
 export function deleteObject(_eventData, transform, canvas) {
     canvas.remove(transform.target);
     canvas.requestRenderAll();
     saveCanvasState(canvas); // Pass canvas here
 }
-// **NEW** Function to clone an object
+// Function to clone an object
 export function cloneObject(_eventData, transform, canvas) {
     transform.target.clone((cloned) => {
         cloned.set({

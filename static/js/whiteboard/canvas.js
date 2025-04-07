@@ -16,7 +16,7 @@ export function initializeCanvas() {
         const sidebarWidth = sidebar ? parseFloat(getComputedStyle(sidebar).width) : 0;
 
         const contentPadding = 0; // Padding of the content
-        const availableWidth = window.innerWidth - sidebarWidth - contentPadding * 2;
+        const availableWidth = window.innerWidth - contentPadding * 2;
         const availableHeight = window.innerHeight - navbarHeight - contentPadding * 2;
 
         canvas.setWidth(availableWidth);
@@ -78,7 +78,7 @@ export function initializeCanvas() {
         updateZoomIndicator(canvas); // Pass canvas here
     });
 
-    // **NEW** Save state after any modification
+    // Save state after any modification
     canvas.on('object:modified', () => saveCanvasState(canvas)); // Pass canvas here
     canvas.on('object:added', () => saveCanvasState(canvas)); // Pass canvas here
     canvas.on('object:removed', () => saveCanvasState(canvas)); // Pass canvas here

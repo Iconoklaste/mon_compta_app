@@ -179,13 +179,6 @@ a:hover {
   }
 
 /* Sidebar */
-.sidebar {
-    background-color: var(--dark-blue); /* Fond de la sidebar en bleu foncé plus clair */
-    color: var(--white); /* Texte de la sidebar en blanc */
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-}
 
 nav#sidebar-content {
     padding: 0 0.5rem; /* Add padding to the left and right */
@@ -451,7 +444,13 @@ nav#sidebar-content {
     min-height: 100vh; /* Le conteneur prend toute la hauteur de la fenêtre */
 }
 
+/* Sidebar */
 .sidebar {
+    background-color: var(--dark-blue); /* Fond de la sidebar en bleu foncé plus clair */
+    color: var(--white); /* Texte de la sidebar en blanc */
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
     width: 250px; /* Initial width of the sidebar */
     flex-shrink: 0; /* Sidebar should not shrink */
     position: fixed; /* Make the sidebar fixed */

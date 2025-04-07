@@ -1,3 +1,4 @@
+/* whiteboard.css */
 :root {
     --navbar-height: 4rem;
 }
@@ -13,6 +14,15 @@ content.no-padding {
 
 .padding-top {
     padding-top: 4rem !important;
+}
+
+body.whiteboard-page .sidebar {
+    display: none !important;
+}
+
+body.whiteboard-page #main-navbar {
+    left: 0; /* Remove the offset */
+    width: 100%;
 }
 
 /* General Styles (Consistent with styles.css) */
@@ -41,8 +51,8 @@ body {
 #toolbar {
     position: fixed; /* Change to fixed */
     top: var(--navbar-height); /* Position below the navbar */
-    left: 250px; /* Align to the left */
-    width: calc(100% - 250px); /* Full width */
+    left: 0px; 
+    width: 100%; /* Full width */
     z-index: 150;
     background-color: #f8f9fa; /* Use a background color from styles.css */
     padding: 10px;
@@ -175,27 +185,4 @@ body {
     background-color: #1A1A1A; /* Even darker gray on click */
     box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
     transform: translateY(1px);
-}
-
-/* Responsive Design */
-@media (max-width: 768px) {
-    #toolbar {
-        flex-direction: column;
-        align-items: stretch;
-        left: 50%;
-        transform: translateX(-50%);
-        width: 90%;
-    }
-
-    #toolbar button,
-    #toolbar select {
-        width: 100%;
-        margin: 5px 0;
-    }
-
-    #toolbar button,
-    #toolbar select {
-        width: 100%;
-        margin: 5px 0;
-    }
 }

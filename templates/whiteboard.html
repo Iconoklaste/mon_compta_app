@@ -1,29 +1,64 @@
 {% extends 'base.html' %}
 
-{% block page_title %}
-<h1>{{ projet.nom }}</h1>
-{% endblock %}
-
 {% block extra_head %}
     {{ super() }}
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
     
-
     <link rel="stylesheet" href="{{ url_for('static', filename='whiteboard.css') }}">
-    <!--<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vanilla-picker@2.12.3/dist/vanilla-picker.min.css">-->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vanilla-picker@2.12.3/dist/vanilla-picker.min.css">
     <style>
         .content {
             background-color: brown;
             padding: 0;
             margin-top: var(--navbar-height);
+            width: 100%;
+
         }
         .container-fluid {
             padding: 0; /* Remove padding from container-fluid */
 
         }
+        .main-content{
+            margin: 0;
+        }
+
+        .navbar-actions-container {
+            display: flex; /* Use flexbox for horizontal layout */
+            align-items: center; /* Vertically center the items */
+            gap: 10px; /* Add some space between the buttons */
+        }
+        .custom-navbar-button {
+            margin-left: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .custom-navbar-button i {
+            margin-right: 5px;
+        }
+
     </style>
+{% endblock %}
+
+{% block body_class %}whiteboard-page{% endblock %}
+
+{% block page_title %}
+<h1>{{ projet.nom }}</h1>
+{% endblock %}
+
+{% block navbar_actions %}
+<div class="navbar-actions-container">
+    <button id="saveButton" class="btn btn-secondary custom-navbar-button">
+        <i class="fas fa-save"></i> Sauvegarder
+    </button>
+    <button id="backButton" class="btn btn-secondary custom-navbar-button">
+        <i class="fas fa-file-alt"></i>
+        <span class="tooltiptext"></span>
+    </button>
+</div>
 {% endblock %}
 
 {% block sidebar %}
@@ -33,11 +68,19 @@
 <input type="hidden" id="csrfToken" value="{{ csrf_token() }}">
 <div id="canvas-container" class="canvas-container">
     <div id="toolbar">
-        <button id="add-rect">Ajouter une boîte</button>
+        <div class="btn-group">
+            <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                Ajouter une forme
+            </button>
+            <div class="dropdown-menu">
+                <button id="add-rect" class="dropdown-item">Ajouter une boîte</button>
+                <button id="add-circle" class="dropdown-item">Ajouter un cercle</button>
+                <button id="add-hexagon" class="dropdown-item">Ajouter un héxagone</button>
+            </div>
+        </div>
         <button id="add-text">Ajouter du texte</button>
         <button id="zoom-in">Zoom In</button>
         <button id="zoom-out">Zoom Out</button>
-        <button id="saveButton">Sauvegarder</button>
         <button id="delete">Supprimer</button>
     
         <button id="send-to-back">Send to Back</button>
@@ -81,6 +124,15 @@
 
 <script>
     window.projetId = {{ projet_id }}; // Store projetId in a global variable
+
+    // gestion du bouton pour l'affichage des detail sdu projet
+    document.addEventListener('DOMContentLoaded', function() {
+    const backButton = document.getElementById('backButton');
+    backButton.addEventListener('click', function() {
+        window.location.href = `/${window.projetId}`;
+    });
+});
+
 </script>
 <script src="https://unpkg.com/vanilla-picker@2/dist/vanilla-picker.min.js"></script>
 <script type="module" src="{{ url_for('static', filename='js/whiteboard/main.js') }}"></script>

@@ -14,7 +14,7 @@ function addControlsToObject(obj, canvas) {
     if (obj.type === 'textbox') {
         // Add the duplicate control to the text object
         addDuplicateControl(obj, canvas);
-        // **NEW** Add the delete control to the text object
+        // Add the delete control to the text object
         obj.controls.deleteControl = new fabric.Control({
             x: 0.5,   // Top-right corner
             y: -0.5,  // Top-right corner

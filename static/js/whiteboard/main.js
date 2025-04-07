@@ -1,6 +1,6 @@
 // main.js
 import { initializeCanvas } from './canvas.js';
-import { addRectangle, addText, deleteActiveObject, sendToBack, bringToFront, sendBackward, bringForward } from './objects.js'; // Corrected import
+import { addRectangle, addText, deleteActiveObject, sendToBack, bringToFront, sendBackward, bringForward, addCircle, addHexagon } from './objects.js'; // Corrected import
 import { initializeUI, updateFontSizeSelector, updateFontFamilySelector, loadData } from './ui.js';
 import { undo, redo } from './state.js';
 
@@ -23,6 +23,16 @@ document.addEventListener('DOMContentLoaded', () => {
     // Ajouter un rectangle
     document.getElementById('add-rect').addEventListener('click', () => {
         addRectangle(canvas);
+    });
+
+    // Ajouter un cercle
+    document.getElementById('add-circle').addEventListener('click', () => {
+        addCircle(canvas);
+    });
+
+    // Ajouter un héxagone
+    document.getElementById('add-hexagon').addEventListener('click', () => {
+        addHexagon(canvas);
     });
 
     // Ajouter du texte

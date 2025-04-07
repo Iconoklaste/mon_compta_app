@@ -20,12 +20,12 @@
     {% block extra_head %}
     {% endblock %}
 </head>
-<body class="{% if not session['user_id'] %}landing-page{% endif %}">
+<body class="{% if not session['user_id'] %}landing-page{% endif %}{% block body_class %}{% endblock %}">
     <div class="app-container">
         {% if session['user_id'] %}
         <aside class="sidebar">
             <div class="sidebar-brand">LOOVA</div>
-            <nav id="sidebar-content">
+            <nav id="sidebar-content" id="sidebar">
                 <ul>
                     <li class="{% if current_page == 'Accueil' %}active{% endif %}">
                         <a href="{{ url_for('users.index') }}">
