@@ -1,9 +1,10 @@
-<!-- c:\wamp\www\mon_compta_app\templates\modifier_organisation.html -->
+<!-- ajouter_organisation.html -->
 {% extends 'base.html' %}
 
 {% block content %}
-    <h1>Modifier l'organisation</h1>
-    <form method="POST" enctype="multipart/form-data">
+    <h1>Ajouter une organisation</h1>
+
+    <form method="POST" id="addOrganisationForm" enctype="multipart/form-data">
         {{ form.hidden_tag() }}
         <div class="form-group">
             {{ form.designation.label(class="form-label") }}
@@ -19,20 +20,17 @@
                 <span class="text-danger">{{ error }}</span>
             {% endfor %}
         </div>
-
         <div class="form-group">
             {{ form.exonere_tva.label(class="form-label") }}
             {{ form.exonere_tva() }}
         </div>
-
-        <div class="form-group" id="tva_field" {% if organisation.exonere_tva %}style="display: none;"{% endif %}>
+        <div class="form-group" id="tva_field">
             {{ form.tva_intracommunautaire.label(class="form-label") }}
             {{ form.tva_intracommunautaire(class="form-control") }}
             {% for error in form.tva_intracommunautaire.errors %}
                 <span class="text-danger">{{ error }}</span>
             {% endfor %}
         </div>
-
         <div class="form-group">
             {{ form.forme_juridique.label(class="form-label") }}
             {{ form.forme_juridique(class="form-control") }}
@@ -40,7 +38,6 @@
                 <span class="text-danger">{{ error }}</span>
             {% endfor %}
         </div>
-
         <div class="form-group">
             {{ form.adresse.label(class="form-label") }}
             {{ form.adresse(class="form-control") }}
@@ -90,17 +87,15 @@
                 <span class="text-danger">{{ error }}</span>
             {% endfor %}
         </div>
-
         <div class="form-group">
             {{ form.logo.label(class="form-label") }}
             {{ form.logo(class="form-control-file") }}
-            {% if organisation.logo %}
-            <img src="{{ url_for('organisations.get_logo', organisation_id=organisation.id) }}" alt="Logo actuel" style="max-width: 100px; max-height: 100px;">
-            {% endif %}
+            {% for error in form.logo.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
         </div>
-        <button type="submit" class="btn btn-primary">Modifier</button>
+        <button type="submit" class="btn btn-primary">Ajouter</button>
     </form>
-
     <script>
         function toggleTvaField() {
             var tvaField = document.getElementById("tva_field");

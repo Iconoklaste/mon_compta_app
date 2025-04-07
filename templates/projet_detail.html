@@ -11,11 +11,13 @@
 </a>
 
 <form action="{{ url_for('projets.supprimer_projet', projet_id=projet.id) }}" method="POST" style="display: inline;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
     <button type="submit" class="btn btn-danger"
         onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce projet ? Cette action est irréversible.')">
         <i class="fas fa-trash-alt"></i> Supprimer
     </button>
 </form>
+
 {% endblock %}
 
 {% block content %}
@@ -126,6 +128,7 @@
                                 <i class="fas fa-edit"></i> Modifier</a>
                             <form action="{{ url_for('projet_phases.supprimer_phase', projet_id=projet.id, phase_id=phase.id) }}"
                                 method="POST" style="display: inline;">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <button type="submit" class="btn btn-danger btn-sm btn-icon-only"
                                     onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette phase ?')"><i class="far fa-trash-alt"></i></button>
                             </form>

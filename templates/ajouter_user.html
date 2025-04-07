@@ -4,33 +4,55 @@
     <h1>Ajouter un Utilisateur</h1>
 
     <form method="POST" id="userForm">
+        {{ form.hidden_tag() }}
         <div class="form-group">
-            <label for="nom">Nom</label>
-            <input type="text" class="form-control" id="nom" name="nom" required>
+            {{ form.nom.label(class="form-label") }}
+            {{ form.nom(class="form-control") }}
+            {% for error in form.nom.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
         </div>
         <div class="form-group">
-            <label for="prenom">Prénom</label>
-            <input type="text" class="form-control" id="prenom" name="prenom" required>
+            {{ form.prenom.label(class="form-label") }}
+            {{ form.prenom(class="form-control") }}
+            {% for error in form.prenom.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
         </div>
         <div class="form-group">
-            <label for="mail">Email</label>
-            <input type="email" class="form-control" id="mail" name="mail" required>
+            {{ form.mail.label(class="form-label") }}
+            {{ form.mail(class="form-control") }}
+            {% for error in form.mail.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
         </div>
         <div class="form-group">
-            <label for="telephone">Téléphone</label>
-            <input type="tel" class="form-control" id="telephone" name="telephone">
+            {{ form.telephone.label(class="form-label") }}
+            {{ form.telephone(class="form-control") }}
+            {% for error in form.telephone.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
         </div>
         <div class="form-group">
-            <label for="password">Mot de passe</label>
-            <input type="password" class="form-control" id="password" name="password" required>
+            {{ form.password.label(class="form-label") }}
+            {{ form.password(class="form-control") }}
+            {% for error in form.password.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
         </div>
         <div class="form-group">
-            <label for="organisation">Organisation</label>
-            <select class="form-control" id="organisation" name="organisation" required>
-                {% for organisation in organisations %}
-                    <option value="{{ organisation.designation }}" {% if organisation.designation == user_organisation.designation %}selected{% endif %}>{{ organisation.designation }}</option>
-                {% endfor %}
-            </select>
+            {{ form.confirm_password.label(class="form-label") }}
+            {{ form.confirm_password(class="form-control") }}
+            {% for error in form.confirm_password.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+        </div>
+        <div class="form-group">
+            {{ form.organisation.label(class="form-label") }}
+            {{ form.organisation(class="form-control") }}
+            {% for error in form.organisation.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
         </div>
         <div class="form-group">
             <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#addOrganisationModal">

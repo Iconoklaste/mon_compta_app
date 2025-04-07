@@ -1,9 +1,10 @@
-from flask import Blueprint, render_template, redirect, session, url_for, request, abort
+from flask import Blueprint, render_template, redirect, session, url_for, request, abort, flash
+from flask_wtf.csrf import validate_csrf
 from controllers.db_manager import db
 from controllers.users_controller import login_required
 from models import User, Client, Transaction, Organisation, Projet
 from datetime import date
-from forms.forms import ProjetForm
+from forms.forms import ProjetForm, ClientForm
 
 projets_bp = Blueprint('projets', __name__)
 
@@ -11,9 +12,6 @@ projets_bp = Blueprint('projets', __name__)
 @login_required
 def projets():
     user_id = session['user_id']
-    user = User.query.get(user_id)
-    if not user:
-        abort(404)
     projets = Projet.query.filter_by(user_id=user_id).all()
     return render_template('projets.html',
                            projets=projets,
@@ -27,9 +25,6 @@ def modifier_projet(projet_id):
     form = ProjetForm(obj=projet)
 
     if form.validate_on_submit():
-        client = Client.query.get(form.client_id.data)
-        if not client:
-            abort(404)
         projet.nom = form.nom.data
         projet.client_id = form.client_id.data
         projet.date_debut = form.date_debut.data
@@ -38,20 +33,26 @@ def modifier_projet(projet_id):
         projet.prix_total = form.prix_total.data
 
         db.session.commit()
+        flash('Projet modifié avec succès!', 'success')
         return redirect(url_for('projets.projet_detail', projet_id=projet.id))
-    else:
-        return render_template('projet_edit.html', projet=projet, form=form)
+    return render_template('projet_edit.html', projet=projet, form=form)
 
 
 @projets_bp.route('/projet/<int:projet_id>/supprimer', methods=['POST'])
 @login_required
 def supprimer_projet(projet_id):
+    try:
+        validate_csrf(request.form.get('csrf_token'))
+    except Exception as e:
+        # Handle CSRF error (e.g., return an error response)
+        return "CSRF token validation failed", 400
     projet = Projet.query.get_or_404(projet_id)
     # Delete related transactions first (if necessary)
     for transaction in projet.transactions:
         db.session.delete(transaction)
     db.session.delete(projet)
     db.session.commit()
+    flash('Projet supprimé avec succès!', 'success')
     return redirect(url_for('projets.projets'))
 
 @projets_bp.route('/projet/<int:projet_id>')
@@ -71,32 +72,44 @@ def projet_detail(projet_id):
 @projets_bp.route('/ajouter_projet', methods=['GET', 'POST'])
 @login_required
 def ajouter_projet():
+    form = ProjetForm()
     user_id = session['user_id']
     user = User.query.get(user_id)
     if not user:
         abort(404)
-    clients = Client.query.all()
-    status_options = ["En attente", "En cours", "Terminé", "Annulé"]
-    if request.method == 'POST':
-        nom = request.form['nom']
-        client_id = request.form['client_id']
-        date_debut_str = request.form['date_debut']
-        date_fin_str = request.form['date_fin']
-        statut = request.form['statut']
-        prix_total = int(request.form['prix_total']) if request.form['prix_total'] else 0
-        date_debut = date.fromisoformat(date_debut_str) if date_debut_str else None
-        date_fin = date.fromisoformat(date_fin_str) if date_fin_str else None
+    form.client_id.choices = [(client.id, client.nom) for client in Client.query.all()]
+    form.statut.choices = [("En attente", "En attente"), ("En cours", "En cours"), ("Terminé", "Terminé"), ("Annulé", "Annulé")]
+
+    if form.validate_on_submit():
+        try:
+            validate_csrf(form.csrf_token.data)
+        except Exception as e:
+            flash("Erreur CSRF", 'danger')
+            return redirect(url_for('projets.ajouter_projet'))
+
         organisation = Organisation.query.first()
         if not organisation:
-            abort(404)
+            flash("Aucune organisation trouvée.", 'danger')
+            return redirect(url_for('projets.ajouter_projet'))
 
-        client = Client.query.get(client_id)
+        client = Client.query.get(form.client_id.data)
         if not client:
-            abort(404)
+            flash("Client non trouvé.", 'danger')
+            return redirect(url_for('projets.ajouter_projet'))
 
-        nouveau_projet = Projet(nom=nom, date_debut=date_debut, date_fin=date_fin, statut=statut, prix_total=prix_total, organisation=organisation, user=user, client=client)
+        nouveau_projet = Projet(
+            nom=form.nom.data,
+            date_debut=form.date_debut.data,
+            date_fin=form.date_fin.data,
+            statut=form.statut.data,
+            prix_total=form.prix_total.data,
+            organisation=organisation,
+            user=user,
+            client=client
+        )
         db.session.add(nouveau_projet)
         db.session.commit()
+        flash('Projet ajouté avec succès!', 'success')
         return redirect(url_for('projets.projets'))
 
-    return render_template('ajouter_projet.html', clients=clients, status_options=status_options)
+    return render_template('ajouter_projet.html', clients=Client.query.all(), form=form, status_options=["En attente", "En cours", "Terminé", "Annulé"])

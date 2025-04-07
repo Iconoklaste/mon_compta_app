@@ -56,10 +56,11 @@
             <div class="landing-page-right">
                 <section class="card login-card">
                     <div class="login-card-title">
-                        <h2 class="card-title">Connexion</h2>
+                        <h2 class="card-title">Connexions</h2>
                     </div>
                     <div class="login-card-form">
                         <form method="POST" action="{{ url_for('users.index') }}">
+                            {{ forms.hidden_tag() }}
                             <div class="form-group">
                                 <label for="email">Email</label>
                                 <input type="email" class="form-control" id="email" name="email" required>

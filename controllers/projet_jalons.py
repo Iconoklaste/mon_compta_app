@@ -1,6 +1,7 @@
 # c:\wamp\www\mon_compta_app\controllers\projet_jalons.py
 
 from flask import Blueprint, render_template, redirect, url_for, request, flash, session, jsonify
+from flask_wtf.csrf import validate_csrf
 from controllers.db_manager import db
 from models import Jalon, Projet, Phase
 from forms.forms import JalonForm
@@ -62,6 +63,11 @@ def modifier_jalon(projet_id, phase_id, jalon_id):
 @projet_jalons_bp.route('/<int:jalon_id>/supprimer', methods=['POST'])
 @login_required
 def supprimer_jalon(projet_id, phase_id, jalon_id):
+    try:
+        validate_csrf(request.form.get('csrf_token'))
+    except Exception as e:
+        flash("Erreur CSRF", 'danger')
+        return redirect(url_for('projets.projet_detail', projet_id=projet_id))
     jalon = Jalon.query.get_or_404(jalon_id)
     db.session.delete(jalon)
     db.session.commit()

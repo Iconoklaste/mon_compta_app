@@ -60,7 +60,10 @@
                         <h2 class="mt-4">Jalons</h2>
                         <ul id="jalons-list">
                             {% for jalon_form in form.jalons %}
-                            <li class="jalon-item">
+                            <li class="jalon-item" data-jalon-id="{{ jalon_form.id.data if jalon_form.id.data else '' }}">
+                                {% if jalon_form.id.data %}
+                                    {{ jalon_form.id(class="jalon-id") }}
+                                {% endif %}
                                 <div class="mb-3">
                                     {{ jalon_form.nom.label(class="form-label") }}
                                     {{ jalon_form.nom(class="form-control") }}
@@ -103,31 +106,60 @@
     document.addEventListener('DOMContentLoaded', function () {
         const addJalonButton = document.getElementById('add-jalon');
         const jalonsList = document.getElementById('jalons-list');
+        let jalonCounter = {{ form.jalons|length }}; // Initialize counter with existing jalons
 
         addJalonButton.addEventListener('click', function () {
             const newJalonItem = document.createElement('li');
             newJalonItem.classList.add('jalon-item');
-            const jalonCount = jalonsList.querySelectorAll('.jalon-item').length;
-
+            newJalonItem.dataset.jalonId = ''; // Mark as new jalon
             newJalonItem.innerHTML = `
                 <div class="mb-3">
-                    <label for="jalons-${jalonCount}-nom" class="form-label">Nom</label>
-                    <input class="form-control" id="jalons-${jalonCount}-nom" name="jalons-${jalonCount}-nom" type="text" value="" required>
+                    <label for="jalons-${jalonCounter}-nom" class="form-label">Nom</label>
+                    <input class="form-control" id="jalons-${jalonCounter}-nom" name="jalons-${jalonCounter}-nom" type="text" value="" required>
                 </div>
                 <div class="mb-3">
-                    <label for="jalons-${jalonCount}-date" class="form-label">Date</label>
-                    <input class="form-control" id="jalons-${jalonCount}-date" name="jalons-${jalonCount}-date" type="date" value="" required>
+                    <label for="jalons-${jalonCounter}-date" class="form-label">Date</label>
+                    <input class="form-control" id="jalons-${jalonCounter}-date" name="jalons-${jalonCounter}-date" type="date" value="" required>
                 </div>
                 <button type="button" class="btn btn-danger btn-sm remove-jalon">Supprimer</button>
             `;
 
             jalonsList.appendChild(newJalonItem);
+            jalonCounter++;
         });
+
         jalonsList.addEventListener('click', function (event) {
             if (event.target.classList.contains('remove-jalon')) {
-                event.target.closest('.jalon-item').remove();
+                const jalonItem = event.target.closest('.jalon-item');
+                const jalonId = jalonItem.dataset.jalonId;
+
+                if (jalonId) {
+                    // Existing jalon, send AJAX request to delete
+                    fetch(`/projets/{{ projet_id }}/phases/{{ phase_id }}/jalons/${jalonId}/supprimer`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token() }}'
+                        }
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            jalonItem.remove();
+                        } else {
+                            console.error('Error deleting jalon:', response.statusText);
+                            // Handle error (e.g., show a message to the user)
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        // Handle error (e.g., show a message to the user)
+                    });
+                } else {
+                    // New jalon, just remove from the form
+                    jalonItem.remove();
+                }
             }
         });
     });
 </script>
+
 {% endblock %}

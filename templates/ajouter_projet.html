@@ -1,4 +1,3 @@
-
 {% extends 'base.html' %}
 
 {% block page_title %}
@@ -9,6 +8,7 @@
     
 
     <form method="POST" id="projetForm">
+        {{ form.hidden_tag() }}
         <div class="form-group">
             <label for="nom">Nom du projet</label>
             <input type="text" class="form-control" id="nom" name="nom" required>
@@ -50,90 +50,157 @@
     </form>
 
     <!-- Modal for adding a new client -->
-    <div class="modal fade" id="addClientModal" tabindex="-1" role="dialog" aria-labelledby="addClientModalLabel" aria-hidden="true">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title" id="addClientModalLabel">Ajouter un nouveau client</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form id="addClientForm">
-                        <div class="form-group">
-                            <label for="newClientNom">Nom du client</label>
-                            <input type="text" class="form-control" id="newClientNom" name="newClientNom" required>
-                        </div>
-                        <div class="form-group">
-                            <label for="newClientAdresse">Adresse</label>
-                            <input type="text" class="form-control" id="newClientAdresse" name="newClientAdresse">
-                        </div>
-                        <div class="form-group">
-                            <label for="newClientCodePostal">Code postal</label>
-                            <input type="text" class="form-control" id="newClientCodePostal" name="newClientCodePostal" pattern="[0-9]{5}" title="Le code postal doit contenir 5 chiffres">
-                        </div>
-                        <div class="form-group">
-                            <label for="newClientVille">Ville</label>
-                            <input type="text" class="form-control" id="newClientVille" name="newClientVille">
-                        </div>
-                        <div class="form-group">
-                            <label for="newClientTelephone">Téléphone</label>
-                            <input type="text" class="form-control" id="newClientTelephone" name="newClientTelephone">
-                        </div>
-                        <div class="form-group">
-                            <label for="newClientMail">Email</label>
-                            <input type="email" class="form-control" id="newClientMail" name="newClientMail">
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
-                    <button type="button" class="btn btn-primary" id="saveClient">Enregistrer</button>
-                </div>
+<div class="modal fade" id="addClientModal" tabindex="-1" role="dialog" aria-labelledby="addClientModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addClientModalLabel">Ajouter un nouveau client</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form id="addClientForm">
+                    <div class="form-group">
+                        <label for="nom">Nom du client</label>
+                        <input type="text" class="form-control" id="nom" name="nom" required>
+                        <div class="invalid-feedback" id="nomError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="adresse">Adresse</label>
+                        <input type="text" class="form-control" id="adresse" name="adresse">
+                        <div class="invalid-feedback" id="adresseError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="code_postal">Code postal</label>
+                        <input type="text" class="form-control" id="code_postal" name="code_postal" pattern="[0-9]{5}" title="Le code postal doit contenir 5 chiffres">
+                        <div class="invalid-feedback" id="code_postalError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="ville">Ville</label>
+                        <input type="text" class="form-control" id="ville" name="ville">
+                        <div class="invalid-feedback" id="villeError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="telephone">Téléphone</label>
+                        <input type="text" class="form-control" id="telephone" name="telephone">
+                        <div class="invalid-feedback" id="telephoneError"></div>
+                    </div>
+                    <div class="form-group">
+                        <label for="mail">Email</label>
+                        <input type="email" class="form-control" id="mail" name="mail">
+                        <div class="invalid-feedback" id="mailError"></div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+                <button type="button" class="btn btn-primary" id="saveClient">Enregistrer</button>
             </div>
         </div>
     </div>
+</div>
 
-    <script>
-        document.getElementById('saveClient').addEventListener('click', function() {
-            const nom = document.getElementById('newClientNom').value;
-            const adresse = document.getElementById('newClientAdresse').value;
-            const code_postal = document.getElementById('newClientCodePostal').value;
-            const ville = document.getElementById('newClientVille').value;
-            const telephone = document.getElementById('newClientTelephone').value;
-            const mail = document.getElementById('newClientMail').value;
 
-            if (nom) {
-                fetch('/clients/ajouter_client', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({ nom: nom, adresse: adresse, code_postal: code_postal, ville: ville, telephone: telephone, mail: mail }),
-                })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        const select = document.getElementById('client_id');
-                        const option = document.createElement('option');
-                        option.value = data.client_id;
-                        option.text = nom;
-                        select.add(option);
-                        select.value = data.client_id;
-                        $('#addClientModal').modal('hide');
-                        // Clear the modal fields
-                        document.getElementById('newClientNom').value = '';
-                        document.getElementById('newClientAdresse').value = '';
-                        document.getElementById('newClientCodePostal').value = '';
-                        document.getElementById('newClientVille').value = '';
-                        document.getElementById('newClientTelephone').value = '';
-                        document.getElementById('newClientMail').value = '';
-                    } else {
-                        alert('Erreur lors de l\'ajout du client.');
-                    }
-                });
-            }
+<script>
+document.getElementById('saveClient').addEventListener('click', function() {
+    const addClientForm = document.getElementById('addClientForm');
+    const formData = new FormData(addClientForm);
+
+    // Basic validation
+    let isValid = true;
+    const nom = formData.get('nom');
+    if (!nom) {
+        isValid = false;
+        const inputField = document.getElementById('nom');
+        const errorDiv = document.getElementById('nomError');
+        inputField.classList.add('is-invalid');
+        errorDiv.textContent = "Le nom est obligatoire";
+    }
+
+    if (isValid) {
+        // Convert FormData to a plain object
+        const data = {};
+        formData.forEach((value, key) => {
+            data[key] = value;
         });
-    </script>
+
+        fetch('/clients/ajouter_client', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json', // Specify JSON content type
+                'X-CSRFToken': '{{ csrf_token() }}'
+            },
+            body: JSON.stringify(data), // Send data as JSON
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                const clientSelect = document.getElementById('client_id');
+                const newOption = document.createElement('option');
+                newOption.value = data.client_id;
+                newOption.text = nom;
+                clientSelect.add(newOption);
+                clientSelect.value = data.client_id;
+                $('#addClientModal').modal('hide');
+                addClientForm.reset(); // Reset the form
+                clearValidationErrors();
+            } else {
+                displayValidationErrors(data.errors);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Une erreur est survenue lors de l\'ajout du client.');
+        });
+    }
+});
+
+function clearValidationErrors() {
+    document.querySelectorAll('.form-control').forEach(input => {
+        input.classList.remove('is-invalid');
+    });
+    document.querySelectorAll('.invalid-feedback').forEach(div => {
+        div.textContent = '';
+    });
+}
+
+function displayValidationErrors(errors) {
+    clearValidationErrors();
+    if (errors) {
+        for (const field in errors) {
+            const inputField = document.getElementById(field);
+            const errorDiv = document.getElementById(field + 'Error');
+
+            if (inputField && errorDiv) {
+                inputField.classList.add('is-invalid');
+                errorDiv.textContent = errors[field].join(', ');
+            }
+        }
+    } else {
+        alert('Une erreur est survenue lors de l\'ajout du client.');
+    }
+}
+
+// Add event listeners to clear errors on input
+document.querySelectorAll('#addClientForm .form-control').forEach(input => {
+    input.addEventListener('input', () => {
+        input.classList.remove('is-invalid');
+        const errorDiv = document.getElementById(input.id + 'Error');
+        if (errorDiv) {
+            errorDiv.textContent = '';
+        }
+    });
+});
+
+// Clear form fields when the modal is hidden
+$('#addClientModal').on('hidden.bs.modal', function () {
+    document.getElementById('addClientForm').reset();
+    clearValidationErrors();
+});
+
+</script>
+
+
+
 {% endblock %}
