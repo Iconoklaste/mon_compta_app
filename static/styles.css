@@ -14,6 +14,8 @@
     --light-gray: #e3e3e3; /* Gris clair (fonds) */
     --very-light-gray: #f5f5f5; /* Gris très clair (fonds) */
     --white: #FFFFFF; /* Blanc */
+
+    --navbar-height: 4rem;
 }
 
 /* Typographie */
@@ -257,7 +259,8 @@ nav#sidebar-content {
     width: calc(100% - 250px);
     z-index: 200;
     flex-shrink: 0;
-    min-height: 4rem;
+    /*min-height: 4rem;*/
+    height: var(--navbar-height);
     transition: left 0.3s ease, width 0.3s ease
 }
 

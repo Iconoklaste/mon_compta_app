@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 
 {% block page_title %}
-    Whiteboard inclus dans base
+<h1>{{ projet.nom }}</h1>
 {% endblock %}
 
 {% block extra_head %}
@@ -13,78 +13,75 @@
 
     <link rel="stylesheet" href="{{ url_for('static', filename='whiteboard.css') }}">
     <!--<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vanilla-picker@2.12.3/dist/vanilla-picker.min.css">-->
+    <style>
+        .content {
+            background-color: brown;
+            padding: 0;
+            margin-top: var(--navbar-height);
+        }
+        .container-fluid {
+            padding: 0; /* Remove padding from container-fluid */
 
+        }
+    </style>
 {% endblock %}
 
 {% block sidebar %}
-    {{ super() }}
-    <li><a href="{{ url_for('projets.modifier_projet', projet_id=projet.id) }}" class="btn btn-warning">Modifier le Projet</a></li>
-    <li>
-        <form action="{{ url_for('projets.supprimer_projet', projet_id=projet.id) }}" method="POST" style="display: inline;">
-            <button type="submit" class="btn btn-danger" onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce projet ? Cette action est irréversible.')">Supprimer le Projet</button>
-        </form>
-    </li>
 {% endblock %}
 
 {% block content %}
-    <input type="hidden" id="csrfToken" value="{{ csrf_token() }}">
-    <div id="canvas-container" class="canvas-container">
-        <div id="toolbar">
-            <button id="add-rect">Ajouter une boîte</button>
-            <button id="add-text">Ajouter du texte</button>
-            <button id="zoom-in">Zoom In</button>
-            <button id="zoom-out">Zoom Out</button>
-            <button id="saveButton">Sauvegarder</button>
-            <button id="delete">Supprimer</button>
-
-            <button id="send-to-back">Send to Back</button>
-            <button id="bring-to-front">Bring to Front</button>
-            <button id="send-backward">Send Backward</button>
-            <button id="bring-forward">Bring Forward</button>
-
-            <div id="color-picker-container"></div>
-            <button id="open-color-picker">Select Color</button>
-
-
-
-            <label for="font-family-selector">Font Family:</label>
-            <select id="font-family-selector">
-                <option value="Arial" selected>Arial</option>
-                <option value="Times New Roman">Times New Roman</option>
-                <option value="Verdana">Verdana</option>
-                <option value="Courier New">Courier New</option>
-                <option value="Georgia">Georgia</option>
-            </select>
-
-            <label for="font-size-selector">Font Size:</label>
-            <select id="font-size-selector">
-                <option value="12">12</option>
-                <option value="14">14</option>
-                <option value="16">16</option>
-                <option value="18">18</option>
-                <option value="20" selected>20</option>
-                <option value="24">24</option>
-                <option value="28">28</option>
-                <option value="32">32</option>
-                <option value="36">36</option>
-                <option value="48">48</option>
-                <option value="72">72</option>
-            </select>
-        </div>
-        <canvas id="canvas"></canvas>
-        <div id="zoom-indicator">Zoom: 100%</div>
+<input type="hidden" id="csrfToken" value="{{ csrf_token() }}">
+<div id="canvas-container" class="canvas-container">
+    <div id="toolbar">
+        <button id="add-rect">Ajouter une boîte</button>
+        <button id="add-text">Ajouter du texte</button>
+        <button id="zoom-in">Zoom In</button>
+        <button id="zoom-out">Zoom Out</button>
+        <button id="saveButton">Sauvegarder</button>
+        <button id="delete">Supprimer</button>
+    
+        <button id="send-to-back">Send to Back</button>
+        <button id="bring-to-front">Bring to Front</button>
+        <button id="send-backward">Send Backward</button>
+        <button id="bring-forward">Bring Forward</button>
+    
+        <div id="color-picker-container"></div>
+        <button id="open-color-picker">Select Color</button>
+    
+    
+    
+        <label for="font-family-selector">Font Family:</label>
+        <select id="font-family-selector">
+            <option value="Arial" selected>Arial</option>
+            <option value="Times New Roman">Times New Roman</option>
+            <option value="Verdana">Verdana</option>
+            <option value="Courier New">Courier New</option>
+            <option value="Georgia">Georgia</option>
+        </select>
+    
+        <label for="font-size-selector">Font Size:</label>
+        <select id="font-size-selector">
+            <option value="12">12</option>
+            <option value="14">14</option>
+            <option value="16">16</option>
+            <option value="18">18</option>
+            <option value="20" selected>20</option>
+            <option value="24">24</option>
+            <option value="28">28</option>
+            <option value="32">32</option>
+            <option value="36">36</option>
+            <option value="48">48</option>
+            <option value="72">72</option>
+        </select>
     </div>
+    
+    <canvas id="canvas"></canvas>
+    <div id="zoom-indicator">Zoom: 100%</div>
+</div>
 
-    <script>
-        window.projetId = {{ projet_id }}; // Store projetId in a global variable
-        // Add the no-padding class to the content when the canvas-container is displayed
-        document.addEventListener('DOMContentLoaded', function() {
-            const content = document.querySelector('.content');
-            if (content) {
-                content.classList.add('no-padding');
-            }
-        });
-    </script>
-    <script src="https://unpkg.com/vanilla-picker@2/dist/vanilla-picker.min.js"></script>
-    <script type="module" src="{{ url_for('static', filename='js/whiteboard/main.js') }}"></script>
+<script>
+    window.projetId = {{ projet_id }}; // Store projetId in a global variable
+</script>
+<script src="https://unpkg.com/vanilla-picker@2/dist/vanilla-picker.min.js"></script>
+<script type="module" src="{{ url_for('static', filename='js/whiteboard/main.js') }}"></script>
 {% endblock %}

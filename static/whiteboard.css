@@ -1,4 +1,19 @@
+:root {
+    --navbar-height: 4rem;
+}
+
 /* whiteboard.css */
+content.no-margin {
+    margin: 0 !important;
+}
+
+content.no-padding {
+    padding: 0 !important;
+}
+
+.padding-top {
+    padding-top: 4rem !important;
+}
 
 /* General Styles (Consistent with styles.css) */
 body {
@@ -10,7 +25,7 @@ body {
 #canvas-container {
     position: relative;
     width: 100%;
-    height: 100%;
+    height: 100%; /* Adjust height to account for navbar and toolbar */
 }
 
 /* Canvas */
@@ -24,24 +39,26 @@ body {
 
 /* Toolbar */
 #toolbar {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    z-index: 100;
+    position: fixed; /* Change to fixed */
+    top: var(--navbar-height); /* Position below the navbar */
+    left: 250px; /* Align to the left */
+    width: calc(100% - 250px); /* Full width */
+    z-index: 150;
     background-color: #f8f9fa; /* Use a background color from styles.css */
     padding: 10px;
-    border-radius: 5px;
+    border-radius: 0; /* Remove border radius */
     display: flex;
     flex-wrap: wrap;
     gap: 10px;
     align-items: center;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Add a subtle shadow */
     border: 1px solid #dee2e6;
+    transition: left 0.3s ease, width 0.3s ease;
 }
 
 /* Toolbar Buttons */
 #toolbar button {
-    background-color: #21993b; /* Vert vif */
+    background-color: var(--light-green);
     border: none;
     color: white;
     padding: 8px 16px;

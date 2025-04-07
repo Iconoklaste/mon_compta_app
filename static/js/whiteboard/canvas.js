@@ -15,7 +15,7 @@ export function initializeCanvas() {
         const sidebar = document.querySelector('.sidebar');
         const sidebarWidth = sidebar ? parseFloat(getComputedStyle(sidebar).width) : 0;
 
-        const contentPadding = 20; // Padding of the content
+        const contentPadding = 0; // Padding of the content
         const availableWidth = window.innerWidth - sidebarWidth - contentPadding * 2;
         const availableHeight = window.innerHeight - navbarHeight - contentPadding * 2;
 
