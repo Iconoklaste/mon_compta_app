@@ -31,6 +31,8 @@ body {
     font-family: 'Roboto', sans-serif; /* Use the same font as the rest of the app */
 }
 
+
+
 /* Canvas Container */
 #canvas-container {
     position: relative;
@@ -51,7 +53,7 @@ body {
 #toolbar {
     position: fixed; /* Change to fixed */
     top: var(--navbar-height); /* Position below the navbar */
-    left: 0px; 
+    left: 0px;
     width: 100%; /* Full width */
     z-index: 150;
     background-color: #f8f9fa; /* Use a background color from styles.css */
@@ -59,7 +61,7 @@ body {
     border-radius: 0; /* Remove border radius */
     display: flex;
     flex-wrap: wrap;
-    gap: 10px;
+    gap: 0.1rem;
     align-items: center;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); /* Add a subtle shadow */
     border: 1px solid #dee2e6;
@@ -68,42 +70,43 @@ body {
 
 /* Toolbar Buttons */
 #toolbar button {
-    background-color: var(--light-green);
-    border: none;
-    color: white;
-    padding: 8px 16px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 14px;
+    background-color: #f0f0f0; /* Light gray background */
+    border: 1px solid #ccc; /* Light gray border */
+    color: #333; /* Dark text */
+    padding: 5px 10px;
+    margin: 0 5px;
     cursor: pointer;
-    border-radius: 5px;
+    border-radius: 4px;
     transition: background-color 0.3s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    box-shadow: none; /* Remove box-shadow */
 }
 
 #toolbar button:hover {
-    background-color: #155; /* Vert foncé on hover */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    background-color: #e0e0e0; /* Slightly darker gray on hover */
+    box-shadow: none; /* Remove box-shadow */
 }
 
 #toolbar button:active {
-    background-color: #07857A; /* Vert foncé on click */
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    background-color: #ddd; /* Darker gray when active */
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2); /* Inset shadow for pressed effect */
     transform: translateY(1px);
 }
 
 /* Color Picker Button */
 #open-color-picker {
-    background-color: #333333; /* Dark gray */
+    background-color: #f0f0f0; /* Light gray background */
+    border: 1px solid #ccc; /* Light gray border */
+    color: #333; /* Dark text */
 }
 
 #open-color-picker:hover {
-    background-color: #262626; /* Darker gray on hover */
+    background-color: #e0e0e0; /* Slightly darker gray on hover */
 }
 
 #open-color-picker:active {
-    background-color: #1A1A1A; /* Even darker gray on click */
+    background-color: #ddd; /* Darker gray when active */
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2); /* Inset shadow for pressed effect */
+    transform: translateY(1px);
 }
 
 /* Select Styling */
@@ -156,33 +159,267 @@ body {
 #toolbar #bring-to-front,
 #toolbar #send-backward,
 #toolbar #bring-forward {
-    background-color: #333333; /* Dark gray */
-    border: none;
-    color: white;
-    padding: 8px 16px;
-    text-align: center;
-    text-decoration: none;
-    display: inline-block;
-    font-size: 14px;
-    cursor: pointer;
-    border-radius: 5px;
-    transition: background-color 0.3s ease;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    background-color: #f0f0f0; /* Light gray background */
+    border: 1px solid #ccc; /* Light gray border */
+    color: #333; /* Dark text */
 }
 
 #toolbar #send-to-back:hover,
 #toolbar #bring-to-front:hover,
 #toolbar #send-backward:hover,
 #toolbar #bring-forward:hover {
-    background-color: #262626; /* Darker gray on hover */
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+    background-color: #e0e0e0; /* Slightly darker gray on hover */
 }
 
 #toolbar #send-to-back:active,
 #toolbar #bring-to-front:active,
 #toolbar #send-backward:active,
 #toolbar #bring-forward:active {
-    background-color: #1A1A1A; /* Even darker gray on click */
-    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+    background-color: #ddd; /* Darker gray when active */
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2); /* Inset shadow for pressed effect */
     transform: translateY(1px);
+}
+
+.icon {
+    width: 1.5em; /* Adjust icon size as needed */
+    height: 1.5em; /* Adjust icon size as needed */
+    fill: #000000; /* Default icon color */
+    stroke: #000000; /* Default icon stroke color */
+    transition: fill 0.2s, stroke 0.2s; /* Add a smooth transition for color changes */
+}
+
+.shape-icon {
+    @extend .icon; /* Inherit styles from .icon */
+}
+
+/* Text icon style */
+.text-icon {
+    @extend .icon; /* Inherit styles from .icon */
+    width: 24px;
+    height: 24px;
+}
+
+#free-draw-button svg {
+    @extend .icon; /* Inherit styles from .icon */
+    fill: white; /* Set the default fill color */
+    stroke: white; /* Set the default stroke color */
+}
+
+#free-draw-button.active svg {
+    fill: #4CAF50; /* Change the fill color when active */
+    stroke: #4CAF50; /* Change the stroke color when active */
+}
+
+/* Generic toolbar button style */
+.toolbar-button {
+    background-color: #f0f0f0; /* Light gray background */
+    border: 1px solid #ccc; /* Light gray border */
+    padding: 5px 10px;
+    margin: 0 5px;
+    cursor: pointer;
+    border-radius: 4px;
+    display: inline-flex; /* Use inline-flex for better icon alignment */
+    align-items: center; /* Center the icon vertically */
+    justify-content: center; /* Center the icon horizontally */
+    gap: 5px; /* Add some space between the icon and text (if any) */
+    transition: background-color 0.2s, box-shadow 0.2s; /* Add a smooth transition */
+}
+
+.toolbar-button:hover {
+    background-color: #ddd; /* Darker gray on hover */
+}
+
+.toolbar-button.active {
+    background-color: #ddd; /* Darker gray when active */
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2); /* Inset shadow for pressed effect */
+}
+
+/* Style for the bold and italic buttons */
+.text-style-button {
+    @extend .toolbar-button; /* Inherit styles from .toolbar-button */
+}
+
+/* Style for the icon button */
+#add-shape-dropdown {
+    @extend .toolbar-button; /* Inherit styles from .toolbar-button */
+    padding: 5px 10px; /* Adjust padding as needed */
+    width: auto; /* Adjust width as needed */
+    height: auto;
+}
+
+/* Style for the free draw button */
+#free-draw-button {
+    @extend .toolbar-button; /* Inherit styles from .toolbar-button */
+    width: auto; /* Adjust width as needed */
+    height: auto;
+}
+
+
+
+
+
+/* Style for the pan button */
+#pan-button {
+    @extend .toolbar-button; /* Inherit styles from .toolbar-button */
+    width: auto; /* Adjust width as needed */
+    height: auto;
+}
+
+#pan-button.active {
+    background-color: #333; /* Active color */
+    color: white;
+}
+
+#pan-button svg {
+    @extend .icon; /* Inherit styles from .icon */
+    fill: white; /* Set the default fill color */
+    stroke: white; /* Set the default stroke color */
+}
+
+#pan-button.active svg {
+    fill: #4CAF50; /* Change the fill color when active */
+    stroke: #4CAF50; /* Change the stroke color when active */
+}
+
+/* Style for the selection button */
+#selection-button {
+    @extend .toolbar-button;
+    width: auto; /* Adjust width as needed */
+    height: auto;
+}
+
+#selection-button.active {
+    background-color: #333; /* Active color */
+    color: white;
+}
+
+#selection-button svg {
+    @extend .icon; /* Inherit styles from .icon */
+    fill: white; /* Set the default fill color */
+    stroke: white; /* Set the default stroke color */
+}
+
+#selection-button.active svg {
+    fill: #4CAF50; /* Change the fill color when active */
+    stroke: #4CAF50; /* Change the stroke color when active */
+}
+
+
+
+/* Styles for the color dropdown */
+#color-dropdown-button {
+    display: flex;
+    align-items: center;
+    padding: 0;
+    background-color: transparent; /* Remove the default background color */
+    border: none; /* Remove the default border */
+}
+
+#color-dropdown-button::after {
+    margin-left: 0.25em; /* Adjust spacing as needed */
+    border-top: 0.3em solid; /* Adjust the size of the arrow */
+    border-right: 0.3em solid transparent; /* Adjust the size of the arrow */
+    border-left: 0.3em solid transparent; /* Adjust the size of the arrow */
+    content: "";
+    vertical-align: middle;
+}
+
+#color-preview-button {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%; /* Make it round */
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#color-preview-button .color-preview-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: white; /* Default color */
+}
+
+.color-dropdown-menu.show {
+    display: block; /* Show when the 'show' class is added */
+}
+
+
+.color-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr); /* 5 columns */
+    grid-template-rows: repeat(10, 1fr); /* 10 rows */
+    gap: 5px;
+}
+
+.color-cell {
+    width: 20px;
+    height: 20px;
+    border: 1px solid #ccc;
+    cursor: pointer;
+}
+
+.color-cell.selected {
+    border: 2px solid black; /* Add a border to highlight the selected cell */
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5); /* Add a shadow for emphasis */
+}
+
+.transparency-slider {
+    width: 100%;
+    margin-top: 10px;
+}
+
+/* Outline Color Picker */
+#stroke-color-dropdown-button {
+    display: flex;
+    align-items: center;
+    padding: 0;
+    background-color: transparent;
+    border: none;
+}
+
+#stroke-color-dropdown-button::after {
+    margin-left: 0.25em;
+    border-top: 0.3em solid;
+    border-right: 0.3em solid transparent;
+    border-left: 0.3em solid transparent;
+    content: "";
+    vertical-align: middle;
+}
+
+#stroke-color-preview-button {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#stroke-color-preview-button .color-preview-icon {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background-color: black; /* Default outline color */
+}
+
+#stroke-color-dropdown-menu.show {
+    display: block;
+}
+
+/* Outline Width Slider */
+#stroke-width-container {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+#stroke-width-slider {
+    width: 100px;
 }

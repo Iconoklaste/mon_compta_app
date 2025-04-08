@@ -31,23 +31,37 @@ export function initializeCanvas() {
 
     // Variables pour la gestion du déplacement du canvas
     let isDraggingCanvas = false;
+    let isPanningMode = false; // Add this line
 
     // Gestion du déplacement du canvas
     canvas.on('mouse:down', function(options) {
-        if (options.target) {
-            // Si on clique sur un objet, on ne déplace pas le canvas
-            canvas.selection = true;
-            isDraggingCanvas = false;
-        } else {
+        if (canvas.isDrawingMode || canvas.isDrawingShape) {
+            // If in drawing mode or shape creation mode, don't allow canvas dragging
+            return;
+        }
+        if (isPanningMode) {
             canvas.selection = false;
             isDraggingCanvas = true;
             canvas.isDragging = true;
             canvas.lastPosX = options.e.clientX;
             canvas.lastPosY = options.e.clientY;
+        } else {
+            if (options.target) {
+                // Si on clique sur un objet, on ne déplace pas le canvas
+                canvas.selection = true;
+                isDraggingCanvas = false;
+            } else {
+                canvas.selection = true;
+                isDraggingCanvas = false;
+            }
         }
     });
 
     canvas.on('mouse:move', function(options) {
+        if (canvas.isDrawingMode || canvas.isDrawingShape) {
+            // If in drawing mode or shape creation mode, don't allow canvas dragging
+            return;
+        }
         if (isDraggingCanvas && canvas.isDragging) {
             const e = options.e;
             const vpt = canvas.viewportTransform;
@@ -82,6 +96,19 @@ export function initializeCanvas() {
     canvas.on('object:modified', () => saveCanvasState(canvas)); // Pass canvas here
     canvas.on('object:added', () => saveCanvasState(canvas)); // Pass canvas here
     canvas.on('object:removed', () => saveCanvasState(canvas)); // Pass canvas here
+
+    // Save the initial state
+    saveCanvasState(canvas);
+
+    // Add functions to toggle modes
+    canvas.togglePanningMode = function(enable) {
+        isPanningMode = enable;
+        canvas.defaultCursor = enable ? 'grab' : 'default';
+    };
+    canvas.toggleSelectionMode = function(enable) {
+        canvas.selection = enable;
+        canvas.defaultCursor = 'default';
+    };
 
     return canvas;
 }

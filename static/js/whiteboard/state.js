@@ -1,13 +1,24 @@
 // state.js
-import { updateZoomIndicator } from './ui.js';
 import { addDuplicateControl, deleteObject, cloneObject, renderIcon, deleteImg, cloneImg } from './controls.js';
 
 let undoStack = [];
 let redoStack = [];
+let isSaving = false; // Flag to prevent concurrent saves
 
-export function saveCanvasState(canvas) { // Add canvas as argument
-    undoStack.push(JSON.stringify(canvas.toJSON(['deleteControl', 'duplicateControl']))); // Add the controls to the toJSON method
-    redoStack = [];
+// Debounced save function
+function debouncedSaveCanvasState(canvas) {
+    if (isSaving) return; // Prevent concurrent saves
+    isSaving = true;
+    setTimeout(() => {
+        const clonedCanvas = JSON.parse(JSON.stringify(canvas.toJSON(['deleteControl', 'duplicateControl'])));
+        undoStack.push(clonedCanvas);
+        redoStack = [];
+        isSaving = false;
+    }, 100); // Adjust delay as needed
+}
+
+export function saveCanvasState(canvas) {
+    debouncedSaveCanvasState(canvas);
 }
 
 function addControlsToObject(obj, canvas) {
@@ -65,8 +76,9 @@ export function undo(canvas) {
 
 export function redo(canvas) {
     if (redoStack.length > 0) {
-        undoStack.push(redoStack.pop());
-        canvas.loadFromJSON(undoStack[undoStack.length - 1], function() { // Add a callback function
+        const state = redoStack.pop();
+        undoStack.push(state);
+        canvas.loadFromJSON(state, function() { // Add a callback function
             canvas.getObjects().forEach(function(obj) {
                 addControlsToObject(obj, canvas);
             });
@@ -81,7 +93,6 @@ export function loadCanvas(canvas, data) {
             addControlsToObject(obj, canvas);
         });
         canvas.renderAll();
-        saveCanvasState(canvas); // Pass canvas here
     });
 }
 

@@ -15,73 +15,215 @@ function createRegularPolygon(centerX, centerY, sides, radius, angle = 0, option
     return new fabric.Polygon(points, options);
 }
 
-export function addRectangle(canvas) {
-    const rect = new fabric.Rect({
-        left: canvas.getWidth() / 2,
-        top: canvas.getHeight() / 2,
-        fill: 'yellow',
-        width: 200,
-        height: 100,
-        objectCaching: false,
-        stroke: null,
-        strokeWidth: 0,
-        originX: 'center',
-        originY: 'center',
-    });
-    rect.controls.deleteControl = new fabric.Control({
-        x: 0.5,
-        y: -0.5,
-        offsetY: -16,
-        offsetX: 16,
-        cursorStyle: 'pointer',
-        mouseUpHandler: (eventData, transform) => deleteObject(eventData, transform, canvas),
-        render: renderIcon(deleteImg),
-        cornerSize: 24,
-    });
+function addShape(canvas, shapeType, activatePanMode) {
+    let isDragging = false;
+    let origX, origY;
+    let shape;
+    let minDragDistance = 5;
+    let shapeAdded = false;
+    let isMouseDown = false;
 
-    rect.controls.duplicateControl = new fabric.Control({
-        x: -0.5,
-        y: -0.5,
-        offsetY: -16,
-        offsetX: -16,
-        cursorStyle: 'pointer',
-        mouseUpHandler: (eventData, transform) => cloneObject(eventData, transform, canvas),
-        render: renderIcon(cloneImg),
-        cornerSize: 24,
-    });
+    canvas.selection = false;
+    canvas.defaultCursor = 'crosshair';
+    canvas.isDrawingShape = true;
 
-    canvas.add(rect);
-    canvas.setActiveObject(rect);
-    saveCanvasState(canvas);
+    const handleMouseDown = (options) => {
+        if (options.target) return;
+        isMouseDown = true;
+        isDragging = false;
+        const pointer = canvas.getPointer(options.e);
+        origX = pointer.x;
+        origY = pointer.y;
+        shapeAdded = false;
+
+        switch (shapeType) {
+            case 'triangle':
+                shape = new fabric.Triangle({
+                    left: origX,
+                    top: origY,
+                    width: 0,
+                    height: 0,
+                    fill: 'blue',
+                    originX: 'left',
+                    originY: 'top',
+                });
+                break;
+            case 'rectangle':
+                shape = new fabric.Rect({
+                    left: origX,
+                    top: origY,
+                    width: 0,
+                    height: 0,
+                    fill: 'yellow',
+                    originX: 'left',
+                    originY: 'top',
+                });
+                break;
+            case 'circle':
+                shape = new fabric.Circle({
+                    left: origX,
+                    top: origY,
+                    radius: 0,
+                    fill: 'red',
+                    originX: 'left',
+                    originY: 'top',
+                });
+                break;
+            case 'hexagon':
+                shape = createRegularPolygon(origX, origY, 6, 0, 30, {
+                    fill: 'blue',
+                    originX: 'left',
+                    originY: 'top',
+                });
+                break;
+        }
+
+        if (shape) {
+            shape.controls.deleteControl = new fabric.Control({
+                x: 0.5,
+                y: -0.5,
+                offsetY: -16,
+                offsetX: 16,
+                cursorStyle: 'pointer',
+                mouseUpHandler: (eventData, transform) => deleteObject(eventData, transform, canvas),
+                render: renderIcon(deleteImg),
+                cornerSize: 24,
+            });
+
+            shape.controls.duplicateControl = new fabric.Control({
+                x: -0.5,
+                y: -0.5,
+                offsetY: -16,
+                offsetX: -16,
+                cursorStyle: 'pointer',
+                mouseUpHandler: (eventData, transform) => cloneObject(eventData, transform, canvas),
+                render: renderIcon(cloneImg),
+                cornerSize: 24,
+            });
+        }
+    };
+
+    const handleMouseMove = (options) => {
+        if (!isMouseDown) return;
+        canvas.selection = false;
+        const pointer = canvas.getPointer(options.e);
+        const width = Math.abs(pointer.x - origX);
+        const height = Math.abs(pointer.y - origY);
+        const distanceDragged = Math.sqrt(width * width + height * height);
+
+        if (distanceDragged > 0) {
+            isDragging = true;
+        }
+
+        if (shapeType === 'circle') {
+            shape.set({ radius: Math.max(width, height) / 2 });
+        } else if (shapeType === 'hexagon') {
+            shape.set({
+                points: createRegularPolygon(origX, origY, 6, Math.max(width, height) / 2, 30).points,
+            });
+        } else {
+            shape.set({ width: width, height: height });
+        }
+
+        if (pointer.x < origX) {
+            shape.set({ left: pointer.x });
+        }
+        if (pointer.y < origY) {
+            shape.set({ top: pointer.y });
+        }
+        if (distanceDragged < minDragDistance) {
+            if (shapeAdded) {
+                canvas.remove(shape);
+                shapeAdded = false;
+            }
+        } else {
+            if (!shapeAdded) {
+                canvas.add(shape);
+                shapeAdded = true;
+            }
+        }
+        canvas.renderAll();
+    };
+
+    const handleMouseUp = (options) => {
+        isMouseDown = false;
+        if (!isDragging) {
+            if (shape) {
+                canvas.remove(shape);
+            }
+        } else {
+            if (shape && shapeAdded) {
+                canvas.setActiveObject(shape);
+                saveCanvasState(canvas);
+                activatePanMode();
+                canvas.requestRenderAll()
+            } else {
+                if (shape) {
+                    canvas.remove(shape);
+                }
+            }
+        }
+        isDragging = false;
+        canvas.isDrawingShape = false;
+        canvas.defaultCursor = 'default';
+        canvas.removeShapeListeners();
+    };
+
+    canvas.on('mouse:down', handleMouseDown);
+    canvas.on('mouse:move', handleMouseMove);
+    canvas.on('mouse:up', handleMouseUp);
+    const removeListeners = () => {
+        canvas.off('mouse:down', handleMouseDown);
+        canvas.off('mouse:move', handleMouseMove);
+        canvas.off('mouse:up', handleMouseUp);
+    };
+    canvas.removeShapeListeners = removeListeners;
 }
 
-export function addText(canvas) {
-    const rect = new fabric.Rect({
+export function addTriangle(canvas, activatePanMode) {
+    if (canvas.removeShapeListeners) {
+        canvas.removeShapeListeners();
+    }
+    addShape(canvas, 'triangle', activatePanMode);
+}
+
+export function addRectangle(canvas, activatePanMode) {
+    if (canvas.removeShapeListeners) {
+        canvas.removeShapeListeners();
+    }
+    addShape(canvas, 'rectangle', activatePanMode);
+}
+
+export function addCircle(canvas, activatePanMode) {
+    if (canvas.removeShapeListeners) {
+        canvas.removeShapeListeners();
+    }
+    addShape(canvas, 'circle', activatePanMode);
+}
+
+export function addHexagon(canvas, activatePanMode) {
+    if (canvas.removeShapeListeners) {
+        canvas.removeShapeListeners();
+    }
+    addShape(canvas, 'hexagon', activatePanMode);
+}
+
+export function addText(canvas, activatePanMode) {
+    if (canvas.removeShapeListeners) {
+        canvas.removeShapeListeners();
+    }
+    const text = new fabric.Textbox('Texte', {
         left: canvas.getWidth() / 2,
         top: canvas.getHeight() / 2,
-        fill: 'yellow',
-        width: 200,
-        height: 100,
-        objectCaching: false,
-        stroke: null,
-        strokeWidth: 0,
-        originX: 'center',
-        originY: 'center',
-    });
-
-    const text = new fabric.Textbox('Texte', {
-        left: rect.left,
-        top: rect.top,
         fill: 'black',
         fontSize: 20,
-        width: rect.width,
-        textAlign: 'center',
+        width: 200,
+        textAlign: 'left',
         originX: 'center',
         originY: 'center',
         splitByGrapheme: true,
     });
 
-    // Add the delete control to the text object
     text.controls.deleteControl = new fabric.Control({
         x: 0.5,
         y: -0.5,
@@ -103,135 +245,12 @@ export function addText(canvas) {
         cornerSize: 24,
     });
 
-    // Function to update text position and size
-    function updateTextPositionAndSize() {
-        text.set({
-            left: rect.left,
-            top: rect.top,
-            width: rect.width,
-        });
-        text.setCoords();
-    }
-
-    // Event listener for scaling the rectangle
-    rect.on('scaling', () => {
-        updateTextPositionAndSize();
-    });
-
-    // Event listener for moving the rectangle
-    rect.on('moving', () => {
-        updateTextPositionAndSize();
-    });
-
-    // Add the rectangle and text to a group
-    const group = new fabric.Group([rect, text], {
-        left: rect.left,
-        top: rect.top,
-        originX: 'center',
-        originY: 'center',
-    });
-
-    // Add the delete control to the group
-    group.controls.deleteControl = new fabric.Control({
-        x: 0.5,
-        y: -0.5,
-        offsetY: -16,
-        offsetX: 16,
-        cursorStyle: 'pointer',
-        mouseUpHandler: (eventData, transform) => deleteObject(eventData, transform, canvas),
-        render: renderIcon(deleteImg),
-        cornerSize: 24,
-    });
-    group.controls.duplicateControl = new fabric.Control({
-        x: -0.5,
-        y: -0.5,
-        offsetY: -16,
-        offsetX: -16,
-        cursorStyle: 'pointer',
-        mouseUpHandler: (eventData, transform) => cloneObject(eventData, transform, canvas),
-        render: renderIcon(cloneImg),
-        cornerSize: 24,
-    });
-
-    canvas.add(group);
-    canvas.setActiveObject(group);
+    canvas.add(text);
+    canvas.setActiveObject(text);
     saveCanvasState(canvas);
-}
-
-export function addCircle(canvas) {
-    const circle = new fabric.Circle({
-        left: canvas.getWidth() / 2,
-        top: canvas.getHeight() / 2,
-        fill: 'red',
-        radius: 50,
-        objectCaching: false,
-        stroke: null,
-        strokeWidth: 0,
-        originX: 'center',
-        originY: 'center',
-    });
-    circle.controls.deleteControl = new fabric.Control({
-        x: 0.5,
-        y: -0.5,
-        offsetY: -16,
-        offsetX: 16,
-        cursorStyle: 'pointer',
-        mouseUpHandler: (eventData, transform) => deleteObject(eventData, transform, canvas),
-        render: renderIcon(deleteImg),
-        cornerSize: 24,
-    });
-
-    circle.controls.duplicateControl = new fabric.Control({
-        x: -0.5,
-        y: -0.5,
-        offsetY: -16,
-        offsetX: -16,
-        cursorStyle: 'pointer',
-        mouseUpHandler: (eventData, transform) => cloneObject(eventData, transform, canvas),
-        render: renderIcon(cloneImg),
-        cornerSize: 24,
-    });
-
-    canvas.add(circle);
-    canvas.setActiveObject(circle);
-    saveCanvasState(canvas);
-}
-
-export function addHexagon(canvas) {
-    const hexagon = createRegularPolygon(canvas.getWidth() / 2, canvas.getHeight() / 2, 6, 50, 30, {
-        fill: 'blue',
-        objectCaching: false,
-        stroke: null,
-        strokeWidth: 0,
-        originX: 'center',
-        originY: 'center',
-    });
-
-    hexagon.controls.deleteControl = new fabric.Control({
-        x: 0.5,
-        y: -0.5,
-        offsetY: -16,
-        offsetX: 16,
-        cursorStyle: 'pointer',
-        mouseUpHandler: (eventData, transform) => deleteObject(eventData, transform, canvas),
-        render: renderIcon(deleteImg),
-        cornerSize: 24,
-    });
-
-    hexagon.controls.duplicateControl = new fabric.Control({
-        x: -0.5,
-        y: -0.5,
-        offsetY: -16,
-        offsetX: -16,
-        cursorStyle: 'pointer',
-        mouseUpHandler: (eventData, transform) => cloneObject(eventData, transform, canvas),
-        render: renderIcon(cloneImg),
-        cornerSize: 24,
-    });
-
-    canvas.add(hexagon);
-    canvas.setActiveObject(hexagon);
-    saveCanvasState(canvas);
+    activatePanMode();
+    canvas.removeShapeListeners();
+    canvas.requestRenderAll()
 }
 
 export function deleteActiveObject(canvas) {

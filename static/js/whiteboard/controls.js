@@ -15,6 +15,7 @@ cloneImg.src = cloneIcon;
 
 // Function to add the duplicate control to an object
 export function addDuplicateControl(object, canvas) {
+    console.log("addDuplicateControl called for:", object);
     object.cornerStyle = 'circle';
     object.cornerSize = 15;
     object.controls.duplicateControl = new fabric.Control({
@@ -23,7 +24,7 @@ export function addDuplicateControl(object, canvas) {
         offsetX: -15,
         offsetY: -15,
         cursorStyle: 'pointer',
-        mouseUpHandler: (eventData, transform) => duplicateObject(eventData, transform, canvas), // Pass canvas here
+        mouseUpHandler: (eventData, transform) => duplicateObject(eventData, transform, canvas),
         render: renderIcon(cloneImg),
         cornerSize: 24
     });
@@ -31,8 +32,11 @@ export function addDuplicateControl(object, canvas) {
 
 // Function to duplicate an object
 function duplicateObject(eventData, transform, canvas) {
+    console.log("duplicateObject called");
     const target = transform.target;
+    console.log("duplicateObject target:", target);
     target.clone((cloned) => {
+        console.log("duplicateObject cloned:", cloned);
         cloned.set({
             left: cloned.left + 20,
             top: cloned.top + 20,
@@ -43,25 +47,15 @@ function duplicateObject(eventData, transform, canvas) {
         canvas.add(cloned);
         canvas.setActiveObject(cloned);
         canvas.requestRenderAll();
-        saveCanvasState(canvas); // Pass canvas here
+        saveCanvasState(canvas);
     });
 }
 
-// Function to render the duplicate control
-function renderDuplicateControl(ctx, left, top, styleOverride, fabricObject) {
-    const size = 24;
-    ctx.save();
-    ctx.translate(left, top);
-    ctx.rotate(fabric.util.degreesToRadians(fabricObject.angle));
-    // Draw the icon
-    const img = new Image();
-    img.src = cloneIcon;
-    ctx.drawImage(img, -size / 2, -size / 2, size, size);
-    ctx.restore();
-}
 // Function to render the icon
 export function renderIcon(icon) {
+    console.log("renderIcon called");
     return function (ctx, left, top, styleOverride, fabricObject) {
+        console.log("renderIcon inner function called");
         const size = this.cornerSize;
         ctx.save();
         ctx.translate(left, top);
@@ -72,13 +66,36 @@ export function renderIcon(icon) {
 }
 // Function to delete an object
 export function deleteObject(_eventData, transform, canvas) {
-    canvas.remove(transform.target);
+    console.log("deleteObject called");
+    const target = transform.target;
+    console.log("deleteObject target:", target);
+    // Check if the target has the _objects property
+    if (target._objects) {
+        console.log("deleteObject target is a group");
+        console.log("deleteObject group contains:", target.getObjects());
+        // If it's a group, remove each object in the group
+        target.getObjects().forEach(obj => {
+            console.log("deleteObject removing object from group:", obj);
+            canvas.remove(obj);
+        });
+        // Then remove the group itself
+        console.log("deleteObject removing group:", target);
+        canvas.remove(target);
+    } else {
+        console.log("deleteObject target is not a group");
+        // If it's not a group, just remove the target
+        console.log("deleteObject removing target:", target);
+        canvas.remove(target);
+    }
+    canvas.discardActiveObject();
     canvas.requestRenderAll();
-    saveCanvasState(canvas); // Pass canvas here
+    saveCanvasState(canvas);
 }
 // Function to clone an object
 export function cloneObject(_eventData, transform, canvas) {
+    console.log("cloneObject called");
     transform.target.clone((cloned) => {
+        console.log("cloneObject cloned:", cloned);
         cloned.set({
             left: cloned.left + 10,
             top: cloned.top + 10,
@@ -87,6 +104,6 @@ export function cloneObject(_eventData, transform, canvas) {
         cloned.controls.duplicateControl = transform.target.controls.duplicateControl;
         canvas.add(cloned);
         canvas.requestRenderAll();
-        saveCanvasState(canvas); // Pass canvas here
+        saveCanvasState(canvas);
     });
 }
