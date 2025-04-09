@@ -97,7 +97,7 @@
                     </td>
                     <td class="text-center">
                         {# Bouton Activer/Désactiver #}
-                        <form action="{{ url_for('plan_comptable_bp.toggle_actif_compte', compte_id=compte.id) }}" method="POST" class="d-inline-block me-1">
+                        <form action="{{ url_for('plan_comptable.toggle_actif_compte', compte_id=compte.id) }}" method="POST" class="d-inline-block me-1">
                             <button type="submit" class="btn btn-sm {% if compte.actif %}btn-outline-warning{% else %}btn-outline-success{% endif %}"
                                     title="{% if compte.actif %}Désactiver{% else %}Activer{% endif %}">
                                 <i class="bi {% if compte.actif %}bi-toggle-off{% else %}bi-toggle-on{% endif %}"></i>
@@ -280,7 +280,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const solde = button.getAttribute('data-solde');
 
             // Mettre à jour l'action du formulaire
-            const actionUrl = "{{ url_for('plan_comptable_bp.modifier_compte', compte_id=0) }}".replace('0', compteId);
+            const actionUrl = "{{ url_for('plan_comptable.modifier_compte', compte_id=0) }}".replace('0', compteId);
             editForm.action = actionUrl;
 
             // Mettre à jour les valeurs des champs du formulaire
@@ -322,7 +322,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const compteNom = button.getAttribute('data-nom');
 
             // Mettre à jour l'action du formulaire de suppression
-            const actionUrl = "{{ url_for('plan_comptable_bp.supprimer_compte', compte_id=0) }}".replace('0', compteId);
+            const actionUrl = "{{ url_for('plan_comptable.supprimer_compte', compte_id=0) }}".replace('0', compteId);
             deleteForm.action = actionUrl;
 
             // Mettre à jour le nom du compte dans le message de confirmation

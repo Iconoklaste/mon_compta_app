@@ -1,0 +1,97 @@
+{# templates/ajouter_user_demo.html #}
+{% extends "base.html" %} {# Adapte si ton layout de base a un autre nom #}
+
+{% block title %}Créer un compte - Étape 1{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8 col-lg-6">
+            <div class="card shadow-sm">
+                <div class="card-header bg-primary text-white">
+                    <h3 class="mb-0">Création de compte - Vos informations (1/2)</h3>
+                </div>
+                <div class="card-body">
+                    {# Affiche les messages flash ici si ton base.html ne le fait pas déjà au bon endroit #}
+                    {% include '_flash_messages.html' %}
+
+                    <form method="POST" action="{{ url_for('users.ajouter_user_demo') }}" novalidate>
+                        {{ form.csrf_token }} {# Important pour la sécurité #}
+
+                        {# Rendu manuel des champs #}
+                        <div class="mb-3">
+                            <label for="{{ form.nom.id }}" class="form-label">{{ form.nom.label.text }}</label>
+                            {{ form.nom(class="form-control" + (" is-invalid" if form.nom.errors else "")) }}
+                            {% if form.nom.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.nom.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.prenom.id }}" class="form-label">{{ form.prenom.label.text }}</label>
+                            {{ form.prenom(class="form-control" + (" is-invalid" if form.prenom.errors else "")) }}
+                            {% if form.prenom.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.prenom.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.mail.id }}" class="form-label">{{ form.mail.label.text }}</label>
+                            {{ form.mail(class="form-control" + (" is-invalid" if form.mail.errors else ""), type="email") }}
+                            {% if form.mail.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.mail.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                         <div class="mb-3">
+                            <label for="{{ form.telephone.id }}" class="form-label">{{ form.telephone.label.text }}</label>
+                            {{ form.telephone(class="form-control" + (" is-invalid" if form.telephone.errors else "")) }}
+                            {% if form.telephone.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.telephone.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.password.id }}" class="form-label">{{ form.password.label.text }}</label>
+                            {{ form.password(class="form-control" + (" is-invalid" if form.password.errors else "")) }}
+                            {% if form.password.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.password.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="{{ form.confirm_password.id }}" class="form-label">{{ form.confirm_password.label.text }}</label>
+                            {{ form.confirm_password(class="form-control" + (" is-invalid" if form.confirm_password.errors else "")) }}
+                            {% if form.confirm_password.errors %}
+                                <div class="invalid-feedback">
+                                    {% for error in form.confirm_password.errors %}{{ error }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        {# Le champ Organisation est retiré #}
+
+                        <div class="d-grid gap-2">
+                             {# Bouton "Suivant" au lieu de "Ajouter" #}
+                            <button type="submit" class="btn btn-primary btn-lg">Suivant <i class="fas fa-arrow-right ms-2"></i></button> {# Ajout d'une icône si tu utilises FontAwesome #}
+                        </div>
+                    </form>
+                </div>
+                 <div class="card-footer text-center">
+                    <small>Déjà un compte ? <a href="{{ url_for('users.index') }}">Connectez-vous</a></small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

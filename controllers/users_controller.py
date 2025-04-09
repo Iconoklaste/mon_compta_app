@@ -3,7 +3,7 @@ from functools import wraps
 from controllers.db_manager import db
 from models import User, Organisation
 from werkzeug.security import generate_password_hash, check_password_hash
-from forms.forms import LoginForm, ModifierProfilForm, AjouterUserForm
+from forms.forms import LoginForm, ModifierProfilForm, AjouterUserForm, AjouterUserFormDemo
 
 users_bp = Blueprint('users', __name__)
 
@@ -86,3 +86,37 @@ def ajouter_user():
         return redirect(url_for('users.index')) # Redirect to login page after create a user
 
     return render_template('ajouter_user.html', form=form) # Pass the form to the template
+
+# --- NOUVELLE ROUTE pour l'étape 1 de l'inscription démo ---
+@users_bp.route('/creer-compte-demo/etape-1', methods=['GET', 'POST'])
+def ajouter_user_demo():
+    """Affiche et traite le formulaire d'informations utilisateur (Étape 1)."""
+    # Important: Ne pas utiliser @login_required ici, c'est pour les nouveaux utilisateurs
+    form = AjouterUserForm()
+    # On retire le champ organisation du formulaire pour cette étape
+    del form.organisation
+
+    if form.validate_on_submit():
+        # Vérification si l'email existe déjà
+        existing_user = User.query.filter_by(mail=form.mail.data).first()
+        if existing_user:
+            flash('Cet email est déjà utilisé. Veuillez vous connecter ou utiliser un autre email.', 'danger')
+            # Re-rendre le formulaire avec l'erreur
+            return render_template('ajouter_user_demo.html', form=form)
+
+        # Stocker les données utilisateur validées dans la session
+        # On ne stocke PAS le mot de passe en clair trop longtemps, mais ici c'est temporaire
+        # pour la requête suivante. Assure-toi que ta clé secrète Flask est bien sécurisée.
+        session['demo_user_data'] = {
+            'nom': form.nom.data,
+            'prenom': form.prenom.data,
+            'mail': form.mail.data,
+            'telephone': form.telephone.data,
+            'password': form.password.data # On aura besoin de le hasher plus tard
+        }
+        flash("Informations utilisateur enregistrées. Passons à l'organisation.", 'info')
+        # Rediriger vers l'étape 2 (création de l'organisation)
+        return redirect(url_for('organisations.ajouter_organisation_demo'))
+
+    # Si GET ou si validation échoue
+    return render_template('ajouter_user_demo.html', form=form)

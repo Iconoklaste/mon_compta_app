@@ -45,6 +45,20 @@ class AjouterUserForm(FlaskForm):
         super(AjouterUserForm, self).__init__(*args, **kwargs)
         self.organisation.choices = [(org.designation, org.designation) for org in Organisation.query.all()]
 
+class AjouterUserFormDemo(FlaskForm):
+    nom = StringField('Nom', validators=[DataRequired()])
+    prenom = StringField('Prénom', validators=[DataRequired()])
+    mail = EmailField('Email', validators=[DataRequired(), Email()])
+    telephone = TelField('Téléphone', validators=[Optional()])
+    password = PasswordField('Mot de passe', validators=[DataRequired(), EqualTo('confirm_password', message='Les mots de passe doivent correspondre')])
+    confirm_password = PasswordField('Confirmer le mot de passe', validators=[DataRequired()])
+    organisation = SelectField('Organisation', coerce=str, validators=[DataRequired()])
+
+    def __init__(self, *args, **kwargs):
+        super(AjouterUserForm, self).__init__(*args, **kwargs)
+        self.organisation.choices = [(org.designation, org.designation) for org in Organisation.query.all()]
+
+
 class ProjetForm(FlaskForm):
     nom = StringField('Nom', validators=[DataRequired()])
     client_id = SelectField('Client', coerce=int, validators=[DataRequired()])
