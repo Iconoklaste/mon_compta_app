@@ -192,8 +192,11 @@ class CompteComptableForm(FlaskForm):
 
     # Utiliser l'Enum pour peupler les choix du SelectField
     type = SelectField('Classe',
-                       choices=[(choice.name, choice.value) for choice in ClasseCompte], # Utiliser choice.name comme clé interne
+                       # Utiliser la valeur (code 'C1') comme clé interne/soumise
+                       # Utiliser le label pour l'affichage utilisateur
+                       choices=[(choice.value, choice.label) for choice in ClasseCompte],
                        validators=[DataRequired("La classe est requise.")])
+
 
     description = TextAreaField('Description', validators=[Optional(), Length(max=500)])
 
