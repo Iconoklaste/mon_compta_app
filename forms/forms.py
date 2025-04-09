@@ -12,6 +12,7 @@ from models.clients import Client
 from models.organisations import Organisation
 from models.exercices import ExerciceComptable
 from models import CompteComptable
+from models.compte_comptable import ClasseCompte
 
 from datetime import date
 
@@ -178,21 +179,28 @@ class TransactionForm(FlaskForm):
                  raise ValidationError("La date de début doit être antérieure à la date de fin.")
 
 class CompteComptableForm(FlaskForm):
-    # Regex pour autoriser chiffres, potentiellement des points ou tirets selon le plan
-    numero = StringField('Numéro de Compte', 
-                         validators=[DataRequired(), Length(min=1, max=20), 
-                                     Regexp(r'^[a-zA-Z0-9\.-]+$', message="Numéro invalide (chiffres, lettres, points, tirets autorisés)")]) 
-    nom = StringField('Nom du Compte', validators=[DataRequired(), Length(min=2, max=150)])
-    type = SelectField('Type/Classe', 
-                       choices=[
-                           ('', '--- Sélectionner un type ---'),
-                           ('Charge', 'Charge (Classe 6)'),
-                           ('Produit', 'Produit (Classe 7)'),
-                           ('Actif', 'Actif (Classes 2-5)'),
-                           ('Passif', 'Passif (Classes 1, 4, 5)'),
-                           ('Capitaux Propres', 'Capitaux Propres (Classe 1)'),
-                           # Tu peux affiner ces classes/types selon le plan comptable général français
-                       ], 
-                       validators=[DataRequired()])
-    description = TextAreaField('Description', validators=[Optional()])
-    submit = SubmitField('Enregistrer le Compte')
+    # Champ caché pour l'ID lors de l'édition
+    id = HiddenField('ID')
+
+    numero = StringField('Numéro de compte',
+                         validators=[DataRequired("Le numéro de compte est requis."),
+                                     Length(min=1, max=20, message="Le numéro doit contenir entre 1 et 20 caractères.")])
+    nom = StringField('Intitulé du compte',
+                      validators=[DataRequired("L'intitulé est requis."),
+                                  Length(min=3, max=150, message="L'intitulé doit contenir entre 3 et 150 caractères.")])
+
+    # Utiliser l'Enum pour peupler les choix du SelectField
+    type = SelectField('Classe',
+                       choices=[(choice.name, choice.value) for choice in ClasseCompte], # Utiliser choice.name comme clé interne
+                       validators=[DataRequired("La classe est requise.")])
+
+    description = TextAreaField('Description', validators=[Optional(), Length(max=500)])
+
+    solde_initial = FloatField('Solde Initial',
+                               default=0.0,
+                               validators=[Optional(), NumberRange(message="Le solde doit être un nombre.")]) # Rendre optionnel si 0 est acceptable par défaut
+
+    submit = SubmitField('Enregistrer')
+
+    # On ne met pas 'actif' ici, car on le gère avec un bouton séparé.
+    # On ne met pas 'organisation_id' ici, car on l'ajoutera dans la route.

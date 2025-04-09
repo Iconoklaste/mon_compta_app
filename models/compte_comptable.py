@@ -42,7 +42,7 @@ class CompteComptable(db.Model):
 
     # Relation pour lier les transactions à ce compte
     # Assurez-vous que le modèle Transaction a bien 'compte = relationship("CompteComptable", backref="transactions")'
-    transactions = relationship('Transaction', backref='compte', lazy='dynamic') # Utilisation de backref pour correspondre à Transaction
+    transactions = relationship('Transaction', back_populates='compte', lazy='dynamic') 
 
     # Contrainte d'unicité : Le numéro de compte doit être unique PAR organisation
     __table_args__ = (UniqueConstraint('numero', 'organisation_id', name='uq_compte_numero_organisation'),)
