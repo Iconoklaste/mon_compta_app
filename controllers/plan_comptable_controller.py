@@ -64,7 +64,8 @@ def lister_comptes():
 
     # Utiliser le template qui contient les cards ET le tableau
     # Adaptez le chemin si nécessaire ('compta/plan_comptable/list.html' ou autre)
-    return render_template('compta/plan_comptable/plan_comptable_page.html', 
+    return render_template('compta/plan_comptable/plan_comptable_page.html',
+                           organisation = organisation, 
                            comptes=comptes, 
                            form=form, # Passer le formulaire pour le modal d'ajout
                            classes_data=classes_data_dict, # Passer les données des cards

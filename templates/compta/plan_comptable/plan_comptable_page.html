@@ -4,10 +4,13 @@
     {{ super() }}
 {% endblock %}
 
-{% block title %}Plan Comptable{% endblock %}
+{% block page_title %}
+    <h1>Plan Comptable - {{ organisation.designation }}</h1>
+{% endblock %}
+
 
 {% block content %}
-<div class="container-fluid mt-4">
+<div class="container-fluid mt-0">
 
     {# Affichage des messages Flash #}
     {% with messages = get_flashed_messages(with_categories=true) %}
@@ -22,14 +25,13 @@
     {% endwith %}
 
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h1>Plan Comptable</h1>
+        <h4 class="mb-3">Résumé des classes</h4>
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCompteModal">
             <i class="bi bi-plus-circle"></i> Ajouter un compte
         </button>
     </div>
 
     <!-- Section des Cards par Classe -->
-    <h2 class="mb-3">Résumé par Classe</h2>
     <div class="row row-cols-1 row-cols-md-2 row-cols-lg-4 g-4 mb-5">
         {% for classe, data in classes_data.items() | sort(attribute='0.value') %} {# Trier par la valeur de l'enum #}
         <div class="col">

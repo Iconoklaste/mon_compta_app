@@ -81,6 +81,7 @@ class OrganisationForm(FlaskForm):
         ('SARL', 'SARL'),
         ('EURL', 'EURL'),
         ('SAS', 'SAS'),
+        ('SA', 'SA'),
         ('SASU', 'SASU'),
         ('Association', 'Association'),
         ('Entreprise Individuelle', 'Entreprise Individuelle'),
