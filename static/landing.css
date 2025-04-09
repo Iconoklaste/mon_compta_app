@@ -184,5 +184,27 @@ body.landing-page .main-content {
 }
 
 .footer-copyright {
-    text-align: right;
+    display: flex; /* Active Flexbox */
+    justify-content: flex-end; /* Aligne les éléments à droite (comme text-align: right) */
+    align-items: center; /* Centre les éléments verticalement */
+    gap: 0.4em; /* Définit l'espace ENTRE chaque lien et chaque point */
+    /* text-align: right; */ /* Plus nécessaire avec justify-content: flex-end */
 }
+
+/* Styles pour les liens dans le footer */
+.footer-copyright a {
+    color: white;
+    text-decoration: none; /* Bonne pratique d'enlever le soulignement par défaut si désiré */
+    margin: 0; /* Plus besoin de marges ici, 'gap' s'en occupe */
+    /* vertical-align: middle; */ /* Plus nécessaire avec align-items: center */
+}
+
+/* Styles pour le séparateur */
+.dot-separator {
+    font-size: 2.5em; /* Garde la taille souhaitée */
+    line-height: 1; /* Empêche d'affecter la hauteur de ligne */
+    margin: 0; /* Plus besoin de marges ici, 'gap' s'en occupe */
+    /* vertical-align: middle; */ /* Plus nécessaire avec align-items: center */
+    color: white; /* Assure-toi qu'il a la bonne couleur */
+}
+

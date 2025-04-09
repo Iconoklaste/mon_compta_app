@@ -1,9 +1,18 @@
 # forms/forms.py
 from flask_wtf import FlaskForm
-from wtforms import HiddenField, StringField, DateField, widgets, SelectField, IntegerField, BooleanField, SubmitField, FieldList, FormField, PasswordField, EmailField, TelField, FileField
-from wtforms.validators import DataRequired, Email, Optional, EqualTo, Regexp, ValidationError
+from wtforms import (HiddenField, StringField, DateField, 
+                     widgets, SelectField, IntegerField, 
+                     BooleanField, SubmitField, FieldList, 
+                     FormField, FloatField, TextAreaField, PasswordField, EmailField, 
+                     TelField, FileField)
+from wtforms.validators import (DataRequired, Email, Optional, 
+                                EqualTo, Regexp, ValidationError,
+                                NumberRange, Length)
 from models.clients import Client
 from models.organisations import Organisation
+from models.exercices import ExerciceComptable
+from models import CompteComptable
+
 from datetime import date
 
 class DateInput(widgets.TextInput):
@@ -96,3 +105,94 @@ class ClientForm(FlaskForm):
     ville = StringField('Ville')
     telephone = TelField('Téléphone')
     mail = EmailField('Email', validators=[Email(), DataRequired()])
+
+class TransactionForm(FlaskForm):
+    date = DateField('Date', validators=[DataRequired()], default=date.today, widget=DateInput())
+    type = SelectField('Type', choices=[('Entrée', 'Entrée'), ('Sortie', 'Sortie')], validators=[DataRequired()])
+    # Utiliser FloatField pour le montant
+    montant = FloatField('Montant', validators=[DataRequired(), NumberRange(min=0.01, message="Le montant doit être positif.")]) 
+    description = TextAreaField('Description', validators=[Optional()]) # Utiliser TextAreaField pour plus d'espace
+    mode_paiement = StringField('Mode de Paiement', validators=[Optional()])
+    
+    # Champ pour sélectionner un exercice existant (peut être vide si on en crée un nouveau)
+    exercice_id = SelectField('Exercice Comptable', coerce=int, validators=[Optional()]) 
+
+    compte_id = SelectField('Compte Comptable Associé', coerce=int, validators=[Optional()])
+    
+    # Champs pour créer un nouvel exercice (optionnels au niveau du formulaire, validés dans la vue si nécessaire)
+    date_debut_exercice = DateField('Date de début du nouvel exercice', validators=[Optional()], widget=DateInput())
+    date_fin_exercice = DateField('Date de fin du nouvel exercice', validators=[Optional()], widget=DateInput())
+    
+    # Champ caché pour indiquer si on crée un nouvel exercice (géré par JS)
+    creer_nouvel_exercice = HiddenField(default='false') 
+
+    submit = SubmitField('Ajouter la Transaction')
+
+    # Initialisation dynamique des choix pour exercice_id
+    def __init__(self, organisation_id=None, *args, **kwargs):
+        super(TransactionForm, self).__init__(*args, **kwargs)
+
+        # Peupler les exercices
+        default_exercice_choices = [(0, '--- Sélectionner un exercice ---')]
+        if organisation_id:
+            try:
+                exercices = ExerciceComptable.query.filter_by(organisation_id=organisation_id).order_by(ExerciceComptable.date_debut.desc()).all()
+                if exercices:
+                     exercice_choices = [(ex.id, f"{ex.date_debut.strftime('%Y')} - {ex.date_fin.strftime('%Y')}") for ex in exercices]
+                     self.exercice_id.choices = default_exercice_choices + exercice_choices
+                else:
+                     self.exercice_id.choices = [(0, '--- Aucun exercice existant ---')]
+            except Exception as e:
+                 print(f"Erreur lors de la récupération des exercices: {e}")
+                 self.exercice_id.choices = [(0, '--- Erreur chargement exercices ---')]
+        else:
+             self.exercice_id.choices = [(0, '--- Organisation non spécifiée ---')]
+
+        # --- NOUVEAU : Peupler les comptes comptables ---
+        default_compte_choices = [(0, '--- Aucun compte sélectionné ---')] # 0 ou '' comme valeur pour "aucun"
+        if organisation_id:
+            try:
+                comptes = CompteComptable.query.filter_by(organisation_id=organisation_id).order_by(CompteComptable.numero).all()
+                if comptes:
+                    compte_choices = [(c.id, f"{c.numero} - {c.nom}") for c in comptes]
+                    self.compte_id.choices = default_compte_choices + compte_choices
+                else:
+                    self.compte_id.choices = [(0, '--- Aucun compte défini ---')]
+            except Exception as e:
+                print(f"Erreur lors de la récupération des comptes: {e}")
+                self.compte_id.choices = [(0, '--- Erreur chargement comptes ---')]
+        else:
+            self.compte_id.choices = [(0, '--- Organisation non spécifiée ---')]
+        
+        # Assigner None si la valeur est 0 (pour nullable=True dans la DB)
+        self.compte_id.pre_validate = lambda form: setattr(form.compte_id, 'data', form.compte_id.data if form.compte_id.data != 0 else None)
+
+    # Validation personnalisée si nécessaire (exemple)
+    def validate_nouvel_exercice(self, field):
+        # Cette validation est un exemple, la logique principale sera dans la vue
+        # car elle dépend de la valeur de creer_nouvel_exercice
+        if self.creer_nouvel_exercice.data == 'true':
+            if not self.date_debut_exercice.data or not self.date_fin_exercice.data:
+                 raise ValidationError("Les dates de début et de fin sont requises pour créer un nouvel exercice.")
+            if self.date_debut_exercice.data >= self.date_fin_exercice.data:
+                 raise ValidationError("La date de début doit être antérieure à la date de fin.")
+
+class CompteComptableForm(FlaskForm):
+    # Regex pour autoriser chiffres, potentiellement des points ou tirets selon le plan
+    numero = StringField('Numéro de Compte', 
+                         validators=[DataRequired(), Length(min=1, max=20), 
+                                     Regexp(r'^[a-zA-Z0-9\.-]+$', message="Numéro invalide (chiffres, lettres, points, tirets autorisés)")]) 
+    nom = StringField('Nom du Compte', validators=[DataRequired(), Length(min=2, max=150)])
+    type = SelectField('Type/Classe', 
+                       choices=[
+                           ('', '--- Sélectionner un type ---'),
+                           ('Charge', 'Charge (Classe 6)'),
+                           ('Produit', 'Produit (Classe 7)'),
+                           ('Actif', 'Actif (Classes 2-5)'),
+                           ('Passif', 'Passif (Classes 1, 4, 5)'),
+                           ('Capitaux Propres', 'Capitaux Propres (Classe 1)'),
+                           # Tu peux affiner ces classes/types selon le plan comptable général français
+                       ], 
+                       validators=[DataRequired()])
+    description = TextAreaField('Description', validators=[Optional()])
+    submit = SubmitField('Enregistrer le Compte')

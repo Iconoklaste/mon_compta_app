@@ -8,4 +8,5 @@ from .exercices import ExerciceComptable
 from .phases import Phase
 from .jalons import Jalon
 from .whiteboard import Whiteboard
+from .compte_comptable import CompteComptable
     

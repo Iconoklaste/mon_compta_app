@@ -12,6 +12,7 @@ from controllers.compta_controller import compta_bp
 from controllers.projet_phases import projet_phases_bp
 from controllers.projet_jalons import projet_jalons_bp
 from controllers.whiteboard_controller import whiteboard_bp # Import the whiteboard blueprint
+from controllers.plan_comptable_controller import plan_comptable_bp
 from models import *  # Import all models
 #from models.clients import Client # Import the Client model
 from models.organisations import Organisation
@@ -52,6 +53,7 @@ app.register_blueprint(compta_bp)
 app.register_blueprint(projet_phases_bp)
 app.register_blueprint(projet_jalons_bp)
 app.register_blueprint(whiteboard_bp) # Register the whiteboard blueprint
+app.register_blueprint(plan_comptable_bp)
 
 @app.route('/test/projet_detail')
 def test_projet_detail():

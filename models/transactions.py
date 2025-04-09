@@ -1,6 +1,7 @@
 # c:\wamp\www\mon_compta_app\models\transactions.py
 from controllers.db_manager import db
 from datetime import date
+from .compte_comptable import CompteComptable # Importer le modèle
 
 class Transaction(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -14,6 +15,8 @@ class Transaction(db.Model):
     user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=True)
     exercice_id = db.Column(db.Integer, db.ForeignKey('exercice_comptable.id'), nullable=True)
     reglement = db.Column(db.String(20), default="Non réglée") # Add this line
+    compte_id = db.Column(db.Integer, db.ForeignKey('compte_comptable.id'), nullable=True)
+    compte = db.relationship('CompteComptable', backref='transactions')
 
     def __repr__(self):
         return f'<Transaction {self.description}>'
