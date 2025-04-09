@@ -37,13 +37,14 @@
                     </p>
                     
                     <p class="card-text">
-                        <span class="badge badge-sm custom-badge 
-                            {% if projet.statut == 'En cours' %}badge-success
-                            {% elif projet.statut == 'Terminé' %}badge-secondary
-                            {% elif projet.statut == 'En attente' %}badge-warning
-                            {% elif projet.statut == 'Annulé' %}badge-danger
-                            {% else %}badge-info{% endif %}">
-                            <small>{{ projet.statut }}</small>
+                        {# --- CORRECTION BS5 --- #}
+                        <span class="badge custom-badge {# badge-sm supprimé #}
+                            {% if projet.statut == 'En cours' %}bg-success
+                            {% elif projet.statut == 'Terminé' %}bg-secondary
+                            {% elif projet.statut == 'En attente' %}bg-warning text-dark {# Ajout text-dark #}
+                            {% elif projet.statut == 'Annulé' %}bg-danger
+                            {% else %}bg-info text-dark {# Ajout text-dark #} {% endif %}">
+                            <small>{{ projet.statut }}</small> {# La balise small gère la taille #}
                         </span>
                     </p>
                     <p class="card-text">

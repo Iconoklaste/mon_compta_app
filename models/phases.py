@@ -10,7 +10,7 @@ class Phase(db.Model):
     projet_id = db.Column(db.Integer, db.ForeignKey('projet.id', ondelete="CASCADE"), nullable=False)
     projet = db.relationship('Projet', back_populates='phases', lazy='select') # Add back_populates
     progress = db.Column(db.Integer, default=0)
-    jalons = db.relationship('Jalon', backref='phase', lazy=True)
+    jalons = db.relationship('Jalon', backref='phase', lazy=True, cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<Phase {self.nom}>"

@@ -5,202 +5,294 @@
 {% endblock %}
 
 {% block content %}
-    
-
+    {# --- Formulaire Principal --- #}
     <form method="POST" id="projetForm">
         {{ form.hidden_tag() }}
-        <div class="form-group">
-            <label for="nom">Nom du projet</label>
+
+        {# Remplacement de form-group par mb-3 et ajout de form-label #}
+        <div class="mb-3">
+            <label for="nom" class="form-label">Nom du projet</label>
             <input type="text" class="form-control" id="nom" name="nom" required>
         </div>
-        <div class="form-group">
-            <label for="client_id">Client</label>
-            <select class="form-control" id="client_id" name="client_id" required>
+
+        {# Remplacement de form-group par mb-3 et ajout de form-label #}
+        <div class="mb-3">
+            <label for="client_id" class="form-label">Client</label>
+            {# Utilisation de form-select pour les <select> en BS5 #}
+            <select class="form-select" id="client_id" name="client_id" required>
+                <option value="" disabled selected>Sélectionnez un client</option> {# Option par défaut suggérée #}
                 {% for client in clients %}
                     <option value="{{ client.id }}">{{ client.nom }}</option>
                 {% endfor %}
             </select>
         </div>
-        <div class="form-group">
-            <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#addClientModal">
-                Ajouter un nouveau client
+
+        {# Bouton pour ouvrir la modale (avec attributs BS5) #}
+        <div class="mb-3">
+            <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#addClientModal">
+                <i class="fas fa-plus"></i> Ajouter un nouveau client
             </button>
         </div>
-        <div class="form-group">
-            <label for="date_debut">Date de début</label>
+
+        {# Remplacement de form-group par mb-3 et ajout de form-label #}
+        <div class="mb-3">
+            <label for="date_debut" class="form-label">Date de début</label>
             <input type="date" class="form-control" id="date_debut" name="date_debut">
         </div>
-        <div class="form-group">
-            <label for="date_fin">Date de fin</label>
+
+        {# Remplacement de form-group par mb-3 et ajout de form-label #}
+        <div class="mb-3">
+            <label for="date_fin" class="form-label">Date de fin</label>
             <input type="date" class="form-control" id="date_fin" name="date_fin">
         </div>
-        <div class="form-group">
-            <label for="statut">Statut</label>
-            <select class="form-control" id="statut" name="statut">
+
+        {# Remplacement de form-group par mb-3 et ajout de form-label #}
+        <div class="mb-3">
+            <label for="statut" class="form-label">Statut</label>
+            {# Utilisation de form-select pour les <select> en BS5 #}
+            <select class="form-select" id="statut" name="statut">
                 {% for status in status_options %}
                     <option value="{{ status }}" {% if status == 'En attente' %}selected{% endif %}>{{ status }}</option>
                 {% endfor %}
             </select>
         </div>
-        <div class="form-group">
-            <label for="prix_total">Prix total</label>
-            <input type="number" class="form-control" id="prix_total" name="prix_total">
+
+        {# Remplacement de form-group par mb-3 et ajout de form-label #}
+        <div class="mb-3">
+            <label for="prix_total" class="form-label">Prix total (€)</label> {# Précision unité suggérée #}
+            <input type="number" step="0.01" class="form-control" id="prix_total" name="prix_total" placeholder="0.00"> {# step et placeholder suggérés #}
         </div>
-        <button type="submit" class="btn btn-primary">Ajouter</button>
+
+        <button type="submit" class="btn btn-primary">Ajouter le projet</button>
     </form>
 
-    <!-- Modal for adding a new client -->
-<div class="modal fade" id="addClientModal" tabindex="-1" role="dialog" aria-labelledby="addClientModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="addClientModalLabel">Ajouter un nouveau client</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <form id="addClientForm">
-                    <div class="form-group">
-                        <label for="nom">Nom du client</label>
-                        <input type="text" class="form-control" id="nom" name="nom" required>
-                        <div class="invalid-feedback" id="nomError"></div>
-                    </div>
-                    <div class="form-group">
-                        <label for="adresse">Adresse</label>
-                        <input type="text" class="form-control" id="adresse" name="adresse">
-                        <div class="invalid-feedback" id="adresseError"></div>
-                    </div>
-                    <div class="form-group">
-                        <label for="code_postal">Code postal</label>
-                        <input type="text" class="form-control" id="code_postal" name="code_postal" pattern="[0-9]{5}" title="Le code postal doit contenir 5 chiffres">
-                        <div class="invalid-feedback" id="code_postalError"></div>
-                    </div>
-                    <div class="form-group">
-                        <label for="ville">Ville</label>
-                        <input type="text" class="form-control" id="ville" name="ville">
-                        <div class="invalid-feedback" id="villeError"></div>
-                    </div>
-                    <div class="form-group">
-                        <label for="telephone">Téléphone</label>
-                        <input type="text" class="form-control" id="telephone" name="telephone">
-                        <div class="invalid-feedback" id="telephoneError"></div>
-                    </div>
-                    <div class="form-group">
-                        <label for="mail">Email</label>
-                        <input type="email" class="form-control" id="mail" name="mail">
-                        <div class="invalid-feedback" id="mailError"></div>
-                    </div>
-                </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
-                <button type="button" class="btn btn-primary" id="saveClient">Enregistrer</button>
+    {# --- Modale d'ajout de client --- #}
+    <div class="modal fade" id="addClientModal" tabindex="-1" aria-labelledby="addClientModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addClientModalLabel">Ajouter un nouveau client</h5>
+                    {# Bouton de fermeture BS5 #}
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    {# Formulaire DANS la modale, avec des ID uniques #}
+                    <form id="addClientForm">
+                        {# Remplacement de form-group par mb-3 et ajout de form-label #}
+                        <div class="mb-3">
+                            <label for="nomModal" class="form-label">Nom du client</label>
+                            <input type="text" class="form-control" id="nomModal" name="nom" required>
+                            <div class="invalid-feedback" id="nomModalError"></div>
+                        </div>
+                        {# Remplacement de form-group par mb-3 et ajout de form-label #}
+                        <div class="mb-3">
+                            <label for="adresseModal" class="form-label">Adresse</label>
+                            <input type="text" class="form-control" id="adresseModal" name="adresse">
+                            <div class="invalid-feedback" id="adresseModalError"></div>
+                        </div>
+                        {# Remplacement de form-group par mb-3 et ajout de form-label #}
+                        <div class="mb-3">
+                            <label for="code_postalModal" class="form-label">Code postal</label>
+                            <input type="text" class="form-control" id="code_postalModal" name="code_postal" pattern="[0-9]{5}" title="Le code postal doit contenir 5 chiffres">
+                            <div class="invalid-feedback" id="code_postalModalError"></div>
+                        </div>
+                        {# Remplacement de form-group par mb-3 et ajout de form-label #}
+                        <div class="mb-3">
+                            <label for="villeModal" class="form-label">Ville</label>
+                            <input type="text" class="form-control" id="villeModal" name="ville">
+                            <div class="invalid-feedback" id="villeModalError"></div>
+                        </div>
+                        {# Remplacement de form-group par mb-3 et ajout de form-label #}
+                        <div class="mb-3">
+                            <label for="telephoneModal" class="form-label">Téléphone</label>
+                            <input type="tel" class="form-control" id="telephoneModal" name="telephone" placeholder="Ex: 0123456789"> {# type="tel" et placeholder suggérés #}
+                            <div class="invalid-feedback" id="telephoneModalError"></div>
+                        </div>
+                        {# Remplacement de form-group par mb-3 et ajout de form-label #}
+                        <div class="mb-3">
+                            <label for="mailModal" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="mailModal" name="mail" placeholder="nom@example.com"> {# placeholder suggéré #}
+                            <div class="invalid-feedback" id="mailModalError"></div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    {# Bouton Fermer avec attribut BS5 #}
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                    <button type="button" class="btn btn-primary" id="saveClient">Enregistrer</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
+{% endblock %}
 
 
-<script>
-document.getElementById('saveClient').addEventListener('click', function() {
-    const addClientForm = document.getElementById('addClientForm');
-    const formData = new FormData(addClientForm);
+{# --- JavaScript spécifique à cette page --- #}
+{% block extra_scripts %}
+    <script>
+        // Attend que le DOM soit entièrement chargé (bonne pratique)
+        document.addEventListener('DOMContentLoaded', function() {
 
-    // Basic validation
-    let isValid = true;
-    const nom = formData.get('nom');
-    if (!nom) {
-        isValid = false;
-        const inputField = document.getElementById('nom');
-        const errorDiv = document.getElementById('nomError');
-        inputField.classList.add('is-invalid');
-        errorDiv.textContent = "Le nom est obligatoire";
-    }
+            // Récupérer l'instance de la modale Bootstrap 5 une seule fois
+            const addClientModalElement = document.getElementById('addClientModal');
+            // Vérifier si l'élément existe avant de créer l'instance
+            if (!addClientModalElement) {
+                console.error("L'élément de la modale #addClientModal n'a pas été trouvé.");
+                return; // Arrêter si la modale n'est pas trouvée
+            }
+            const addClientModal = new bootstrap.Modal(addClientModalElement);
 
-    if (isValid) {
-        // Convert FormData to a plain object
-        const data = {};
-        formData.forEach((value, key) => {
-            data[key] = value;
-        });
+            // Récupérer le bouton Enregistrer
+            const saveClientButton = document.getElementById('saveClient');
+            if (!saveClientButton) {
+                console.error("Le bouton #saveClient n'a pas été trouvé.");
+                return; // Arrêter si le bouton n'est pas trouvé
+            }
 
-        fetch('/clients/ajouter_client', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json', // Specify JSON content type
-                'X-CSRFToken': '{{ csrf_token() }}'
-            },
-            body: JSON.stringify(data), // Send data as JSON
-        })
-        .then(response => response.json())
-        .then(data => {
-            if (data.success) {
-                const clientSelect = document.getElementById('client_id');
-                const newOption = document.createElement('option');
-                newOption.value = data.client_id;
-                newOption.text = nom;
-                clientSelect.add(newOption);
-                clientSelect.value = data.client_id;
-                $('#addClientModal').modal('hide');
-                addClientForm.reset(); // Reset the form
+            // Ajouter l'écouteur d'événement au bouton Enregistrer
+            saveClientButton.addEventListener('click', function() {
+                console.log('Bouton Enregistrer cliqué !'); // Log de débogage
+                const addClientForm = document.getElementById('addClientForm');
+                const formData = new FormData(addClientForm);
+
+                // Validation simple (côté client)
+                let isValid = true;
+                const nomInput = document.getElementById('nomModal');
+                const nom = nomInput.value.trim(); // Utiliser trim() pour enlever les espaces superflus
+                const nomErrorDiv = document.getElementById('nomModalError');
+
+                // Réinitialiser la validation précédente
+                nomInput.classList.remove('is-invalid');
+                nomErrorDiv.textContent = "";
+
+                if (!nom) {
+                    isValid = false;
+                    nomInput.classList.add('is-invalid');
+                    nomErrorDiv.textContent = "Le nom est obligatoire";
+                }
+
+                console.log('Validation passée ?', isValid); // Log de débogage
+
+                if (isValid) {
+                    // Désactiver le bouton pendant la requête pour éviter les doubles clics
+                    saveClientButton.disabled = true;
+                    saveClientButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Enregistrement...'; // Feedback visuel
+
+                    const data = {};
+                    formData.forEach((value, key) => {
+                        data[key] = value.trim(); // Nettoyer les données envoyées
+                    });
+
+                    // Récupérer le token CSRF (si vous utilisez Flask-WTF ou similaire)
+                    const csrfTokenInput = addClientForm.querySelector('input[name="csrf_token"]'); // Ajuster si le nom est différent
+                    const csrfToken = csrfTokenInput ? csrfTokenInput.value : '{{ csrf_token() }}'; // Fallback si non trouvé dans le form
+
+                    fetch('{{ url_for("clients.ajouter_client") }}', { // Utiliser url_for pour la route
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRFToken': csrfToken // Utiliser le token récupéré
+                        },
+                        body: JSON.stringify(data),
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            // Gérer les erreurs HTTP (ex: 400, 500)
+                            throw new Error(`Erreur HTTP ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            const clientSelect = document.getElementById('client_id');
+                            const newOption = document.createElement('option');
+                            newOption.value = data.client_id;
+                            newOption.text = nom; // Utiliser la variable 'nom' validée
+                            clientSelect.add(newOption);
+                            clientSelect.value = data.client_id; // Sélectionner le nouveau client
+
+                            // Utilisation de l'API BS5 pour masquer la modale
+                            addClientModal.hide();
+
+                            addClientForm.reset(); // Réinitialiser le formulaire de la modale
+                            clearValidationErrors(); // Effacer les erreurs restantes
+                        } else {
+                            // Afficher les erreurs de validation renvoyées par le serveur
+                            displayValidationErrors(data.errors);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Erreur lors de l\'ajout du client:', error);
+                        // Afficher une alerte plus générique ou un message d'erreur dans la modale
+                        alert('Une erreur est survenue lors de l\'ajout du client. Veuillez réessayer.');
+                    })
+                    .finally(() => {
+                        // Réactiver le bouton et restaurer son texte, que la requête réussisse ou échoue
+                        saveClientButton.disabled = false;
+                        saveClientButton.textContent = 'Enregistrer';
+                    });
+                }
+            });
+
+            // Fonction pour effacer les erreurs de validation
+            function clearValidationErrors() {
+                document.querySelectorAll('#addClientForm .form-control').forEach(input => {
+                    input.classList.remove('is-invalid');
+                });
+                document.querySelectorAll('#addClientForm .invalid-feedback').forEach(div => {
+                    div.textContent = '';
+                });
+            }
+
+            // Fonction pour afficher les erreurs de validation (renvoyées par le serveur)
+            function displayValidationErrors(errors) {
+                clearValidationErrors(); // Effacer les anciennes erreurs d'abord
+                if (errors) {
+                    for (const field in errors) {
+                        // Construire l'ID de l'input et de la div d'erreur
+                        const inputField = document.getElementById(field + 'Modal');
+                        const errorDiv = document.getElementById(field + 'ModalError');
+
+                        if (inputField && errorDiv) {
+                            inputField.classList.add('is-invalid');
+                            // Joindre les messages d'erreur s'il y en a plusieurs pour un champ
+                            errorDiv.textContent = Array.isArray(errors[field]) ? errors[field].join(', ') : errors[field];
+                        } else {
+                            console.warn(`Champ ou div d'erreur non trouvé pour: ${field}`);
+                        }
+                    }
+                } else {
+                    // Gérer le cas où 'errors' n'est pas défini dans la réponse
+                    console.error("La réponse d'erreur ne contient pas de champ 'errors'.");
+                    alert('Une erreur de validation est survenue, mais les détails n\'ont pas pu être affichés.');
+                }
+            }
+
+            // Ajouter des écouteurs pour effacer l'erreur dès que l'utilisateur corrige
+            document.querySelectorAll('#addClientForm .form-control').forEach(input => {
+                input.addEventListener('input', () => {
+                    if (input.classList.contains('is-invalid')) {
+                        input.classList.remove('is-invalid');
+                        const errorDiv = document.getElementById(input.id + 'Error');
+                        if (errorDiv) {
+                            errorDiv.textContent = '';
+                        }
+                    }
+                });
+            });
+
+            // Utilisation de l'API événementielle native de BS5 pour nettoyer à la fermeture
+            addClientModalElement.addEventListener('hidden.bs.modal', function () {
+                console.log('Modale fermée, réinitialisation du formulaire.'); // Log de débogage
+                document.getElementById('addClientForm').reset();
                 clearValidationErrors();
-            } else {
-                displayValidationErrors(data.errors);
-            }
-        })
-        .catch(error => {
-            console.error('Error:', error);
-            alert('Une erreur est survenue lors de l\'ajout du client.');
+                // Réactiver le bouton Enregistrer au cas où il serait resté désactivé après une erreur
+                const saveBtn = document.getElementById('saveClient');
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = 'Enregistrer';
+                }
+            });
         });
-    }
-});
-
-function clearValidationErrors() {
-    document.querySelectorAll('.form-control').forEach(input => {
-        input.classList.remove('is-invalid');
-    });
-    document.querySelectorAll('.invalid-feedback').forEach(div => {
-        div.textContent = '';
-    });
-}
-
-function displayValidationErrors(errors) {
-    clearValidationErrors();
-    if (errors) {
-        for (const field in errors) {
-            const inputField = document.getElementById(field);
-            const errorDiv = document.getElementById(field + 'Error');
-
-            if (inputField && errorDiv) {
-                inputField.classList.add('is-invalid');
-                errorDiv.textContent = errors[field].join(', ');
-            }
-        }
-    } else {
-        alert('Une erreur est survenue lors de l\'ajout du client.');
-    }
-}
-
-// Add event listeners to clear errors on input
-document.querySelectorAll('#addClientForm .form-control').forEach(input => {
-    input.addEventListener('input', () => {
-        input.classList.remove('is-invalid');
-        const errorDiv = document.getElementById(input.id + 'Error');
-        if (errorDiv) {
-            errorDiv.textContent = '';
-        }
-    });
-});
-
-// Clear form fields when the modal is hidden
-$('#addClientModal').on('hidden.bs.modal', function () {
-    document.getElementById('addClientForm').reset();
-    clearValidationErrors();
-});
-
-</script>
-
-
-
+    </script>
 {% endblock %}

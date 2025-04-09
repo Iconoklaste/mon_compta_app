@@ -1,37 +1,33 @@
 {# templates/ajouter_transaction.html #}
 {% extends 'base.html' %}
-{# Importe une macro helper si tu en as une pour rendre les champs, sinon rends-les manuellement #}
-{# {% from "_form_helpers.html" import render_field %} #}
 
 {% block page_title %}
 <span style="text-transform: uppercase;">{{projet.nom}}</span> | AJOUT D'UNE TRANSACTION
 {% endblock %}
 
 {% block content %}
-    {# Affichage des messages flash généraux (non liés à un champ spécifique) #}
+    {# Affichage des messages flash généraux #}
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
             {% for category, message in messages %}
-                {# Filtrer les messages qui pourraient être des erreurs de champ déjà affichées #}
                 {% if 'Veuillez corriger les erreurs' not in message and 'Erreur de validation' not in message %}
                 <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
                     {{ message }}
-                    <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                    {# --- CORRECTION BS5 : Bouton de fermeture --- #}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
                 {% endif %}
             {% endfor %}
         {% endif %}
     {% endwith %}
 
-    {# Le formulaire utilise maintenant l'objet form passé depuis la vue #}
-    <form method="POST" action="{{ url_for('transactions.ajouter_transaction', projet_id=projet.id) }}" novalidate> {# novalidate désactive la validation HTML5 pour laisser WTForms faire le travail #}
-        {{ form.hidden_tag() }} {# Inclut le CSRF token et le champ caché 'creer_nouvel_exercice' #}
+    <form method="POST" action="{{ url_for('transactions.ajouter_transaction', projet_id=projet.id) }}" novalidate>
+        {{ form.hidden_tag() }}
 
-        {# Rendu des champs (méthode manuelle pour plus de contrôle sur le HTML/CSS) #}
-        <div class="form-row"> {# Utiliser form-row pour un meilleur alignement si désiré #}
-            <div class="form-group col-md-6">
+        {# --- CORRECTION BS5 : Remplacement de form-row par row g-3 --- #}
+        <div class="row g-3 mb-3"> {# Ajout mb-3 pour espacement après la ligne #}
+            {# --- CORRECTION BS5 : Remplacement de form-group par col-md-6 --- #}
+            <div class="col-md-6">
                 {{ form.date.label(class="form-label") }}
                 {{ form.date(class="form-control" + (" is-invalid" if form.date.errors else "")) }}
                 {% if form.date.errors %}
@@ -40,9 +36,10 @@
                     </div>
                 {% endif %}
             </div>
-            <div class="form-group col-md-6">
+            {# --- CORRECTION BS5 : Remplacement de form-group par col-md-6 et form-control par form-select --- #}
+            <div class="col-md-6">
                 {{ form.type.label(class="form-label") }}
-                {{ form.type(class="form-control" + (" is-invalid" if form.type.errors else "")) }}
+                {{ form.type(class="form-select" + (" is-invalid" if form.type.errors else "")) }} {# form-select ici #}
                 {% if form.type.errors %}
                     <div class="invalid-feedback">
                         {% for error in form.type.errors %}<span>{{ error }}</span>{% endfor %}
@@ -51,9 +48,9 @@
             </div>
         </div>
 
-        <div class="form-group">
+        {# --- CORRECTION BS5 : Remplacement de form-group par mb-3 --- #}
+        <div class="mb-3">
             {{ form.montant.label(class="form-label") }}
-            {# Afficher le montant restant ici si besoin #}
             {% if remaining_to_bill is not none %}
              <small class="form-text text-muted">Montant restant à facturer pour ce projet : {{ "%.2f"|format(remaining_to_bill) }} €</small>
             {% endif %}
@@ -65,7 +62,8 @@
             {% endif %}
         </div>
 
-        <div class="form-group">
+        {# --- CORRECTION BS5 : Remplacement de form-group par mb-3 --- #}
+        <div class="mb-3">
             {{ form.description.label(class="form-label") }}
             {{ form.description(class="form-control" + (" is-invalid" if form.description.errors else ""), rows=3, placeholder="Détails de la transaction...") }}
             {% if form.description.errors %}
@@ -75,7 +73,8 @@
             {% endif %}
         </div>
 
-        <div class="form-group">
+        {# --- CORRECTION BS5 : Remplacement de form-group par mb-3 --- #}
+        <div class="mb-3">
             {{ form.mode_paiement.label(class="form-label") }}
             {{ form.mode_paiement(class="form-control" + (" is-invalid" if form.mode_paiement.errors else ""), placeholder="Ex: Virement, Chèque n°123, Espèces...") }}
             {% if form.mode_paiement.errors %}
@@ -85,22 +84,22 @@
             {% endif %}
         </div>
 
-        <hr> {# Séparateur visuel pour la section exercice #}
+        <hr>
 
         {# --- Sélection/Création Exercice --- #}
         <h5>Exercice Comptable</h5>
 
-        <div class="form-group" id="exercice-select-group">
+        {# --- CORRECTION BS5 : Remplacement de form-group par mb-3 --- #}
+        <div class="mb-3" id="exercice-select-group">
              {{ form.exercice_id.label(class="form-label") }}
-             {# Ajout d'un ID spécifique pour le JS #}
-             {{ form.exercice_id(class="form-control" + (" is-invalid" if form.exercice_id.errors else ""), id="exercice_id_select") }}
+             {# --- CORRECTION BS5 : form-control -> form-select --- #}
+             {{ form.exercice_id(class="form-select" + (" is-invalid" if form.exercice_id.errors else ""), id="exercice_id_select") }} {# form-select ici #}
              {% if form.exercice_id.errors %}
                 <div class="invalid-feedback">
                     {% for error in form.exercice_id.errors %}<span>{{ error }}</span>{% endfor %}
                 </div>
              {% endif %}
-             {# Afficher le bouton seulement si des exercices existent ou si on peut en créer #}
-             {% if form.exercice_id.choices|length > 1 or True %} {# Toujours permettre de créer #}
+             {% if form.exercice_id.choices|length > 1 or True %}
              <button type="button" class="btn btn-outline-secondary btn-sm mt-2" id="show-new-exercice-form">
                  <i class="fas fa-plus"></i> Créer un nouvel exercice
              </button>
@@ -108,13 +107,13 @@
         </div>
 
         {# Champs pour le nouvel exercice (initialement cachés) #}
-        {# Le champ caché form.creer_nouvel_exercice est déjà rendu par form.hidden_tag() #}
         <div id="new-exercice-fields" style="display: none; border: 1px solid #ddd; padding: 15px; margin-top: 10px; border-radius: 5px; background-color: #f9f9f9;">
             <h6>Nouvel Exercice Comptable</h6>
-            <div class="form-row">
-                <div class="form-group col-md-6">
+            {# --- CORRECTION BS5 : Remplacement de form-row par row g-3 --- #}
+            <div class="row g-3">
+                {# --- CORRECTION BS5 : Remplacement de form-group par col-md-6 --- #}
+                <div class="col-md-6">
                     {{ form.date_debut_exercice.label(class="form-label") }}
-                    {# Ajout d'un ID spécifique pour le JS #}
                     {{ form.date_debut_exercice(class="form-control" + (" is-invalid" if form.date_debut_exercice.errors else ""), id="date_debut_exercice_input") }}
                      {% if form.date_debut_exercice.errors %}
                         <div class="invalid-feedback">
@@ -122,9 +121,9 @@
                         </div>
                      {% endif %}
                 </div>
-                <div class="form-group col-md-6">
+                {# --- CORRECTION BS5 : Remplacement de form-group par col-md-6 --- #}
+                <div class="col-md-6">
                     {{ form.date_fin_exercice.label(class="form-label") }}
-                    {# Ajout d'un ID spécifique pour le JS #}
                     {{ form.date_fin_exercice(class="form-control" + (" is-invalid" if form.date_fin_exercice.errors else ""), id="date_fin_exercice_input") }}
                      {% if form.date_fin_exercice.errors %}
                         <div class="invalid-feedback">
@@ -139,12 +138,14 @@
         </div>
         {# --- Fin Sélection/Création Exercice --- #}
 
-        <hr> {# Séparateur visuel #}
+        <hr>
 
         {# --- Sélection Compte Comptable --- #}
-        <div class="form-group">
+        {# --- CORRECTION BS5 : Remplacement de form-group par mb-3 --- #}
+        <div class="mb-3">
             {{ form.compte_id.label(class="form-label") }}
-            {{ form.compte_id(class="form-control" + (" is-invalid" if form.compte_id.errors else "")) }}
+            {# --- CORRECTION BS5 : form-control -> form-select --- #}
+            {{ form.compte_id(class="form-select" + (" is-invalid" if form.compte_id.errors else "")) }} {# form-select ici #}
             {% if form.compte_id.errors %}
                 <div class="invalid-feedback">
                     {% for error in form.compte_id.errors %}<span>{{ error }}</span>{% endfor %}
@@ -154,85 +155,68 @@
         </div>
         {# --- Fin Sélection Compte Comptable --- #}
 
-        {# Bouton de soumission principal #}
         {{ form.submit(class="btn btn-primary") }}
         <a href="{{ url_for('projets.projet_detail', projet_id=projet.id) }}" class="btn btn-secondary">Annuler</a>
 
     </form>
+{% endblock %}
 
-    {# JavaScript pour gérer l'affichage/masquage et la logique de sélection/création d'exercice #}
+
+{# --- JavaScript spécifique à cette page --- #}
+{% block extra_scripts %}
+    {# Le JavaScript existant est compatible #}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const showButton = document.getElementById('show-new-exercice-form');
             const cancelButton = document.getElementById('cancel-new-exercice');
             const newExerciceFieldsDiv = document.getElementById('new-exercice-fields');
-            const exerciceSelectGroup = document.getElementById('exercice-select-group'); // Le div contenant le select et le bouton "Créer"
+            const exerciceSelectGroup = document.getElementById('exercice-select-group');
             const exerciceSelect = document.getElementById('exercice_id_select');
             const dateDebutInput = document.getElementById('date_debut_exercice_input');
             const dateFinInput = document.getElementById('date_fin_exercice_input');
-            // Accès au champ caché généré par WTForms (son ID est généralement le nom du champ)
-            const creerNouvelExerciceHidden = document.getElementById('creer_nouvel_exercice'); 
+            const creerNouvelExerciceHidden = document.getElementById('creer_nouvel_exercice');
 
             function showNewExercice() {
                 newExerciceFieldsDiv.style.display = 'block';
-                exerciceSelectGroup.style.display = 'none'; // Masquer le groupe select + bouton créer
-                
-                // Rendre les champs de date requis quand ils sont visibles
-                if (dateDebutInput) dateDebutInput.required = true; 
-                if (dateFinInput) dateFinInput.required = true;   
-                
-                // Mettre le flag caché à true
-                if(creerNouvelExerciceHidden) creerNouvelExerciceHidden.value = 'true'; 
-                
-                // Désactiver le select pour éviter qu'il soit soumis
-                if (exerciceSelect) exerciceSelect.disabled = true; 
+                exerciceSelectGroup.style.display = 'none';
+                if (dateDebutInput) dateDebutInput.required = true;
+                if (dateFinInput) dateFinInput.required = true;
+                if(creerNouvelExerciceHidden) creerNouvelExerciceHidden.value = 'true';
+                if (exerciceSelect) exerciceSelect.disabled = true;
             }
 
             function hideNewExercice() {
                 newExerciceFieldsDiv.style.display = 'none';
-                exerciceSelectGroup.style.display = 'block'; // Réafficher le groupe select + bouton créer
-                
-                // Ne plus rendre les champs de date requis et les vider
+                exerciceSelectGroup.style.display = 'block';
                 if (dateDebutInput) {
-                     dateDebutInput.required = false; 
-                     dateDebutInput.value = ''; 
-                     dateDebutInput.classList.remove('is-invalid'); // Enlever l'état d'erreur visuel
+                     dateDebutInput.required = false;
+                     dateDebutInput.value = '';
+                     dateDebutInput.classList.remove('is-invalid');
                 }
                 if (dateFinInput) {
                      dateFinInput.required = false;
                      dateFinInput.value = '';
-                     dateFinInput.classList.remove('is-invalid'); // Enlever l'état d'erreur visuel
+                     dateFinInput.classList.remove('is-invalid');
                 }
-
-                // Mettre le flag caché à false
-                if(creerNouvelExerciceHidden) creerNouvelExerciceHidden.value = 'false'; 
-                
-                // Réactiver le select
-                if (exerciceSelect) exerciceSelect.disabled = false; 
+                if(creerNouvelExerciceHidden) creerNouvelExerciceHidden.value = 'false';
+                if (exerciceSelect) exerciceSelect.disabled = false;
             }
 
-            // Attacher les écouteurs d'événements
             if(showButton) showButton.addEventListener('click', showNewExercice);
             if(cancelButton) cancelButton.addEventListener('click', hideNewExercice);
 
-            // État initial au chargement de la page
-            // Si le formulaire a été soumis avec 'creer_nouvel_exercice' à true (et a échoué la validation),
-            // on affiche les champs de création. Sinon, on les masque.
             if (creerNouvelExerciceHidden && creerNouvelExerciceHidden.value === 'true') {
                  showNewExercice();
             } else {
-                 // Assure que les champs sont masqués et le select visible au chargement normal
-                 hideNewExercice(); 
+                 hideNewExercice();
             }
-            
-            // Si le select d'exercice a une erreur de validation, s'assurer que le groupe est visible
+
             if (exerciceSelect && exerciceSelect.classList.contains('is-invalid')) {
                  exerciceSelectGroup.style.display = 'block';
-                 newExerciceFieldsDiv.style.display = 'none'; // Masquer les champs de création en cas d'erreur sur le select
+                 newExerciceFieldsDiv.style.display = 'none';
                  if(creerNouvelExerciceHidden) creerNouvelExerciceHidden.value = 'false';
-                 if (exerciceSelect) exerciceSelect.disabled = false; 
+                 if (exerciceSelect) exerciceSelect.disabled = false;
             }
-            // Si les champs de date ont des erreurs, s'assurer qu'ils sont visibles
             if ((dateDebutInput && dateDebutInput.classList.contains('is-invalid')) || (dateFinInput && dateFinInput.classList.contains('is-invalid'))) {
                  showNewExercice();
             }
@@ -240,4 +224,3 @@
         });
     </script>
 {% endblock %}
-

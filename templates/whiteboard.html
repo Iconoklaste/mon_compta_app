@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&family=Montserrat:wght@400;700&family=Merriweather:wght@400;700&family=Playfair+Display:wght@400;700&family=Oswald:wght@400;700&family=Roboto+Slab:wght@400;700&family=Dancing+Script:wght@400;700&family=Pacifico&family=Caveat&family=Inconsolata&family=Amatic+SC:wght@400;700&family=Satisfy&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Merriweather:wght@400;700&family=Playfair+Display:wght@400;700&family=Oswald:wght@400;700&family=Roboto+Slab:wght@400;700&family=Dancing+Script:wght@400;700&family=Pacifico&family=Caveat&family=Inconsolata&family=Amatic+SC:wght@400;700&family=Satisfy&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <link rel="stylesheet" href="{{ url_for('static', filename='whiteboard.css') }}">
@@ -402,6 +402,12 @@
     <canvas id="canvas"></canvas>
     <div id="zoom-indicator">Zoom: 100%</div>
 </div>
+
+{% endblock %}
+
+
+{# --- JavaScript spécifique à cette page --- #}
+{% block extra_scripts %}
 
 <script>
     window.projetId = {{ projet_id }}; // Store projetId in a global variable

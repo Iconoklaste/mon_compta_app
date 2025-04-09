@@ -56,7 +56,7 @@
             </div>
         </div>
     </div>
-    
+
     <div class="col-md-3">
         <div class="info-card h-100">
             <div class="card-body">
@@ -105,21 +105,22 @@
                     <div class="d-flex justify-content-between align-items-center">
                         <div class="phase-header">
                             <h6> Phase {{ loop.index }} : {{ phase.nom }}
-        
+
                             </h6>
                             <p class="mb-0"><i class="fa-regular fa-calendar"></i>
                                 <small class="text-muted">
                                     {{ phase.date_debut.strftime('%d %B %Y') if phase.date_debut else 'Non définie' }}
                                     -
                                     {{ phase.date_fin.strftime('%d %B %Y') if phase.date_fin else 'Non définie' }}</small>
-                                    <span class="badge badge-sm custom-badge
-                                    {% if phase.statut == 'En cours' %}badge-success
-                                    {% elif phase.statut == 'Terminé' %}badge-secondary
-                                    {% elif phase.statut == 'En attente' %}badge-warning
-                                    {% elif phase.statut == 'Annulé' %}badge-danger
-                                    {% else %}badge-info{% endif %}">
-                                    <small>{{ phase.statut }}</small>
-                                </span>
+                                    {# --- CORRECTION BS5 --- #}
+                                    <span class="badge custom-badge {# badge-sm supprimé #}
+                                        {% if phase.statut == 'En cours' %}bg-success
+                                        {% elif phase.statut == 'Terminé' %}bg-secondary
+                                        {% elif phase.statut == 'En attente' %}bg-warning text-dark {# Ajout text-dark #}
+                                        {% elif phase.statut == 'Annulé' %}bg-danger
+                                        {% else %}bg-info text-dark {# Ajout text-dark #} {% endif %}">
+                                        <small>{{ phase.statut }}</small> {# La balise small gère la taille #}
+                                    </span>
                                 </p>
                         </div>
                         <div class="phase-actions">
@@ -134,7 +135,7 @@
                             </form>
                         </div>
                     </div>
-                    
+
                     <div class="milestones-container">
                         {% for jalon in phase.jalons %}
                         <div class="form-check">
@@ -147,8 +148,8 @@
                         </div>
                         {% endfor %}
                     </div>
-                    
-        
+
+
                     <small class="text-muted">Progression</small>
                     <div class="progress mb-3">
                         <div class="progress-bar" role="progressbar" style="width: {{ phase.progress }}%;" aria-valuenow="{{ phase.progress }}"
@@ -158,7 +159,7 @@
                 {% endfor %}
             </ul>
         </div>
-        
+
 
         <div id="tab2-content" class="tab-content">
             <div class="action-buttons mb-3"> {# Ajout d'une marge en bas #}
@@ -167,13 +168,15 @@
             </div>
             <h5 class="card-title m-0">Transactions</h5>
             {# Utiliser une classe Bootstrap pour la table pour un meilleur style #}
-            <table class="table table-striped table-hover"> 
-                <thead class="thead-light"> {# Style pour l'en-tête #}
+            <table class="table table-striped table-hover">
+                {# --- CORRECTION BS5 : thead-light -> table-light --- #}
+                <thead class="table-light"> {# Style pour l'en-tête #}
                     <tr>
                         <th>Date</th>
                         <th>Type</th>
                         <th>Compte Associé</th>
-                        <th class="text-right">Montant</th> {# Utiliser text-right de Bootstrap #}
+                        {# --- CORRECTION BS5 : text-right -> text-end --- #}
+                        <th class="text-end">Montant</th> {# Utiliser text-right de Bootstrap #}
                         <th>Description</th>
                         <th>Statut de règlement</th>
                         <th>Actions</th>
@@ -192,7 +195,7 @@
                             {% endif %}
                         </td>
                         {# Formatage du montant pour la localisation et ajout du symbole € #}
-                        <td class="text-right">{{ "%.2f €"|format(transaction.montant) }}</td> 
+                        <td class="text-end">{{ "%.2f €"|format(transaction.montant) }}</td>
                         <td>{{ transaction.description if transaction.description else '-' }}</td> {# Afficher '-' si vide #}
                         <td>
                             {# --- MODIFICATION ICI --- #}
@@ -200,9 +203,9 @@
                                 action="{{ url_for('transactions.modifier_reglement', transaction_id=transaction.id) }}"
                                 method="POST" class="d-inline"> {# d-inline pour éviter les sauts de ligne #}
                                 {# Ajout du jeton CSRF #}
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"> 
-                                {# Utiliser form-control-sm pour un select plus petit #}
-                                <select name="reglement" onchange="this.form.submit()" class="form-control form-control-sm" style="min-width: 120px;"> 
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                {# --- CORRECTION BS5 : form-control -> form-select --- #}
+                                <select name="reglement" onchange="this.form.submit()" class="form-select form-select-sm" style="min-width: 120px;">
                                     <option value="Non réglée" {% if transaction.reglement == "Non réglée" %}selected{% endif %}>Non réglée</option>
                                     <option value="Réglée" {% if transaction.reglement == "Réglée" %}selected{% endif %}>Réglée</option>
                                     <option value="Partiellement réglée" {% if transaction.reglement == "Partiellement réglée" %}selected{% endif %}>Partiellement réglée</option>
@@ -212,7 +215,7 @@
                         </td>
                         <td>
                             {# Conditionner l'affichage du lien facture (exemple: seulement pour les entrées) #}
-                            {% if transaction.type == 'Entrée' %} 
+                            {% if transaction.type == 'Entrée' %}
                             <a href="{{ url_for('generer_facture', transaction_id=transaction.id) }}"
                                 target="_blank" class="btn btn-outline-secondary btn-sm">
                                 <i class="fas fa-file-invoice"></i> Facture
@@ -244,6 +247,13 @@
     </div>
 </div>
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/frappe-gantt@0.6.0/dist/frappe-gantt.min.css">
+
+{% endblock %}
+
+
+{# --- JavaScript spécifique à cette page --- #}
+{% block extra_scripts %}
+
 <script src="https://cdn.jsdelivr.net/npm/frappe-gantt@0.6.0/dist/frappe-gantt.min.js"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function () {
