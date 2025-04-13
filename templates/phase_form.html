@@ -1,11 +1,15 @@
 <!-- c:\wamp\www\mon_compta_app\templates\phase_form.html -->
 {% extends 'base.html' %}
 
+{% block page_title %}
+<h1>{{ projet.nom }}</h1>
+{% endblock %}
+
 {% block content %}
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-12">
-            <h1 class="mb-4">{{ title }}</h1>
+            <h5 class="mb-4">{{ title }}</h5>
             <form method="POST">
                 {{ form.hidden_tag() }}
                 <div class="row">

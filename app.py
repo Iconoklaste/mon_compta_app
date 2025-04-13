@@ -19,11 +19,14 @@ from models.organisations import Organisation
 from models.users import User
 from models.exercices import ExerciceComptable
 from models.projets import Projet
+from models.clients import Client
 from datetime import date, datetime
 import os
 from flask_migrate import Migrate  # Import Migrate
 
 from werkzeug.utils import secure_filename
+
+from utils.plan_comptable_initial_setup import generate_default_plan_comptable
 
 app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(os.path.expanduser("~"), 'compta.db')
@@ -78,43 +81,95 @@ if __name__ == '__main__':
         # Create a default organization if none exists
         if not Organisation.query.first():
             default_organisation = Organisation(
-                designation="Default Organisation",
-                adresse="Default Address",
-                code_postal="00000",
-                ville="Default City",
-                telephone="0123456789",
-                mail_contact="default@example.com",
+                designation="Studio Noble-Val",
+                adresse="14, Place de la Fontaine",
+                code_postal="82330",
+                ville="VAREN",
+                telephone="0768981844",
+                mail_contact="tjacquemot@gmail.com",
                 siret="12345678901234",  # Example SIRET
                 tva_intracommunautaire=None,  # Optional, can be None
-                forme_juridique="SARL"  # Example legal form
+                forme_juridique="Entreprise Individuelle"  # Example legal form
             )
             db.session.add(default_organisation)
-            db.session.commit()
+            try:
+                db.session.commit()
+                print(f"INFO: Organisation par défaut (ID: {default_organisation.id}) créée avec succès.")
+                organisation_creee = True # On l'a créée
+            except Exception as e:
+                db.session.rollback()
+                print(f"ERREUR: Impossible de créer l'organisation par défaut: {e}")
+                # Si l'organisation ne peut être créée, on ne peut pas continuer
+                # Peut-être sortir ou gérer l'erreur autrement
+                default_organisation = None # Assure qu'on ne l'utilise pas plus loin
+
 
         # Create a default user if none exists
         if not User.query.first():
+            # On récupère l'organisation par défaut (qui a dû être créée juste avant si elle n'existait pas)
             default_organisation = Organisation.query.first()
-            default_user = User(
-                nom="Jacquemot",
-                prenom="Thomas",
-                mail="tjacquemot@gmail.com",
-                telephone="0123456789",
-                organisation_id=default_organisation.id # change organisation to organisation_id
-            )
-            default_user.set_password("test")  # Set a default password
-            db.session.add(default_user)
-            db.session.commit()
-        
-        # Create an exercice for 2025 if none exists
+            if default_organisation: # S'assurer qu'on a bien une organisation
+                default_user = User(
+                    nom="Jacquemot",
+                    prenom="Thomas",
+                    mail="tjacquemot@gmail.com",
+                    telephone="0768981844",
+                    organisation_id=default_organisation.id,
+                    is_super_admin=True,  # <--- AJOUTE CETTE LIGNE
+                    role="Admin" # Tu peux aussi définir un rôle explicite si besoin
+                )
+                default_user.set_password("test")  # Set a default password
+                db.session.add(default_user)
+                try:
+                    db.session.commit()
+                    print("INFO: Utilisateur Super Admin par défaut créé.")
+                except Exception as e:
+                     db.session.rollback()
+                     print(f"ERREUR: Impossible de créer l'utilisateur par défaut: {e}")
+            else:
+                print("ERREUR: Impossible de créer l'utilisateur par défaut car aucune organisation n'existe (ou n'a pu être créée).")
+
+                # --- APPEL DE LA GENERATION DU PLAN COMPTABLE ---
+            # On génère le plan comptable SEULEMENT si on vient de créer l'organisation
+            # ET si elle a bien été créée (default_organisation n'est pas None)
+            if organisation_creee and default_organisation:
+                print(f"INFO: Tentative de génération du plan comptable pour l'organisation ID {default_organisation.id}...")
+                comptes_crees = generate_default_plan_comptable(default_organisation)
+                if comptes_crees is not None:
+                    print(f"INFO: Génération du plan comptable terminée. {len(comptes_crees)} comptes ajoutés.")
+                else:
+                    print("ERREUR: La génération du plan comptable a échoué. Voir les logs pour plus de détails.")
+            # --- FIN DE L'APPEL ---
+
+        # Create an exercice for the current year if none exists
         if not ExerciceComptable.query.first():
-            default_organisation = Organisation.query.first()
-            exercice_2025 = ExerciceComptable(
-                date_debut=date(2025, 1, 1),
-                date_fin=date(2025, 12, 31),
-                organisation_id=default_organisation.id
-            )
-            db.session.add(exercice_2025)
-            db.session.commit()
+            # Récupère l'organisation (soit celle existante, soit celle qu'on vient de créer)
+            organisation_pour_exercice = Organisation.query.first()
+            if organisation_pour_exercice:
+                print("INFO: Aucun exercice trouvé, création de l'exercice pour l'année en cours...")
+                # Récupère l'année en cours
+                current_year = date.today().year
+                # Définit les dates de début et de fin pour l'année en cours
+                date_debut_exercice = date(current_year, 1, 1)
+                date_fin_exercice = date(current_year, 12, 31)
+
+                exercice_courant = ExerciceComptable(
+                    date_debut=date_debut_exercice,
+                    date_fin=date_fin_exercice,
+                    organisation_id=organisation_pour_exercice.id
+                    # Le statut par défaut est 'Ouvert' (défini dans le modèle)
+                )
+                db.session.add(exercice_courant)
+                try:
+                    db.session.commit()
+                    print(f"INFO: Exercice pour l'année {current_year} créé.")
+                except Exception as e:
+                    db.session.rollback()
+                    print(f"ERREUR: Impossible de créer l'exercice par défaut pour l'année {current_year}: {e}")
+            else:
+                print("ERREUR: Impossible de créer l'exercice par défaut car aucune organisation n'existe.")
+
+
 
         # Create a default project if none exists
         if not Projet.query.first():

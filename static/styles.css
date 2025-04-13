@@ -157,11 +157,32 @@ a:hover {
   }
 
 /* Sidebar */
-
-nav#sidebar-content {
-    padding: 0 0.5rem; /* Add padding to the left and right */
-    flex-grow: 1;
+/* Rendre la sidebar un conteneur flex vertical */
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    height: 100vh; /* Assure que la sidebar prend toute la hauteur */
+    overflow: hidden; /* Empêche le scroll de la sidebar elle-même */
+    /* Garde tes autres styles existants pour .sidebar s'ils sont pertinents,
+       comme background-color, color, width, position, top, left, z-index */
+    background-color: var(--dark-blue);
+    color: var(--white);
+    width: 250px;
+    flex-shrink: 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 100;
 }
+
+/* La navigation principale ne doit pas prendre tout l'espace */
+#sidebar-content {
+    flex-shrink: 0; /* Empêche la nav de rétrécir */
+    /* Garde ton padding existant */
+    padding: 0 0.5rem;
+    /* Retire flex-grow: 1; s'il était présent dans ton ancienne règle */
+}
+
 
 .sidebar ul {
     list-style: none; /* Supprimer les puces */
@@ -214,6 +235,101 @@ nav#sidebar-content {
 .sidebar-icon {
     margin-right: 0.5rem;
 }
+
+/* Conteneur externe des messages flash */
+.sidebar-flash-outer-container {
+    flex-grow: 1; /* Prend tout l'espace vertical restant */
+    overflow: hidden; /* Cache tout ce qui dépasse */
+    margin-top: auto; /* Pousse ce conteneur vers le bas, après la nav principale */
+    /* --- MODIFICATION --- */
+    /* On veut que la zone scrollable remplisse ce conteneur, */
+    /* donc on utilise flex pour contrôler la zone scrollable à l'intérieur */
+    display: flex;
+    flex-direction: column;
+    /* Retire justify-content: flex-end; */
+    /* --- FIN MODIFICATION --- */
+    padding: 0.5rem 0.75rem; /* Garde le padding horizontal */
+    padding-top: 0; /* Optionnel: retire le padding haut si besoin */
+}
+
+/* Zone scrollable pour les messages flash */
+.sidebar-flash-scroll-area {
+    /* --- MODIFICATION --- */
+    /* Retire la hauteur max fixe */
+    /* max-height: 200px; */
+    /* Fait en sorte que cette zone remplisse son parent (.sidebar-flash-outer-container) */
+    flex-grow: 1;
+    /* --- FIN MODIFICATION --- */
+
+    overflow-y: auto; /* Active le scroll vertical si nécessaire */
+    display: flex;
+    flex-direction: column-reverse; /* Garde l'empilement inversé */
+    /* padding-top: 0.5rem; */ /* Ajuste le padding interne si besoin */
+}
+
+/* Style pour les messages flash dans la sidebar */
+.sidebar-flash-scroll-area .alert {
+    margin-bottom: 0.5rem; /* Espace entre les messages */
+    font-size: 0.85rem; /* Texte un peu plus petit dans la sidebar */
+    padding: 0.25rem 0.5rem; /* Padding interne réduit */
+        /* Assure que les messages ne rétrécissent pas dans le conteneur flex */
+        flex-shrink: 0;
+}
+
+.sidebar-flash-scroll-area .alert .btn-close {
+    padding: 0.5rem; /* Ajuste la zone cliquable du bouton */
+}
+
+/* L'animation de chute et rebond */
+@keyframes fallAndBounce {
+    0% {
+        opacity: 0;
+        transform: translateY(-300%); /* Commence bien au-dessus */
+    }
+    60% {
+        /* Descend un peu trop bas pour le rebond */
+        opacity: 1;
+        transform: translateY(10px);
+    }
+    80% {
+        /* Remonte un peu */
+        transform: translateY(-5px);
+    }
+    100% {
+        /* Position finale stable */
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Classe appliquée temporairement pour déclencher l'animation */
+.flash-message-entering {
+    /* Utilise l'animation définie ci-dessus */
+    animation: fallAndBounce 0.7s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
+    /* 'forwards' maintient l'état final de l'animation */
+}
+
+
+/* Ajustement pour cohabiter avec Bootstrap fade */
+/* Ralentir la transition de disparition pour les messages flash */
+.flash-message.fade {
+    /* On garde la transition de disparition mais on l'ajuste si besoin */
+    transition: opacity 0.5s ease-in-out; /* Durée ajustée (au lieu de 0.15s par défaut) */
+}
+.flash-message.fade:not(.show) {
+     opacity: 0; /* Assure qu'il est invisible s'il n'a que 'fade' */
+}
+
+
+/* Navigation du bas (Paramètres) */
+.sidebar-bottom-nav {
+    flex-shrink: 0; /* Empêche cette nav de rétrécir */
+    margin-top: 0.5rem; /* Petit espace au-dessus des paramètres */
+    border-top: 1px solid rgba(255, 255, 255, 0.1); /* Séparateur visuel (optionnel) */
+    padding-top: 0.5rem; /* Espace au-dessus du lien */
+    padding-bottom: 0.5rem; /* Espace en dessous du lien */
+}
+
 
 /* Navbar */
 .navbar {

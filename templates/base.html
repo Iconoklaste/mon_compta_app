@@ -29,7 +29,9 @@
         {% if session['user_id'] %}
         <aside class="sidebar">
             <div class="sidebar-brand">LOOVA</div>
-            <nav id="sidebar-content" id="sidebar">
+        
+            {# --- Navigation Principale --- #}
+            <nav id="sidebar-content" class="flex-grow-1"> {# flex-grow-1 permet à la nav de prendre l'espace dispo si besoin #}
                 <ul>
                     <li class="{% if current_page == 'Accueil' %}active{% endif %}">
                         <a href="{{ url_for('users.index') }}">
@@ -55,17 +57,52 @@
                             <span class="sidebar-text">CRM</span>
                         </a>
                     </li>
-                    <li class="{% if current_page == 'Paramètres' %}active{% endif %}">
-                        <a href="">
-                            <i class="fas fa-wrench sidebar-icon"></i>
-                            <span class="sidebar-text">Parmètres</span>
-                        </a>
-                    </li>
+                    {# Le lien Paramètres a été déplacé plus bas #}
                     {% block sidebar %}
                     {% endblock %}
                 </ul>
             </nav>
+            {# --- Fin Navigation Principale --- #}
+        
+        
+            {# --- Début : Zone pour les messages flash dans la sidebar --- #}
+            {# Ce conteneur prendra l'espace restant avant les paramètres et contiendra la zone scrollable #}
+            <div id="flash-outer-container" class="sidebar-flash-outer-container">
+                <div id="flash-container" class="sidebar-flash-scroll-area">
+                    {# Les messages flash seront injectés ici par Jinja2 #}
+                    {% with messages = get_flashed_messages(with_categories=true) %}
+                        {% if messages %}
+                            {% for category, message in messages %}
+                                {# Utilisation de data-category pour le JS #}
+                                <div class="alert alert-{{ category|replace('error', 'danger')|replace('success', 'success')|replace('info', 'info')|replace('warning', 'warning') }} alert-dismissible fade show flash-message mb-2" role="alert" data-category="{{ category }}">
+                                    {{ message }}
+                                    {# Bouton de fermeture plus petit pour la sidebar #}
+                                    <button type="button" class="btn-close btn-sm" data-bs-dismiss="alert" aria-label="Close"></button>
+                                </div>
+                            {% endfor %}
+                        {% endif %}
+                    {% endwith %}
+                </div>
+            </div>
+            {# --- Fin : Zone pour les messages flash --- #}
+        
+        
+            {# --- Lien Paramètres (en bas) --- #}
+            <nav class="sidebar-bottom-nav">
+                <ul>
+                    {# Ajoute la classe 'active' si nécessaire, comme pour les autres liens #}
+                    <li class="{% if current_page == 'Paramètres' %}active{% endif %}">
+                        <a href=""> {# Pense à mettre le bon url_for ici #}
+                            <i class="fas fa-wrench sidebar-icon"></i>
+                            <span class="sidebar-text">Paramètres</span>
+                        </a>
+                    </li>
+                </ul>
+            </nav>
+            {# --- Fin Lien Paramètres --- #}
+        
         </aside>
+        
         {% endif %}
 
         <main class="main-content">
@@ -135,6 +172,8 @@
        décommente la ligne suivante et place-la AVANT le bundle BS5.
        <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
     #}
+    {# Charge notre script de notifications #}
+    <script src="{{ url_for('static', filename='js/notifications.js') }}"></script>
 
     {% block extra_scripts %}
     {# Bloc pour les scripts JS spécifiques à certaines pages #}

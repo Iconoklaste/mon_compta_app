@@ -52,7 +52,6 @@ def modifier_profil():
 @users_bp.route('/logout')
 def logout():
     session.pop('user_id', None)
-    flash('Vous êtes maintenant déconnecté.', 'success')
     return redirect(url_for('users.index'))
 
 @users_bp.route('/ajouter_user', methods=['GET', 'POST'])

@@ -99,29 +99,30 @@
                     <i class="fas fa-plus"></i> Nouvelle une phase
                 </a>
             </div>
+            {# --- DEBUT DE LA CONDITION --- #}
+            {% if projet.phases %}
             <ul class="list-group phase-list">
                 {% for phase in projet.phases %}
                 <li class="list-group-item">
+                    {# --- Contenu existant pour afficher une phase --- #}
                     <div class="d-flex justify-content-between align-items-center">
                         <div class="phase-header">
-                            <h6> Phase {{ loop.index }} : {{ phase.nom }}
-
-                            </h6>
+                            <h6> Phase {{ loop.index }} : {{ phase.nom }}</h6>
                             <p class="mb-0"><i class="fa-regular fa-calendar"></i>
                                 <small class="text-muted">
                                     {{ phase.date_debut.strftime('%d %B %Y') if phase.date_debut else 'Non définie' }}
                                     -
-                                    {{ phase.date_fin.strftime('%d %B %Y') if phase.date_fin else 'Non définie' }}</small>
-                                    {# --- CORRECTION BS5 --- #}
-                                    <span class="badge custom-badge {# badge-sm supprimé #}
-                                        {% if phase.statut == 'En cours' %}bg-success
-                                        {% elif phase.statut == 'Terminé' %}bg-secondary
-                                        {% elif phase.statut == 'En attente' %}bg-warning text-dark {# Ajout text-dark #}
-                                        {% elif phase.statut == 'Annulé' %}bg-danger
-                                        {% else %}bg-info text-dark {# Ajout text-dark #} {% endif %}">
-                                        <small>{{ phase.statut }}</small> {# La balise small gère la taille #}
-                                    </span>
-                                </p>
+                                    {{ phase.date_fin.strftime('%d %B %Y') if phase.date_fin else 'Non définie' }}
+                                </small>
+                                <span class="badge custom-badge
+                                    {% if phase.statut == 'En cours' %}bg-success
+                                    {% elif phase.statut == 'Terminé' %}bg-secondary
+                                    {% elif phase.statut == 'En attente' %}bg-warning text-dark
+                                    {% elif phase.statut == 'Annulé' %}bg-danger
+                                    {% else %}bg-info text-dark {% endif %}">
+                                    <small>{{ phase.statut }}</small>
+                                </span>
+                            </p>
                         </div>
                         <div class="phase-actions">
                             <a href="{{ url_for('projet_phases.modifier_phase', projet_id=projet.id, phase_id=phase.id) }}"
@@ -149,24 +150,33 @@
                         {% endfor %}
                     </div>
 
-
                     <small class="text-muted">Progression</small>
                     <div class="progress mb-3">
                         <div class="progress-bar" role="progressbar" style="width: {{ phase.progress }}%;" aria-valuenow="{{ phase.progress }}"
                             aria-valuemin="0" aria-valuemax="100">{{ phase.progress }}%</div>
                     </div>
+                    {# --- Fin du contenu existant pour une phase --- #}
                 </li>
                 {% endfor %}
             </ul>
+            {% else %}
+            {# --- Message si aucune phase n'existe --- #}
+            <div class="text-center mt-4"> {# Ajout d'une marge pour l'espacement #}
+                <p class="lead">Aucune phase définie pour ce projet. :-(</p>
+                <a href="{{ url_for('projet_phases.ajouter_phase', projet_id=projet.id) }}" class="btn btn-primary btn-lg">Ajouter une phase</a>
+            </div>
+            {% endif %}
+            {# --- FIN DE LA CONDITION --- #}
         </div>
 
 
         <div id="tab2-content" class="tab-content">
-            <div class="action-buttons mb-3"> {# Ajout d'une marge en bas #}
-                <a href="{{ url_for('transactions.ajouter_transaction', projet_id=projet.id) }}"
-                    class="btn btn-primary"><i class="fas fa-plus"></i> Ajouter une Transaction</a>
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="card-title m-0">Transactions</h5>
+                <a href="{{ url_for('transactions.ajouter_transaction', projet_id=projet.id) }}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus"></i> Nouvelle Transaction
+                </a>
             </div>
-            <h5 class="card-title m-0">Transactions</h5>
             {# Utiliser une classe Bootstrap pour la table pour un meilleur style #}
             <table class="table table-striped table-hover">
                 {# --- CORRECTION BS5 : thead-light -> table-light --- #}
