@@ -52,7 +52,7 @@
                         <li class="list-group-item d-flex justify-content-between align-items-center p-1 {% if not compte.actif %}text-muted fst-italic{% endif %}">
                             <span>{{ compte.numero }} - {{ compte.nom | truncate(30) }}</span>
                             <span class="badge {% if compte.actif %}bg-light text-dark{% else %}bg-secondary{% endif %} rounded-pill">
-                                {{ "{:,.2f} €".format(compte.solde_initial).replace(',', ' ').replace('.', ',') }}
+                                {{ "{:,.2f} €".format(compte.solde_actuel_exercice_courant) }}
                             </span>
                         </li>
                         {% endfor %}

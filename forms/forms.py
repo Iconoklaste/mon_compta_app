@@ -1,13 +1,16 @@
 # forms/forms.py
 from flask_wtf import FlaskForm
-from wtforms import (HiddenField, StringField, DateField, 
-                     widgets, SelectField, IntegerField, 
-                     BooleanField, SubmitField, FieldList, 
-                     FormField, FloatField, TextAreaField, PasswordField, EmailField, 
+from wtforms import (HiddenField, StringField, DateField,
+                     widgets, SelectField, IntegerField,
+                     BooleanField, SubmitField, FieldList,
+                     FormField, FloatField, TextAreaField, PasswordField, EmailField,
                      TelField, FileField)
-from wtforms.validators import (DataRequired, Email, Optional, 
+# Ajoute cette ligne ici
+from wtforms_sqlalchemy.fields import QuerySelectField
+from wtforms.validators import (DataRequired, Email, Optional,
                                 EqualTo, Regexp, ValidationError,
                                 NumberRange, Length)
+
 from models.clients import Client
 from models.organisations import Organisation
 from models.exercices import ExerciceComptable
@@ -122,7 +125,7 @@ class ClientForm(FlaskForm):
     telephone = TelField('Téléphone')
     mail = EmailField('Email', validators=[Email(), DataRequired()])
 
-class TransactionForm(FlaskForm):
+""" class TransactionForm(FlaskForm):
     date = DateField('Date', validators=[DataRequired()], default=date.today, widget=DateInput())
     type = SelectField('Type', choices=[('Entrée', 'Entrée'), ('Sortie', 'Sortie')], validators=[DataRequired()])
     # Utiliser FloatField pour le montant
@@ -192,6 +195,125 @@ class TransactionForm(FlaskForm):
                  raise ValidationError("Les dates de début et de fin sont requises pour créer un nouvel exercice.")
             if self.date_debut_exercice.data >= self.date_fin_exercice.data:
                  raise ValidationError("La date de début doit être antérieure à la date de fin.")
+ """
+
+class EntreeForm(FlaskForm):
+    """Formulaire pour ajouter une transaction d'entrée (Revenu/Facture)."""
+    # Champs communs
+    date = DateField('Date', default=date.today, validators=[DataRequired()])
+    montant = FloatField('Montant', validators=[DataRequired(), NumberRange(min=0.01)])
+    description = StringField('Description', validators=[DataRequired(), Length(max=200)])
+    mode_paiement = SelectField('Mode de Paiement', choices=[
+        ('', '-- Sélectionner --'),
+        ('Virement', 'Virement'),
+        ('Chèque', 'Chèque'),
+        ('Carte', 'Carte bancaire'),
+        ('Espèces', 'Espèces'),
+        ('Autre', 'Autre')
+    ], validators=[Optional()]) # Optionnel ou requis selon tes besoins
+    
+    # Compte comptable (filtré pour Classe 7 - Produits)
+    compte_id = QuerySelectField(
+        'Compte de Produit',
+        query_factory=lambda: CompteComptable.query.filter(
+            CompteComptable.type == ClasseCompte.CLASSE_7, # Filtrer par Classe 7
+            CompteComptable.actif == True,
+            # Assure-toi que l'organisation est bien filtrée si nécessaire
+            # CompteComptable.organisation_id == current_user.organisation_id # Exemple
+        ).order_by(CompteComptable.numero),
+        get_label=lambda compte: f"{compte.numero} - {compte.nom}",
+        allow_blank=False, # Rendre la sélection obligatoire
+        validators=[DataRequired(message="Veuillez sélectionner un compte de produit.")]
+    )
+
+    # Champs pour l'exercice comptable (identiques à TransactionForm)
+    exercice_id = QuerySelectField(
+        'Exercice Comptable Existant',
+        query_factory=lambda: [], # Sera peuplé dynamiquement
+        get_label=lambda ex: f"{ex.date_debut.strftime('%d/%m/%Y')} - {ex.date_fin.strftime('%d/%m/%Y')} ({ex.statut})",
+        allow_blank=True, # Permettre de choisir "Créer nouveau"
+        blank_text='-- Sélectionner ou Créer --',
+        validators=[Optional()] # Optionnel car on peut créer un nouveau
+    )
+    creer_nouvel_exercice = HiddenField(default='false') # Champ caché pour le switch JS
+    date_debut_exercice = DateField('Date de début (Nouvel Exercice)', validators=[Optional()])
+    date_fin_exercice = DateField('Date de fin (Nouvel Exercice)', validators=[Optional()])
+
+    submit = SubmitField('Ajouter Entrée')
+
+    # Constructeur pour peupler dynamiquement les exercices (identique à TransactionForm)
+    def __init__(self, organisation_id=None, *args, **kwargs):
+        super(EntreeForm, self).__init__(*args, **kwargs)
+        if organisation_id:
+            self.exercice_id.query_factory = lambda: ExerciceComptable.query.filter_by(
+                organisation_id=organisation_id
+            ).order_by(ExerciceComptable.date_debut.desc()).all()
+            # --- Ajout pour peupler les comptes comptables dynamiquement ---
+            self.compte_id.query_factory = lambda: CompteComptable.query.filter(
+                CompteComptable.organisation_id == organisation_id, # Filtrer par l'organisation
+                CompteComptable.type == ClasseCompte.CLASSE_7,      # Filtrer par Classe 7
+                CompteComptable.actif == True
+            ).order_by(CompteComptable.numero).all()
+            # -------------------------------------------------------------
+
+
+class SortieForm(FlaskForm):
+    """Formulaire pour ajouter une transaction de sortie (Dépense)."""
+    # Champs communs (identiques à EntreeForm)
+    date = DateField('Date', default=date.today, validators=[DataRequired()])
+    montant = FloatField('Montant', validators=[DataRequired(), NumberRange(min=0.01)])
+    description = StringField('Description', validators=[DataRequired(), Length(max=200)])
+    mode_paiement = SelectField('Mode de Paiement', choices=[
+        ('', '-- Sélectionner --'),
+        ('Virement', 'Virement'),
+        ('Chèque', 'Chèque'),
+        ('Carte', 'Carte bancaire'),
+        ('Espèces', 'Espèces'),
+        ('Autre', 'Autre')
+    ], validators=[Optional()])
+
+    # Compte comptable (filtré pour Classe 6 - Charges)
+    compte_id = QuerySelectField(
+        'Compte de Charge',
+        query_factory=lambda: CompteComptable.query.filter(
+            CompteComptable.type == ClasseCompte.CLASSE_6, # Filtrer par Classe 6
+            CompteComptable.actif == True,
+            # CompteComptable.organisation_id == current_user.organisation_id # Exemple
+        ).order_by(CompteComptable.numero),
+        get_label=lambda compte: f"{compte.numero} - {compte.nom}",
+        allow_blank=False, # Rendre la sélection obligatoire
+        validators=[DataRequired(message="Veuillez sélectionner un compte de charge.")]
+    )
+
+    # Champs pour l'exercice comptable (identiques à EntreeForm)
+    exercice_id = QuerySelectField(
+        'Exercice Comptable Existant',
+        query_factory=lambda: [], # Sera peuplé dynamiquement
+        get_label=lambda ex: f"{ex.date_debut.strftime('%d/%m/%Y')} - {ex.date_fin.strftime('%d/%m/%Y')} ({ex.statut})",
+        allow_blank=True,
+        blank_text='-- Sélectionner ou Créer --',
+        validators=[Optional()]
+    )
+    creer_nouvel_exercice = HiddenField(default='false')
+    date_debut_exercice = DateField('Date de début (Nouvel Exercice)', validators=[Optional()])
+    date_fin_exercice = DateField('Date de fin (Nouvel Exercice)', validators=[Optional()])
+
+    submit = SubmitField('Ajouter Dépense')
+
+    # Constructeur pour peupler dynamiquement les exercices et comptes (identique à EntreeForm mais filtre Classe 6)
+    def __init__(self, organisation_id=None, *args, **kwargs):
+        super(SortieForm, self).__init__(*args, **kwargs)
+        if organisation_id:
+            self.exercice_id.query_factory = lambda: ExerciceComptable.query.filter_by(
+                organisation_id=organisation_id
+            ).order_by(ExerciceComptable.date_debut.desc()).all()
+            # --- Ajout pour peupler les comptes comptables dynamiquement ---
+            self.compte_id.query_factory = lambda: CompteComptable.query.filter(
+                CompteComptable.organisation_id == organisation_id, # Filtrer par l'organisation
+                CompteComptable.type == ClasseCompte.CLASSE_6,      # Filtrer par Classe 6
+                CompteComptable.actif == True
+            ).order_by(CompteComptable.numero).all()
+            # -------------------------------------------------------------
 
 class CompteComptableForm(FlaskForm):
     # Champ caché pour l'ID lors de l'édition

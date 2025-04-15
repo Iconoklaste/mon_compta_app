@@ -2,7 +2,12 @@
 import enum
 from controllers.db_manager import db
 from sqlalchemy import UniqueConstraint, Enum as DBEnum
-from sqlalchemy.orm import relationship
+
+from sqlalchemy import func # Pour utiliser les fonctions d'agrégation SQL comme SUM
+from sqlalchemy.orm import relationship, column_property # column_property n'est pas utilisé ici, mais func oui
+from .ecritures_comptable import LigneEcriture, EcritureComptable # Importer les modèles liés
+from .exercices import ExerciceComptable # Importer ExerciceComptable
+from datetime import date # Pour la date du jour si besoin
 
 # Définir l'énumération pour les classes de compte
 class ClasseCompte(enum.Enum):
@@ -83,6 +88,75 @@ class CompteComptable(db.Model):
     transactions = relationship('Transaction', back_populates='compte', lazy='dynamic')
 
     __table_args__ = (UniqueConstraint('numero', 'organisation_id', name='uq_compte_numero_organisation'),)
+
+    def calculer_solde_actuel(self, exercice: ExerciceComptable = None):
+        """
+        Calcule le solde actuel du compte pour un exercice donné (ou l'exercice courant par défaut).
+        Solde = Solde Initial + SUM(Débits) - SUM(Crédits) sur l'exercice.
+
+        Args:
+            exercice: L'objet ExerciceComptable pour lequel calculer le solde.
+                      Si None, tente de déterminer l'exercice courant (logique à affiner).
+
+        Returns:
+            float: Le solde calculé.
+        """
+        session = db.session # Accéder à la session SQLAlchemy
+
+        # 1. Déterminer l'exercice pertinent
+        if exercice is None:
+            # Logique pour trouver l'exercice "en cours" pour cette organisation
+            # Exemple simple : prendre le dernier exercice ouvert basé sur la date de fin
+            # ATTENTION: Cette logique peut devoir être adaptée à ton application !
+            exercice = session.query(ExerciceComptable).filter(
+                ExerciceComptable.organisation_id == self.organisation_id,
+                ExerciceComptable.statut == "Ouvert",
+                ExerciceComptable.date_fin >= date.today() # Hypothèse simple
+            ).order_by(ExerciceComptable.date_debut.asc()).first()
+
+            # S'il n'y a pas d'exercice ouvert "futur", prendre le dernier ouvert
+            if not exercice:
+                 exercice = session.query(ExerciceComptable).filter(
+                    ExerciceComptable.organisation_id == self.organisation_id,
+                    ExerciceComptable.statut == "Ouvert"
+                ).order_by(ExerciceComptable.date_fin.desc()).first()
+
+        if not exercice:
+            # Si aucun exercice n'est trouvé, on ne peut pas calculer le solde actuel pertinent
+            # On pourrait retourner le solde initial ou 0.0, ou lever une erreur.
+            # Retournons le solde initial pour l'instant.
+            return self.solde_initial or 0.0
+
+        # 2. Calculer la somme des débits et crédits pour ce compte DANS cet exercice
+        # On joint LigneEcriture avec EcritureComptable pour filtrer par date_ecriture
+        resultats = session.query(
+            func.sum(LigneEcriture.montant_debit).label('total_debit'),
+            func.sum(LigneEcriture.montant_credit).label('total_credit')
+        ).join(EcritureComptable, LigneEcriture.ecriture_id == EcritureComptable.id)\
+        .filter(
+            LigneEcriture.compte_id == self.id,
+            EcritureComptable.exercice_id == exercice.id # Filtrer par l'exercice
+            # Optionnel: Filtrer par date si l'exercice n'est pas la seule limite
+            # EcritureComptable.date_ecriture >= exercice.date_debut,
+            # EcritureComptable.date_ecriture <= exercice.date_fin
+        ).one() # one() car on s'attend à une seule ligne de résultat (les totaux)
+
+        total_debit_exercice = resultats.total_debit or 0.0
+        total_credit_exercice = resultats.total_credit or 0.0
+
+        # 3. Calculer le solde final
+        # Note: La nature du solde (débiteur/créditeur) dépend de la classe du compte,
+        # mais ici on calcule le solde net.
+        solde_actuel = (self.solde_initial or 0.0) + total_debit_exercice - total_credit_exercice
+
+        return solde_actuel
+
+    # Optionnel: Créer une propriété qui appelle la méthode sans argument
+    # pour une utilisation plus simple dans les templates (utilise l'exercice par défaut)
+    @property
+    def solde_actuel_exercice_courant(self):
+         return self.calculer_solde_actuel() # Appelle la méthode avec exercice=None
+
 
     def __repr__(self):
         statut = "Actif" if self.actif else "Inactif"

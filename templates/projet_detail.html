@@ -173,8 +173,11 @@
         <div id="tab2-content" class="tab-content">
             <div class="d-flex justify-content-between align-items-center mb-3">
                 <h5 class="card-title m-0">Transactions</h5>
-                <a href="{{ url_for('transactions.ajouter_transaction', projet_id=projet.id) }}" class="btn btn-primary btn-sm">
-                    <i class="fas fa-plus"></i> Nouvelle Transaction
+                <a href="{{ url_for('transactions.ajouter_entree', projet_id=projet.id) }}" class="btn btn-success me-2"> {# me-2 pour marge à droite #}
+                    <i class="fas fa-plus-circle"></i> Ajouter Entrée/Facture
+                </a>
+                <a href="{{ url_for('transactions.ajouter_sortie', projet_id=projet.id) }}" class="btn btn-danger">
+                    <i class="fas fa-minus-circle"></i> Ajouter Dépense/Sortie
                 </a>
             </div>
             {# Utiliser une classe Bootstrap pour la table pour un meilleur style #}

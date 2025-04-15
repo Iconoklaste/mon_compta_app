@@ -1,7 +1,14 @@
 # c:\wamp\www\mon_compta_app\models\clients.py
 from controllers.db_manager import db
+from sqlalchemy import ForeignKey
+from sqlalchemy.orm import relationship
+# Assure-toi que CompteComptable est importable depuis ici
+from .compte_comptable import CompteComptable
+from .organisations import Organisation
 
 class Client(db.Model):
+    __tablename__ = 'client'
+
     id = db.Column(db.Integer, primary_key=True)
     nom = db.Column(db.String(100), nullable=False)
     adresse = db.Column(db.String(200))
@@ -10,7 +17,23 @@ class Client(db.Model):
     telephone = db.Column(db.String(20))
     mail = db.Column(db.String(100))
 
+        # --- AJOUT : Lien vers l'Organisation ---
+    organisation_id = db.Column(db.Integer, db.ForeignKey('organisation.id'), nullable=False)
+    # Relation vers l'objet Organisation
+    # Le backref permet d'accéder aux clients depuis une organisation (orga.clients)
+    organisation = relationship("Organisation", backref=db.backref("clients", lazy="dynamic"))
+    # --- FIN AJOUT ---
+
+    # --- AJOUT : Lien vers le Compte Comptable Client ---
+    # Clé étrangère vers le compte comptable associé (peut être nullable si créé plus tard)
+    compte_comptable_id = db.Column(db.Integer, db.ForeignKey('compte_comptable.id'), nullable=True, unique=True)
+    # Relation vers l'objet CompteComptable
+    # Le backref permet d'accéder au client depuis le compte comptable (compte.client_associe)
+    compte_comptable = relationship("CompteComptable", backref=db.backref("client_associe", uselist=False), foreign_keys=[compte_comptable_id])
+    # --- FIN AJOUT ---
+
     projets = db.relationship('Projet', back_populates='client', lazy=True) # change backref to back_populates
 
     def __repr__(self):
-        return f'<Client {self.nom}>'
+        orga_info = f" (Orga ID: {self.organisation_id})" if self.organisation_id else ""
+        return f'<Client {self.id} - {self.nom}{orga_info}>'

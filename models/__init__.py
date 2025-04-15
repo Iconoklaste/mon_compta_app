@@ -9,4 +9,6 @@ from .phases import Phase
 from .jalons import Jalon
 from .whiteboard import Whiteboard
 from .compte_comptable import CompteComptable
+from .compte_comptable import CompteComptable, ClasseCompte
+from .ecritures_comptable import EcritureComptable, LigneEcriture
     

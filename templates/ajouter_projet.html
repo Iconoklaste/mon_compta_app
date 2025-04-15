@@ -72,43 +72,22 @@
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="addClientModalLabel">Ajouter un nouveau client</h5>
-                    {# Bouton de fermeture BS5 #}
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     {# Formulaire DANS la modale, avec des ID uniques #}
                     <form id="addClientForm">
+                        {# --- AJOUT DU CHAMP CSRF ICI --- #}
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        {# --- FIN DE L'AJOUT --- #}
+    
                         {# Remplacement de form-group par mb-3 et ajout de form-label #}
                         <div class="mb-3">
                             <label for="nomModal" class="form-label">Nom du client</label>
                             <input type="text" class="form-control" id="nomModal" name="nom" required>
                             <div class="invalid-feedback" id="nomModalError"></div>
                         </div>
-                        {# Remplacement de form-group par mb-3 et ajout de form-label #}
-                        <div class="mb-3">
-                            <label for="adresseModal" class="form-label">Adresse</label>
-                            <input type="text" class="form-control" id="adresseModal" name="adresse">
-                            <div class="invalid-feedback" id="adresseModalError"></div>
-                        </div>
-                        {# Remplacement de form-group par mb-3 et ajout de form-label #}
-                        <div class="mb-3">
-                            <label for="code_postalModal" class="form-label">Code postal</label>
-                            <input type="text" class="form-control" id="code_postalModal" name="code_postal" pattern="[0-9]{5}" title="Le code postal doit contenir 5 chiffres">
-                            <div class="invalid-feedback" id="code_postalModalError"></div>
-                        </div>
-                        {# Remplacement de form-group par mb-3 et ajout de form-label #}
-                        <div class="mb-3">
-                            <label for="villeModal" class="form-label">Ville</label>
-                            <input type="text" class="form-control" id="villeModal" name="ville">
-                            <div class="invalid-feedback" id="villeModalError"></div>
-                        </div>
-                        {# Remplacement de form-group par mb-3 et ajout de form-label #}
-                        <div class="mb-3">
-                            <label for="telephoneModal" class="form-label">Téléphone</label>
-                            <input type="tel" class="form-control" id="telephoneModal" name="telephone" placeholder="Ex: 0123456789"> {# type="tel" et placeholder suggérés #}
-                            <div class="invalid-feedback" id="telephoneModalError"></div>
-                        </div>
-                        {# Remplacement de form-group par mb-3 et ajout de form-label #}
+                        {# ... autres champs du formulaire ... #}
                         <div class="mb-3">
                             <label for="mailModal" class="form-label">Email</label>
                             <input type="email" class="form-control" id="mailModal" name="mail" placeholder="nom@example.com"> {# placeholder suggéré #}
@@ -117,7 +96,6 @@
                     </form>
                 </div>
                 <div class="modal-footer">
-                    {# Bouton Fermer avec attribut BS5 #}
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
                     <button type="button" class="btn btn-primary" id="saveClient">Enregistrer</button>
                 </div>
@@ -180,21 +158,32 @@
 
                     const data = {};
                     formData.forEach((value, key) => {
-                        data[key] = value.trim(); // Nettoyer les données envoyées
-                    });
+                    // Exclure le token CSRF du JSON envoyé (il sera dans l'en-tête)
+                    if (key !== 'csrf_token') {
+                        data[key] = value.trim();
+                    }
+                });
 
-                    // Récupérer le token CSRF (si vous utilisez Flask-WTF ou similaire)
-                    const csrfTokenInput = addClientForm.querySelector('input[name="csrf_token"]'); // Ajuster si le nom est différent
-                    const csrfToken = csrfTokenInput ? csrfTokenInput.value : '{{ csrf_token() }}'; // Fallback si non trouvé dans le form
+                // Récupérer le token CSRF depuis le champ caché ajouté
+                const csrfTokenInput = addClientForm.querySelector('input[name="csrf_token"]');
+                const csrfToken = csrfTokenInput ? csrfTokenInput.value : null; // Récupérer la valeur
 
-                    fetch('{{ url_for("clients.ajouter_client") }}', { // Utiliser url_for pour la route
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                            'X-CSRFToken': csrfToken // Utiliser le token récupéré
-                        },
-                        body: JSON.stringify(data),
-                    })
+                if (!csrfToken) {
+                    console.error("Token CSRF non trouvé dans le formulaire de la modale !");
+                    alert("Erreur de sécurité. Impossible d'ajouter le client.");
+                    saveClientButton.disabled = false;
+                    saveClientButton.textContent = 'Enregistrer';
+                    return; // Arrêter si pas de token
+                }
+
+                fetch('{{ url_for("clients.ajouter_client_ajax") }}', { // <-- Changer l'URL ici
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken // Envoyer le token dans l'en-tête
+                    },
+                    body: JSON.stringify(data),
+                })
                     .then(response => {
                         if (!response.ok) {
                             // Gérer les erreurs HTTP (ex: 400, 500)
