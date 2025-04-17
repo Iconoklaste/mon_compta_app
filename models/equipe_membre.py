@@ -1,7 +1,7 @@
 # c:\wamp\www\mon_compta_app\models\equipe_membre.py
 
 from controllers.db_manager import db
-from sqlalchemy.orm import relationship
+
 
 class EquipeMembre(db.Model):
     __tablename__ = 'equipe_membre'
@@ -14,12 +14,12 @@ class EquipeMembre(db.Model):
     # Clé étrangère vers le projet
     projet_id = db.Column(db.Integer, db.ForeignKey('projet.id', ondelete='CASCADE'), nullable=False)
     # Relation vers le projet (Many-to-One)
-    projet = relationship('Projet', back_populates='membres')
+    projet = db.relationship('Projet', back_populates='membres')
 
     # Clé étrangère vers l'utilisateur (optionnelle)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id', ondelete='SET NULL'), nullable=True)
+    user_id = db.Column(db.Integer, db.ForeignKey('app_user.id', ondelete='SET NULL'), nullable=True)
     # Relation vers l'utilisateur (Many-to-One)
-    user = relationship('User', back_populates='participations_projet')
+    user = db.relationship('User', back_populates='participations_projet')
 
     def __repr__(self):
         user_info = f" (User ID: {self.user_id})" if self.user_id else " (Externe)"

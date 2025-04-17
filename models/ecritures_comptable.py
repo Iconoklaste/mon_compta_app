@@ -1,8 +1,10 @@
 # models/ecritures_comptable.py
 from datetime import date
 from sqlalchemy import ForeignKey, CheckConstraint
-from sqlalchemy.orm import relationship
+
 from controllers.db_manager import db # Assure-toi que ce chemin d'import est correct
+from sqlalchemy import Numeric
+import decimal
 
 class EcritureComptable(db.Model):
     """ Représente une écriture comptable globale (pièce comptable).
@@ -21,16 +23,16 @@ class EcritureComptable(db.Model):
 
     # Relations
     # Une écriture a plusieurs lignes
-    lignes = relationship(
+    lignes = db.relationship(
         "LigneEcriture",
         back_populates="ecriture", # Lien bidirectionnel avec LigneEcriture
         cascade="all, delete-orphan", # Supprimer les lignes si l'écriture est supprimée
         
     )
     # Lien vers l'organisation (many-to-one)
-    organisation = relationship("Organisation", backref=db.backref("ecritures_comptables"))
+    organisation = db.relationship("Organisation", back_populates="ecritures_comptables") # Changé pour back_populates
     # Lien vers l'exercice comptable (many-to-one)
-    exercice = relationship("ExerciceComptable", backref=db.backref("ecritures_comptables"))
+    exercice = db.relationship("ExerciceComptable", back_populates="ecritures_comptables") # Sera modifié plus tard
 
     def __repr__(self):
         return f'<EcritureComptable ID:{self.id} - {self.libelle} ({self.date_ecriture})>'
@@ -40,18 +42,20 @@ class EcritureComptable(db.Model):
         """ Calcule le total des débits pour cette écriture. """
         # Note: nécessite de charger les lignes. Peut être coûteux si appelé souvent.
         # Pourrait être optimisé avec une requête directe si besoin.
-        return sum(ligne.montant_debit or 0 for ligne in self.lignes)
+        return sum(ligne.montant_debit or decimal.Decimal(0) for ligne in self.lignes)
+
 
     @property
     def total_credit(self):
         """ Calcule le total des crédits pour cette écriture. """
-        return sum(ligne.montant_credit or 0 for ligne in self.lignes)
+        return sum(ligne.montant_credit or decimal.Decimal(0) for ligne in self.lignes)
+
 
     @property
     def est_equilibree(self):
         """ Vérifie si l'écriture est équilibrée (total débit == total crédit). """
         # Attention à la précision des flottants
-        return abs(self.total_debit - self.total_credit) < 0.001 # Tolérance pour les erreurs de flottants
+        return self.total_debit == self.total_credit
 
 
 class LigneEcriture(db.Model):
@@ -61,8 +65,8 @@ class LigneEcriture(db.Model):
     __tablename__ = 'ligne_ecriture' # Nom explicite pour la table
 
     id = db.Column(db.Integer, primary_key=True)
-    montant_debit = db.Column(db.Float, nullable=True, default=0.0)
-    montant_credit = db.Column(db.Float, nullable=True, default=0.0)
+    montant_debit = db.Column(db.Numeric(precision=10, scale=2), nullable=True, default=decimal.Decimal(0)) # Changer Float en Numeric
+    montant_credit = db.Column(db.Numeric(precision=10, scale=2), nullable=True, default=decimal.Decimal(0))
     libelle = db.Column(db.String(255), nullable=True) # Libellé spécifique à la ligne (optionnel)
 
     # Clés étrangères
@@ -71,10 +75,10 @@ class LigneEcriture(db.Model):
 
     # Relations
     # Une ligne appartient à une seule écriture (many-to-one)
-    ecriture = relationship("EcritureComptable", back_populates="lignes")
+    ecriture = db.relationship("EcritureComptable", back_populates="lignes")
     # Une ligne concerne un seul compte comptable (many-to-one)
     # Ajout d'un backref pour pouvoir accéder aux lignes depuis un compte
-    compte = relationship("CompteComptable", backref=db.backref("lignes_ecriture", lazy="dynamic"))
+    compte = db.relationship("CompteComptable", back_populates="lignes_ecriture")
 
     # Contrainte pour s'assurer qu'on a soit un débit, soit un crédit, mais pas les deux > 0
     # Et que les montants sont positifs ou nuls.

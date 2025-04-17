@@ -123,23 +123,23 @@
                  <div class="card text-white bg-warning mb-3">
                     <div class="card-header">Total Dû</div>
                     <div class="card-body">
-                        <h5 class="card-title fs-3">{{ "%.2f €"|format(total_du) }}</h5>
+                        <h5 class="card-title fs-3">{{ "%.2f €"|format(total_facture) }}</h5>
                     </div>
                 </div>
             </div>
              <div class="col-md-4">
-                 <div class="card {% if solde >= 0 %}bg-light{% else %}text-white bg-danger{% endif %} mb-3">
+                 <div class="card {% if solde_du_client >= 0 %}bg-light{% else %}text-white bg-danger{% endif %} mb-3">
                     <div class="card-header">Solde Net</div>
                     <div class="card-body">
-                        <h5 class="card-title fs-3 fw-bold">{{ "%.2f €"|format(solde) }}</h5>
+                        <h5 class="card-title fs-3 fw-bold">{{ "%.2f €"|format(solde_du_client) }}</h5>
                     </div>
                 </div>
             </div>
         </div>
         {# Version texte simple (alternative)
         <p>Total payé : {{ "%.2f €"|format(total_paye) }}</p>
-        <p>Total dû : {{ "%.2f €"|format(total_du) }}</p>
-        <p><strong>Solde net : {{ "%.2f €"|format(solde) }}</strong></p>
+        <p>Total dû : {{ "%.2f €"|format(total_facture) }}</p>
+        <p><strong>Solde net : {{ "%.2f €"|format(solde_du_client) }}</strong></p>
          #}
     </div>
 </div>

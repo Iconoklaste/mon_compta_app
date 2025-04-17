@@ -10,9 +10,11 @@ class ExerciceComptable(db.Model):
     
     # Nouvelle référence : chaque exercice est associé à une organisation
     organisation_id = db.Column(db.Integer, db.ForeignKey('organisation.id'), nullable=False)
+    organisation = db.relationship('Organisation', back_populates='exercices')
     
     # Relation pour accéder aux transactions de cet exercice
-    transactions = db.relationship('Transaction', backref='exercice', lazy=True)
+    transactions = db.relationship('Transaction', back_populates='exercice', lazy=True)
+    ecritures_comptables = db.relationship('EcritureComptable', back_populates='exercice', lazy='dynamic') # Ajout de lazy='dynamic' pour potentiellement gérer de nombreuses écritures
 
     def __repr__(self):
         return f'<ExerciceComptable {self.date_debut} - {self.date_fin}>'

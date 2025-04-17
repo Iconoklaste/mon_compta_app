@@ -1,10 +1,10 @@
 # models/compte_comptable.py
 import enum
 from controllers.db_manager import db
-from sqlalchemy import UniqueConstraint, Enum as DBEnum
-
+from sqlalchemy import UniqueConstraint, Enum as DBEnum, Numeric 
+import decimal
 from sqlalchemy import func # Pour utiliser les fonctions d'agrégation SQL comme SUM
-from sqlalchemy.orm import relationship, column_property # column_property n'est pas utilisé ici, mais func oui
+from sqlalchemy.orm import column_property # column_property n'est pas utilisé ici, mais func oui
 from .ecritures_comptable import LigneEcriture, EcritureComptable # Importer les modèles liés
 from .exercices import ExerciceComptable # Importer ExerciceComptable
 from datetime import date # Pour la date du jour si besoin
@@ -81,11 +81,14 @@ class CompteComptable(db.Model):
                               native_enum=False), # Important pour stocker la chaîne 'C1'
                       nullable=False)
     description = db.Column(db.Text, nullable=True)
-    solde_initial = db.Column(db.Float, nullable=False, default=0.0)
+    solde_initial = db.Column(db.Numeric(precision=10, scale=2), nullable=False, default=decimal.Decimal('0.00'))
     actif = db.Column(db.Boolean, nullable=False, default=True)
     organisation_id = db.Column(db.Integer, db.ForeignKey('organisation.id'), nullable=False)
-    organisation = relationship('Organisation', backref=db.backref('plan_comptable', lazy='dynamic'))
-    transactions = relationship('Transaction', back_populates='compte', lazy='dynamic')
+    organisation = db.relationship('Organisation', back_populates='plan_comptable')
+    transactions = db.relationship('Transaction', back_populates='compte', lazy='dynamic')
+    client_associe = db.relationship("Client", back_populates="compte_comptable", foreign_keys="Client.compte_comptable_id", uselist=False)
+    lignes_ecriture = db.relationship("LigneEcriture", back_populates="compte", lazy="dynamic")
+
 
     __table_args__ = (UniqueConstraint('numero', 'organisation_id', name='uq_compte_numero_organisation'),)
 
@@ -120,12 +123,14 @@ class CompteComptable(db.Model):
                     ExerciceComptable.organisation_id == self.organisation_id,
                     ExerciceComptable.statut == "Ouvert"
                 ).order_by(ExerciceComptable.date_fin.desc()).first()
+                 
+        solde_initial_decimal = self.solde_initial if self.solde_initial is not None else decimal.Decimal('0.00')
 
         if not exercice:
             # Si aucun exercice n'est trouvé, on ne peut pas calculer le solde actuel pertinent
             # On pourrait retourner le solde initial ou 0.0, ou lever une erreur.
             # Retournons le solde initial pour l'instant.
-            return self.solde_initial or 0.0
+            return solde_initial_decimal
 
         # 2. Calculer la somme des débits et crédits pour ce compte DANS cet exercice
         # On joint LigneEcriture avec EcritureComptable pour filtrer par date_ecriture
@@ -141,21 +146,23 @@ class CompteComptable(db.Model):
             # EcritureComptable.date_ecriture <= exercice.date_fin
         ).one() # one() car on s'attend à une seule ligne de résultat (les totaux)
 
-        total_debit_exercice = resultats.total_debit or 0.0
-        total_credit_exercice = resultats.total_credit or 0.0
+        total_debit_exercice = resultats.total_debit or decimal.Decimal('0.00')
+        total_credit_exercice = resultats.total_credit or decimal.Decimal('0.00')
+
 
         # 3. Calculer le solde final
         # Note: La nature du solde (débiteur/créditeur) dépend de la classe du compte,
         # mais ici on calcule le solde net.
-        solde_actuel = (self.solde_initial or 0.0) + total_debit_exercice - total_credit_exercice
+        solde_actuel = solde_initial_decimal + total_debit_exercice - total_credit_exercice
 
         return solde_actuel
 
     # Optionnel: Créer une propriété qui appelle la méthode sans argument
     # pour une utilisation plus simple dans les templates (utilise l'exercice par défaut)
     @property
-    def solde_actuel_exercice_courant(self):
-         return self.calculer_solde_actuel() # Appelle la méthode avec exercice=None
+    def solde_actuel_exercice_courant(self) -> decimal.Decimal: # Type de retour Decimal
+         """ Propriété pour obtenir le solde de l'exercice courant (utilise la logique par défaut). """
+         return self.calculer_solde_actuel()
 
 
     def __repr__(self):

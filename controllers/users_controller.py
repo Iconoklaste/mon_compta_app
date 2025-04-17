@@ -4,6 +4,9 @@ from controllers.db_manager import db
 from models import User, Organisation
 from werkzeug.security import generate_password_hash, check_password_hash
 from forms.forms import LoginForm, ModifierProfilForm, AjouterUserForm, AjouterUserFormDemo
+import logging
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger(__name__)
 
 users_bp = Blueprint('users', __name__)
 
@@ -20,13 +23,35 @@ def login_required(f):
 def index():
     form = LoginForm()
     if form.validate_on_submit():
-        user = User.query.filter_by(mail=form.email.data).first()
-        if user and user.check_password(form.password.data):
-            session['user_id'] = user.id
-            flash('Connexion réussie!', 'success')
-            return redirect(url_for('projets.projets'))
+        email_fourni = form.email.data
+        password_fourni = form.password.data
+        logger.debug(f"Tentative de connexion pour l'email : {email_fourni}") # Log l'email
+
+        user = User.query.filter_by(mail=email_fourni).first()
+
+        if user:
+            logger.debug(f"Utilisateur trouvé : {user.mail} (ID: {user.id})") # Log si l'utilisateur est trouvé
+            # --- AJOUT DU PRINT/LOG CRUCIAL ---
+            password_check_result = user.check_password(password_fourni)
+            logger.debug(f"Résultat de user.check_password() : {password_check_result}")
+            # ---------------------------------
+
+            if password_check_result:
+                session['user_id'] = user.id
+                logger.info(f"Connexion réussie pour l'utilisateur ID: {user.id}") # Log succès
+                flash('Connexion réussie!', 'success')
+                return redirect(url_for('projets.projets'))
+            else:
+                logger.warning(f"Mot de passe incorrect pour l'utilisateur : {email_fourni}") # Log échec mdp
+                flash('Email ou mot de passe incorrect.', 'danger')
         else:
+            logger.warning(f"Aucun utilisateur trouvé pour l'email : {email_fourni}") # Log utilisateur non trouvé
             flash('Email ou mot de passe incorrect.', 'danger')
+    elif request.method == 'POST':
+         # Si la validation échoue sur un POST, log les erreurs
+         logger.warning(f"Échec de validation du formulaire de connexion : {form.errors}")
+         flash('Erreur de validation du formulaire.', 'warning')
+
     return render_template('index.html', forms=form)
 
 @users_bp.route('/modifier_profil', methods=['GET', 'POST'])

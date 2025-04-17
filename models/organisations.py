@@ -2,7 +2,7 @@
 
 from controllers.db_manager import db
 from werkzeug.security import generate_password_hash, check_password_hash
-from sqlalchemy.orm import validates
+from sqlalchemy.orm import validates 
 from flask import current_app
 
 class Organisation(db.Model):
@@ -24,9 +24,14 @@ class Organisation(db.Model):
     tva_intracommunautaire = db.Column(db.String(20), unique=True)  # Optional VAT number
     forme_juridique = db.Column(db.String(50))  # Optional legal form
 
-    users = db.relationship('User', backref='organisation', lazy=True)
-    projets = db.relationship('Projet', backref='organisation', lazy=True)
-    transactions = db.relationship('Transaction', backref='organisation', lazy=True)
+    users = db.relationship('User', back_populates='organisation', lazy=True) # Changé pour back_populates
+    projets = db.relationship('Projet', back_populates='organisation', lazy=True) # Sera modifié ensuite
+    transactions = db.relationship('Transaction', back_populates='organisation', lazy=True) # Changé pour back_populates
+    clients = db.relationship("Client", back_populates="organisation", lazy="dynamic")
+    plan_comptable = db.relationship("CompteComptable", back_populates="organisation", lazy="dynamic")
+    ecritures_comptables = db.relationship("EcritureComptable", back_populates="organisation")
+    exercices = db.relationship("ExerciceComptable", back_populates="organisation", lazy="dynamic", order_by="ExerciceComptable.date_debut") # lazy='dynamic' et order_by sont de bonnes options ici
+
 
     def __repr__(self):
         return f'<Organisation {self.designation}>'

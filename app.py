@@ -30,7 +30,7 @@ from werkzeug.utils import secure_filename
 from utils.plan_comptable_initial_setup import generate_default_plan_comptable
 
 app = Flask(__name__)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(os.path.expanduser("~"), 'compta.db')
+app.config['SQLALCHEMY_DATABASE_URI'] = 'mysql://tjacquemot:mouss002@localhost/mon_compta_app?charset=utf8mb4'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['SECRET_KEY'] = 'your_secret_key' # Add a secret key
 app.config['MAX_LOGO_SIZE'] = 2 * 1024 * 1024 # 2MB max size for logo

@@ -1,7 +1,6 @@
 # c:\wamp\www\mon_compta_app\models\clients.py
 from controllers.db_manager import db
 from sqlalchemy import ForeignKey
-from sqlalchemy.orm import relationship
 # Assure-toi que CompteComptable est importable depuis ici
 from .compte_comptable import CompteComptable
 from .organisations import Organisation
@@ -21,16 +20,11 @@ class Client(db.Model):
     organisation_id = db.Column(db.Integer, db.ForeignKey('organisation.id'), nullable=False)
     # Relation vers l'objet Organisation
     # Le backref permet d'accéder aux clients depuis une organisation (orga.clients)
-    organisation = relationship("Organisation", backref=db.backref("clients", lazy="dynamic"))
+    organisation = db.relationship("Organisation", back_populates="clients") # Changé pour back_populates
     # --- FIN AJOUT ---
 
-    # --- AJOUT : Lien vers le Compte Comptable Client ---
-    # Clé étrangère vers le compte comptable associé (peut être nullable si créé plus tard)
     compte_comptable_id = db.Column(db.Integer, db.ForeignKey('compte_comptable.id'), nullable=True, unique=True)
-    # Relation vers l'objet CompteComptable
-    # Le backref permet d'accéder au client depuis le compte comptable (compte.client_associe)
-    compte_comptable = relationship("CompteComptable", backref=db.backref("client_associe", uselist=False), foreign_keys=[compte_comptable_id])
-    # --- FIN AJOUT ---
+    compte_comptable = db.relationship("CompteComptable", back_populates="client_associe", foreign_keys=[compte_comptable_id], uselist=False) # Changé pour back_populates, ajouté uselist=False explicitement
 
     projets = db.relationship('Projet', back_populates='client', lazy=True) # change backref to back_populates
 
