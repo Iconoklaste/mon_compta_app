@@ -1,0 +1,124 @@
+{% extends 'base.html' %}
+
+{% block page_title %}
+<div id="navbar-title" class="navbar-title-container">
+    <h1>Flux de Trésorerie - {{ flux_tresorerie.organisation_nom }}</h1>
+</div>
+{% endblock %}
+
+
+{% block content %}
+
+    <div class="mb-3"> {# Ajoute une marge en bas #}
+        <a href="{{ url_for('compta.index') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-arrow-left me-1"></i> Retour au Tableau de Bord Compta
+        </a>
+    </div>
+    <p><strong>Période du :</strong> {{ flux_tresorerie.date_debut }} <strong>au</strong> {{ flux_tresorerie.date_fin }}</p>
+
+    {% if not flux_tresorerie.is_verified %}
+    <div class="alert alert-warning" role="alert">
+      <strong>Attention !</strong> Incohérence détectée. La variation nette calculée par les flux ne correspond pas à la variation des soldes de trésorerie.
+      Différence : {{ "%.2f"|format(flux_tresorerie.verification_difference) }} €. Vérifiez les écritures ou la classification des flux.
+    </div>
+    {% endif %}
+
+    <div class="card mb-4">
+        <div class="card-body">
+            <h5 class="card-title">Récapitulatif de la Trésorerie</h5>
+            <div class="row">
+                <div class="col-md-4">
+                    <strong>Trésorerie au {{ flux_tresorerie.date_debut }}:</strong>
+                    <span class="fw-bold">{{ "%.2f"|format(flux_tresorerie.initial_cash) }} €</span>
+                </div>
+                <div class="col-md-4 text-center">
+                    <strong>Variation Nette sur la période:</strong>
+                    <span class="fw-bold {% if flux_tresorerie.totals.net_variation >= 0 %}text-success{% else %}text-danger{% endif %}">
+                        {{ "%.2f"|format(flux_tresorerie.totals.net_variation) }} €
+                    </span>
+                </div>
+                <div class="col-md-4 text-end">
+                    <strong>Trésorerie au {{ flux_tresorerie.date_fin }} (calculée):</strong>
+                    <span class="fw-bold">{{ "%.2f"|format(flux_tresorerie.final_cash_calculated) }} €</span>
+                    <br>
+                    <small class="text-muted">(Solde direct des comptes: {{ "%.2f"|format(flux_tresorerie.final_cash_direct_balance) }} €)</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {# Fonction macro pour afficher une section de flux #}
+    {% macro display_flow_section(title, category_key, flows, total) %}
+        <div class="card mb-3">
+            <div class="card-header {% if total >= 0 %}bg-success-subtle{% else %}bg-danger-subtle{% endif %}">
+                <h5 class="mb-0">{{ title }}</h5>
+            </div>
+            <div class="card-body p-0"> {# p-0 pour coller le tableau aux bords #}
+                <table class="table table-sm table-hover mb-0"> {# mb-0 pour enlever marge basse #}
+                    <thead>
+                        <tr>
+                            <th style="width: 15%;">Date</th>
+                            <th style="width: 60%;">Description</th>
+                            <th class="text-end" style="width: 25%;">Montant (€)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% set section_flows = flows.get(category_key, []) %}
+                        {% for flow in section_flows %}
+                        <tr>
+                            <td>{{ flow.date }}</td>
+                            <td>
+                                {{ flow.description_flux }}
+                                {% if flow.libelle_ecriture and flow.libelle_ecriture != flow.description_flux %}
+                                    <br><small class="text-muted"><em>({{ flow.libelle_ecriture }})</em></small>
+                                {% endif %}
+                            </td>
+                            <td class="text-end {% if flow.amount >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                {{ "%.2f"|format(flow.amount) }}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="3" class="text-center fst-italic">Aucun {{ title.lower() }} sur la période.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot>
+                        <tr class="table-light fw-bold">
+                            <td colspan="2" class="text-end">Total {{ title }} :</td>
+                            <td class="text-end {% if total >= 0 %}text-success{% else %}text-danger{% endif %}">
+                                {{ "%.2f"|format(total) }}
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+    {% endmacro %}
+
+    {# Affichage des sections #}
+    {{ display_flow_section("Flux liés à l'Exploitation", 'OPERATING', flux_tresorerie.flows, flux_tresorerie.totals.operating) }}
+    {{ display_flow_section("Flux liés à l'Investissement", 'INVESTING', flux_tresorerie.flows, flux_tresorerie.totals.investing) }}
+    {{ display_flow_section("Flux liés au Financement", 'FINANCING', flux_tresorerie.flows, flux_tresorerie.totals.financing) }}
+
+    {# Afficher les flux non classifiés s'il y en a #}
+    {% if flux_tresorerie.flows.get('UNKNOWN') %}
+        <div class="alert alert-secondary mt-3" role="alert">
+            <h5 class="alert-heading">Flux Non Classifiés</h5>
+             {{ display_flow_section("Flux Non Classifiés", 'UNKNOWN', flux_tresorerie.flows, flux_tresorerie.totals.unknown) }}
+             <small>Ces flux n'ont pas pu être automatiquement catégorisés. Vérifiez les écritures correspondantes.</small>
+        </div>
+    {% endif %}
+
+     {# Afficher les virements internes s'il y en a (pour info) #}
+    {% if flux_tresorerie.flows.get('TRANSFER') %}
+        <div class="alert alert-info mt-3" role="alert">
+            <h5 class="alert-heading">Virements Internes (informatif)</h5>
+             {{ display_flow_section("Virements Internes", 'TRANSFER', flux_tresorerie.flows, 0) }} {# Total non pertinent ici #}
+             <small>Ces mouvements entre comptes de trésorerie n'affectent pas la trésorerie globale.</small>
+        </div>
+    {% endif %}
+
+
+
+{% endblock %}

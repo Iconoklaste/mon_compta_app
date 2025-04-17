@@ -1,0 +1,118 @@
+{% extends 'base.html' %}
+
+{% block page_title %}
+<div id="navbar-title" class="navbar-title-container">
+    <h1>Compte de resultat - {{ compte_resultat.organisation_nom }}</h1>
+</div>
+{% endblock %}
+
+{% block content %}
+
+    <div class="mb-3"> {# Ajoute une marge en bas #}
+        <a href="{{ url_for('compta.index') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-arrow-left me-1"></i> Retour au Tableau de Bord Compta
+        </a>
+    </div>
+    <p><strong>Période du :</strong> {{ compte_resultat.date_debut }} <strong>au</strong> {{ compte_resultat.date_fin }}</p>
+
+    <div class="row">
+        <!-- Colonne Produits -->
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Produits (Classe 7)</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <th>Numéro</th>
+                                <th>Compte</th>
+                                <th class="text-end">Solde Période (€)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for compte in compte_resultat.produits.details %}
+                            <tr>
+                                <td>{{ compte.numero }}</td>
+                                <td>{{ compte.nom }}</td>
+                                <!-- Solde période (Crédits - Débits), normalement positif -->
+                                <td class="text-end">{{ "%.2f"|format(compte.solde_periode) }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="3" class="text-center">Aucun produit enregistré sur la période.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-light fw-bold">
+                                <td colspan="2">Total Produits</td>
+                                <td class="text-end">{{ "%.2f"|format(compte_resultat.produits.total) }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Colonne Charges -->
+        <div class="col-md-6">
+            <div class="card mb-4">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">Charges (Classe 6)</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <th>Numéro</th>
+                                <th>Compte</th>
+                                <th class="text-end">Solde Période (€)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for compte in compte_resultat.charges.details %}
+                            <tr>
+                                <td>{{ compte.numero }}</td>
+                                <td>{{ compte.nom }}</td>
+                                <!-- Solde période (Débits - Crédits), normalement positif -->
+                                <td class="text-end">{{ "%.2f"|format(compte.solde_periode) }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="3" class="text-center">Aucune charge enregistrée sur la période.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-light fw-bold">
+                                <td colspan="2">Total Charges</td>
+                                <td class="text-end">{{ "%.2f"|format(compte_resultat.charges.total) }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div> <!-- Fin .row -->
+
+    <!-- Résultat Net -->
+    <div class="row justify-content-center mt-3">
+        <div class="col-md-6">
+            <div class="card text-center {% if compte_resultat.resultat_net >= 0 %}border-success{% else %}border-danger{% endif %}">
+                <div class="card-header {% if compte_resultat.resultat_net >= 0 %}bg-success text-white{% else %}bg-danger text-white{% endif %}">
+                    <h5 class="mb-0">Résultat Net de la période</h5>
+                </div>
+                <div class="card-body">
+                    <h3 class="card-title {% if compte_resultat.resultat_net >= 0 %}text-success{% else %}text-danger{% endif %}">
+                        {{ "%.2f"|format(compte_resultat.resultat_net) }} €
+                    </h3>
+                    <p class="card-text">({{ compte_resultat.type_resultat }})</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+{% endblock %}

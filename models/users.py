@@ -2,9 +2,10 @@
 
 from controllers.db_manager import db
 from werkzeug.security import generate_password_hash, check_password_hash
-# from sqlalchemy import Index # Plus besoin d'importer Index ici
+from sqlalchemy.orm import relationship
 
 class User(db.Model):
+    __tablename__ = 'user'
     id = db.Column(db.Integer, primary_key=True)
     nom = db.Column(db.String(50), nullable=False)
     prenom = db.Column(db.String(50), nullable=False)
@@ -18,7 +19,11 @@ class User(db.Model):
     projets = db.relationship('Projet', backref='user', lazy=True)
     transactions = db.relationship('Transaction', backref='user', lazy=True)
 
-
+    participations_projet = relationship(
+        'EquipeMembre',
+        back_populates='user',
+        lazy='dynamic' # Permet de filtrer/compter sans tout charger
+    )
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -28,6 +33,10 @@ class User(db.Model):
         if self.password_hash:
             return check_password_hash(self.password_hash, password)
         return False
+
+    @property
+    def nom_complet(self):
+        return f"{self.prenom} {self.nom}"
 
     def __repr__(self):
         role_info = f" ({self.role})"

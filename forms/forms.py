@@ -19,6 +19,16 @@ from models.compte_comptable import ClasseCompte
 
 from datetime import date
 
+def coerce_int_or_none(x):
+    """Tente de convertir en int, retourne None en cas d'échec ou si vide."""
+    if x == '' or x is None:
+        return None
+    try:
+        return int(x)
+    except (ValueError, TypeError):
+        return None
+
+
 class DateInput(widgets.TextInput):
     input_type = 'date'
     validation_attrs = ['required', 'min', 'max', 'step'] # Add this line
@@ -76,17 +86,54 @@ class ProjetForm(FlaskForm):
 
 class JalonForm(FlaskForm):
     id = HiddenField()
-    nom = StringField('Nom', validators=[DataRequired()])
+    nom = StringField('Nom', validators=[DataRequired()], render_kw={'placeholder': 'Entrez le nom du jalon'})
     date = DateField('Date', validators=[DataRequired()], widget=DateInput())
     atteint = BooleanField('Atteint')
+    class Meta:
+        csrf = False
 
 class PhaseForm(FlaskForm):
     nom = StringField('Nom', validators=[DataRequired()])
-    date_debut = DateField('Date de début', default=date.today)
-    date_fin = DateField('Date de fin', default=date.today)
+    date_debut = DateField('Date de début', validators=[DataRequired()], default=date.today)
+    date_fin = DateField('Date de fin', validators=[DataRequired()], default=date.today)
     statut = SelectField('Statut', choices=[('En cours', 'En cours'), ('Terminée', 'Terminée'), ('En attente', 'En attente')])
     jalons = FieldList(FormField(JalonForm), min_entries=1)  # Add this line
     submit = SubmitField('Enregistrer')
+
+    # --- Validation 1: Date de fin >= Date de début ---
+    def validate_date_fin(self, field):
+        # Vérifie si les deux dates sont présentes avant de comparer
+        if self.date_debut.data and field.data:
+            if field.data < self.date_debut.data:
+                # Lève une erreur de validation qui sera attachée au champ date_fin
+                raise ValidationError('La date de fin ne peut pas être antérieure à la date de début.')
+
+    # --- Validation 2: Date des jalons dans l'intervalle de la phase ---
+    def validate_jalons(self, field):
+        # 'field' ici est le FieldList 'jalons'
+        has_error = False # Pour éviter de lever plusieurs fois la même erreur générale si besoin
+
+        # Vérifie si les dates de la phase sont valides avant de vérifier les jalons
+        # On vérifie aussi si la validation précédente (validate_date_fin) n'a pas déjà échoué
+        if self.date_debut.data and self.date_fin.data and not self.date_fin.errors:
+            phase_start = self.date_debut.data
+            phase_end = self.date_fin.data
+
+            # Itère sur chaque sous-formulaire (JalonForm) dans le FieldList
+            for index, jalon_entry in enumerate(field.entries):
+                jalon_date = jalon_entry.form.date.data
+
+                # Vérifie si le jalon a une date définie
+                if jalon_date:
+                    if not (phase_start <= jalon_date <= phase_end):
+                        # Ajoute une erreur spécifique au champ 'date' de ce jalon particulier
+                        jalon_entry.form.date.errors.append(
+                            f"La date doit être comprise entre le {phase_start.strftime('%d/%m/%Y')} et le {phase_end.strftime('%d/%m/%Y')}."
+                        )
+                        has_error = True # Marque qu'au moins une erreur a été trouvée
+        # Optionnel: Si vous voulez une erreur générale sur la liste des jalons en plus des erreurs spécifiques
+        if has_error:
+           raise ValidationError("Une ou plusieurs dates de jalon sont en dehors des dates de la phase.")
 
 class OrganisationForm(FlaskForm):
     designation = StringField('Désignation', validators=[DataRequired()])
@@ -344,3 +391,62 @@ class CompteComptableForm(FlaskForm):
 
     # On ne met pas 'actif' ici, car on le gère avec un bouton séparé.
     # On ne met pas 'organisation_id' ici, car on l'ajoutera dans la route.
+
+    # --- NOUVEAU FORMULAIRE : Ajouter/Modifier un Membre d'Équipe ---
+class EquipeMembreForm(FlaskForm):
+    """Formulaire pour ajouter un membre à l'équipe d'un projet."""
+    # Champ caché pour le token CSRF
+    csrf_token = HiddenField()
+
+    # Sélectionner un utilisateur existant (optionnel)
+    # Les 'choices' seront peuplées dynamiquement dans la route
+    user_id = SelectField(
+        'Utilisateur existant (Optionnel)',
+        coerce=coerce_int_or_none, 
+        validators=[Optional()] # Ce champ n'est pas obligatoire
+    )
+
+    # Nom du membre (obligatoire si aucun utilisateur n'est sélectionné, sinon pré-rempli)
+    nom = StringField(
+        'Nom du membre',
+        validators=[
+            Optional(), # Rendre optionnel ici, la logique de remplissage/validation est dans la route
+            Length(max=100)
+        ]
+    )
+
+    # Email du membre (toujours obligatoire pour la communication)
+    email = StringField(
+        'Email du membre',
+        validators=[
+            DataRequired(message="L'email est obligatoire."),
+            Email(message="Veuillez entrer une adresse email valide."),
+            Length(max=120)
+        ]
+    )
+
+    # Rôle spécifique dans le projet (optionnel)
+    role_projet = StringField(
+        'Rôle dans le projet',
+        validators=[Optional(), Length(max=80)]
+    )
+
+    submit = SubmitField('Ajouter le membre')
+
+    # --- Validation personnalisée (optionnelle mais recommandée) ---
+    def validate(self, extra_validators=None):
+        # Exécuter les validateurs standards d'abord
+        initial_validation = super(EquipeMembreForm, self).validate(extra_validators)
+        if not initial_validation:
+            return False
+
+        # Si aucun utilisateur n'est sélectionné, le nom devient obligatoire
+        if not self.user_id.data and not self.nom.data:
+            self.nom.errors.append('Le nom est obligatoire si vous ne sélectionnez pas un utilisateur existant.')
+            return False
+
+        # Si un utilisateur est sélectionné, mais que le nom et l'email sont aussi fournis,
+        # on pourrait choisir de prioriser l'utilisateur sélectionné (logique déjà dans la route).
+        # Ou ajouter une validation ici si nécessaire.
+
+        return True

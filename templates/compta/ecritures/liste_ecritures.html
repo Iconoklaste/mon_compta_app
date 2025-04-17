@@ -1,10 +1,17 @@
 {% extends 'base.html' %}
 
-{% block title %}Écritures Comptables - {{ super() }}{% endblock %}
+{% block page_title %}
+<div id="navbar-title" class="navbar-title-container">
+    <h1>Journal des Ecritures</h1>
+</div>
+{% endblock %}
 
 {% block content %}
-<div class="container mt-4">
-    <h1 class="mb-4">Journal des Écritures Comptables</h1>
+    <div class="mb-3"> {# Ajoute une marge en bas #}
+        <a href="{{ url_for('compta.index') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-arrow-left me-1"></i> Retour au Tableau de Bord Compta
+        </a>
+    </div>
 
     {% if ecritures %}
     <div class="table-responsive">
@@ -93,5 +100,5 @@
     {# Optionnel: Ajouter un lien vers une page d'ajout manuel d'écriture si besoin #}
     {# <a href="{{ url_for('ecritures.ajouter_ecriture_manuelle') }}" class="btn btn-primary mt-3">Ajouter une écriture manuelle</a> #}
 
-</div>
+
 {% endblock %}

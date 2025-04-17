@@ -34,6 +34,7 @@ def lister_ecritures():
 
         return render_template('compta/ecritures/liste_ecritures.html',
                                ecritures=ecritures,
+                               organisation_id=organisation_id,
                                current_page='Ecritures Comptables')
 
     except Exception as e:

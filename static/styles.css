@@ -561,10 +561,12 @@ a:hover {
     flex-direction: column;
     margin-left: 250px; /* Add a left margin to the main content */
     transition: margin-left 0.3s ease; /* Add a transition for smooth resizing */
+    overflow-x: hidden;
 }
 
 .content {
     flex-grow: 1;
+    min-width: 0;
     padding-top: 6rem;
     padding-left: 1rem;
     padding-right: 1rem;

@@ -1,0 +1,159 @@
+{% extends 'base.html' %}
+
+{% block page_title %}
+<div id="navbar-title" class="navbar-title-container">
+    <h1>Bilan Comptable au {{ bilan.date_fin }} - {{ bilan.organisation_nom }}</h1>
+</div>
+{% endblock %}
+
+{% block content %}
+    <div class="mb-3"> {# Ajoute une marge en bas #}
+        <a href="{{ url_for('compta.index') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-arrow-left me-1"></i> Retour au Tableau de Bord Compta
+        </a>
+    </div>
+
+    {% if not bilan.equilibre %}
+    <div class="alert alert-danger" role="alert">
+      <strong>Attention !</strong> Le bilan est déséquilibré. La différence entre l'Actif et (Passif + Capitaux Propres) est de {{ "%.2f"|format(bilan.desequilibre) }} €.
+    </div>
+    {% endif %}
+
+    <div class="row">
+        <!-- Colonne Actif -->
+        <div class="col-md-6">
+            <div class="card">
+                <div class="card-header bg-success text-white">
+                    <h5 class="mb-0">Actif</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <th>Numéro</th>
+                                <th>Compte</th>
+                                <th class="text-end">Solde (€)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for compte in bilan.actif.details %}
+                            <tr>
+                                <td>{{ compte.numero }}</td>
+                                <td>{{ compte.nom }}</td>
+                                <!-- Afficher le solde. Si négatif (rare pour actif), le montrer -->
+                                <td class="text-end {% if compte.solde < 0 %}text-danger{% endif %}">
+                                    {{ "%.2f"|format(compte.solde) }}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="3" class="text-center">Aucun compte d'actif avec solde.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-light fw-bold">
+                                <td colspan="2">Total Actif</td>
+                                <td class="text-end">{{ "%.2f"|format(bilan.actif.total) }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Colonne Passif et Capitaux Propres -->
+        <div class="col-md-6">
+            <!-- Passif -->
+            <div class="card mb-4">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">Passif</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <th>Numéro</th>
+                                <th>Compte</th>
+                                <th class="text-end">Solde (€)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for compte in bilan.passif.details %}
+                            <tr>
+                                <td>{{ compte.numero }}</td>
+                                <td>{{ compte.nom }}</td>
+                                <!-- Afficher la valeur absolue du solde (car passif = créditeur) -->
+                                <td class="text-end">{{ "%.2f"|format(-compte.solde) }}</td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="3" class="text-center">Aucun compte de passif avec solde.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-light fw-bold">
+                                <td colspan="2">Total Passif</td>
+                                <td class="text-end">{{ "%.2f"|format(bilan.passif.total) }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Capitaux Propres -->
+            <div class="card">
+                <div class="card-header bg-primary text-white">
+                    <h5 class="mb-0">Capitaux Propres</h5>
+                </div>
+                <div class="card-body">
+                    <table class="table table-sm table-hover">
+                        <thead>
+                            <tr>
+                                <th>Numéro</th>
+                                <th>Compte</th>
+                                <th class="text-end">Solde (€)</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for compte in bilan.capitaux_propres.details %}
+                            <tr>
+                                <td>{{ compte.numero }}</td>
+                                <td>{{ compte.nom }}</td>
+                                <!-- Afficher valeur absolue si créditeur (négatif), ou négatif si débiteur (positif) -->
+                                <td class="text-end {% if compte.solde > 0 %}text-danger{% endif %}">
+                                    {{ "%.2f"|format(-compte.solde) }}
+                                </td>
+                            </tr>
+                            {% else %}
+                            <tr>
+                                <td colspan="3" class="text-center">Aucun compte de capitaux propres avec solde.</td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                        <tfoot>
+                            <tr class="table-light fw-bold">
+                                <td colspan="2">Total Capitaux Propres</td>
+                                <td class="text-end">{{ "%.2f"|format(bilan.capitaux_propres.total) }}</td>
+                            </tr>
+                        </tfoot>
+                    </table>
+                </div>
+            </div>
+
+             <!-- Vérification équilibre bas de page -->
+             <div class="mt-3 fw-bold text-center">
+                Total Passif + Capitaux Propres = {{ "%.2f"|format(bilan.passif.total + bilan.capitaux_propres.total) }} €
+                {% if bilan.equilibre %}
+                    <span class="badge bg-success ms-2">Équilibré</span>
+                {% else %}
+                    <span class="badge bg-danger ms-2">Déséquilibré</span>
+                {% endif %}
+            </div>
+
+        </div>
+    </div> <!-- Fin .row -->
+
+
+{% endblock %}

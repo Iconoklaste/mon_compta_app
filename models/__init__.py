@@ -11,4 +11,5 @@ from .whiteboard import Whiteboard
 from .compte_comptable import CompteComptable
 from .compte_comptable import CompteComptable, ClasseCompte
 from .ecritures_comptable import EcritureComptable, LigneEcriture
+from .equipe_membre import EquipeMembre
     

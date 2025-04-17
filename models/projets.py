@@ -1,8 +1,10 @@
 # c:\wamp\www\mon_compta_app\models\projets.py
 from controllers.db_manager import db
 from datetime import datetime
+from sqlalchemy.orm import relationship
 
 class Projet(db.Model):
+    __tablename__ = 'projet'
     id = db.Column(db.Integer, primary_key=True)
     nom = db.Column(db.String(100), nullable=False)
     date_debut = db.Column(db.Date)
@@ -21,6 +23,13 @@ class Projet(db.Model):
     phases = db.relationship('Phase', back_populates='projet', lazy='select', cascade="all, delete-orphan")
     jalons = db.relationship('Jalon', back_populates='projet', lazy='select', cascade="all, delete-orphan")
     whiteboard = db.relationship('Whiteboard', back_populates='projet', uselist=False, lazy='select', cascade="all, delete-orphan")
+
+    membres = relationship(
+        'EquipeMembre',
+        back_populates='projet',
+        lazy='select', 
+        cascade='all, delete-orphan'
+    )
 
     def get_total(self):
         """Calculates the total amount of the project."""
