@@ -9,7 +9,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
     <link rel="stylesheet" href="{{ url_for('static', filename='whiteboard.css') }}">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vanilla-picker@2.12.3/dist/vanilla-picker.csp.min.css">
+    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vanilla-picker@2.12.3/dist/vanilla-picker.csp.min.css"> -->
     <style>
         .content {
             background-color: brown;
@@ -200,25 +200,41 @@
     background-color: #333; /* Active color */
     color: white;
 }
-/* Style for the color preview button */
-.color-preview-container {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%; /* Make it round */
-    border: none;
-    cursor: pointer;
-    padding: 0;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
+
+
 
 .color-preview-icon {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background-color: white; /* Default color */
-}
+        display: inline-block;
+        width: 20px;
+        height: 20px;
+        border-radius: 3px;
+        vertical-align: middle;
+    }
+
+    .color-palette-grid {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr); /* Ajustez le nombre de colonnes */
+        gap: 4px;
+        max-width: 180px; /* Ajustez si besoin */
+    }
+    .color-cell {
+        width: 24px; /* Taille des cellules */
+        height: 24px;
+        border: 1px solid #eee;
+        border-radius: 3px;
+        cursor: pointer;
+        transition: transform 0.1s ease-in-out;
+    }
+    .color-cell:hover {
+        transform: scale(1.1);
+    }
+    .color-cell.selected {
+        border: 2px solid #007bff; /* Indicateur de sélection */
+        box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
+    }
+
+
+
     </style>
 
 {% endblock %}
@@ -262,7 +278,7 @@
         </button>
         
         <div class="btn-group">
-            <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="add-shape-dropdown">
+            <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="add-shape-dropdown">
                 <svg class="shape-icon" width="250px" height="250px" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round" stroke="#CCCCCC" stroke-width="0.192"></g><g id="SVGRepo_iconCarrier"> <rect width="48" height="48" fill="white" fill-opacity="0.01"></rect> <rect x="6" y="29" width="14" height="14" fill="#ffffff" stroke="#000000" stroke-width="1.6320000000000001" stroke-linecap="round" stroke-linejoin="round"></rect> <path d="M24 4L34 21H14L24 4Z" fill="#ffffff" stroke="#000000" stroke-width="1.6320000000000001" stroke-linecap="round" stroke-linejoin="round"></path> <circle cx="36" cy="36" r="8" fill="#ffffff" stroke="#000000" stroke-width="1.6320000000000001" stroke-linecap="round" stroke-linejoin="round"></circle> </g></svg>
             </button>
             <div class="dropdown-menu">
@@ -308,39 +324,31 @@
             </svg>
         </button>
 
-        <!-- Stroke Color Picker -->
-        <div class="btn-group">
-            <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="stroke-color-dropdown-button">
-                <div class="color-preview-container" id="stroke-color-preview-button">
-                    <div class="color-preview-icon"></div>
-                </div>
+        <!-- Sélecteur de Couleur de Remplissage -->
+        <div class="dropdown">
+            <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="fill-color-picker-button" data-bs-toggle="dropdown" aria-expanded="false" title="Couleur de remplissage">
+                <span class="color-preview-icon" id="fill-color-preview-icon" style="background-color: black;"></span> <!-- L'aperçu -->
             </button>
-            <div class="dropdown-menu color-dropdown-menu" id="stroke-color-dropdown-menu" aria-labelledby="stroke-color-dropdown-button">
-                <div class="color-grid" id="stroke-color-grid">
-                    <!-- Color cells will be added here dynamically -->
-                </div>
-                <label for="stroke-transparency-slider">Transparency:</label>
-                <input type="range" class="transparency-slider" id="stroke-transparency-slider" min="0" max="1" step="0.01" value="1">
-                <div id="stroke-width-container">
-                    <label for="stroke-width-slider">Width:</label>
-                    <input type="range" id="stroke-width-slider" min="1" max="20" value="1">
+            <div class="dropdown-menu p-2" aria-labelledby="fill-color-picker-button" id="fill-color-dropdown-menu">
+                <label for="fill-transparency-slider" class="form-label mb-1">Transparence</label>
+                <input type="range" class="form-range mb-2" id="fill-transparency-slider" min="0" max="1" step="0.05" value="1">
+                <div class="color-palette-grid" id="fill-color-palette">
+                    <!-- Les cellules de couleur seront générées ici par JS -->
                 </div>
             </div>
         </div>
-        
-        <!-- Color Dropdown -->
-        <div class="btn-group">
-            <button type="button" class="btn btn-primary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="color-dropdown-button">
-                <div class="color-preview-container" id="color-preview-button">
-                    <div class="color-preview-icon"></div>
-                </div>
+
+        <!-- Sélecteur de Couleur de Contour -->
+        <div class="dropdown">
+            <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="stroke-color-picker-button" data-bs-toggle="dropdown" aria-expanded="false" title="Couleur du contour">
+                <span class="color-preview-icon" id="stroke-color-preview-icon" style="background-color: black; border: 1px solid #ccc;"></span> <!-- L'aperçu avec bordure pour visibilité -->
             </button>
-            <div class="dropdown-menu color-dropdown-menu" id="color-dropdown-menu">
-                <div id="color-palette" class="color-grid">
-                            <!-- Color cells will be added here -->
+            <div class="dropdown-menu p-2" aria-labelledby="stroke-color-picker-button" id="stroke-color-dropdown-menu">
+                <label for="stroke-width-slider" class="form-label mb-1">Épaisseur</label>
+                <input type="range" class="form-range mb-2" id="stroke-width-slider" min="0" max="30" step="1" value="1">
+                <div class="color-palette-grid" id="stroke-color-palette">
+                    <!-- Les cellules de couleur seront générées ici par JS -->
                 </div>
-                <label for="transparency-slider">Transparency:</label>
-                <input type="range" id="transparency-slider" class="transparency-slider" min="0" max="1" step="0.01" value="1">
             </div>
         </div>
         
@@ -421,6 +429,6 @@
 });
 
 </script>
-<script src="https://cdn.jsdelivr.net/npm/vanilla-picker@2.12.3/dist/vanilla-picker.min.js"></script>
+<!-- <script src="https://cdn.jsdelivr.net/npm/vanilla-picker@2.12.3/dist/vanilla-picker.min.js"></script> -->
 <script type="module" src="{{ url_for('static', filename='js/whiteboard/main.js') }}"></script>
 {% endblock %}

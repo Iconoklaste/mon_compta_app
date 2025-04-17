@@ -8,7 +8,7 @@ export function initializeUI(canvas, projetId) {
     const fontSizeSelector = document.getElementById('font-size-selector');
     const fontFamilySelector = document.getElementById('font-family-selector');
 
-    // Initialize vanilla-picker
+/*     // Initialize vanilla-picker
     const parent = document.getElementById('color-picker-container');
     const openPickerButton = document.getElementById('open-color-picker');
     const picker = new Picker({
@@ -21,7 +21,7 @@ export function initializeUI(canvas, projetId) {
         onChange: function(color) {
             changeObjectColor(canvas, color.rgbaString);
         },
-    });
+    }); */
 
 
 
