@@ -17,7 +17,7 @@ const strokeColors = ['#000000', '#808080', '#FFFFFF', '#FF0000', '#00FF00', '#0
 let fabricCanvas = null; // Référence au canvas Fabric.js
 
 // --- Références aux éléments DOM ---
-let fillColorPickerButton, fillColorPreviewIcon, fillColorPalette, fillTransparencySlider;
+let fillColorPickerButton, fillColorPreviewIcon, fillColorPalette, fillTransparencySlider, fillNoColorButton;
 let strokeColorPickerButton, strokeColorPreviewIcon, strokeColorPalette, strokeWidthSlider;
 let fillDropdownInstance, strokeDropdownInstance; // Instances Bootstrap Dropdown
 
@@ -33,14 +33,16 @@ export function initializeColorPickers(canvasInstance) {
     fillColorPreviewIcon = document.getElementById('fill-color-preview-icon');
     fillColorPalette = document.getElementById('fill-color-palette');
     fillTransparencySlider = document.getElementById('fill-transparency-slider');
+    fillNoColorButton = document.getElementById('fill-no-color-button');
 
     strokeColorPickerButton = document.getElementById('stroke-color-picker-button');
     strokeColorPreviewIcon = document.getElementById('stroke-color-preview-icon');
     strokeColorPalette = document.getElementById('stroke-color-palette');
     strokeWidthSlider = document.getElementById('stroke-width-slider');
 
-    if (!fillColorPickerButton || !strokeColorPickerButton) {
-        console.error("Impossible de trouver les éléments DOM des sélecteurs de couleur.");
+    // Vérification plus robuste des éléments essentiels
+    if (!fillColorPickerButton || !strokeColorPickerButton || !fillColorPalette || !strokeColorPalette || !fillNoColorButton) {
+        console.error("Impossible de trouver tous les éléments DOM nécessaires pour les sélecteurs de couleur.");
         return;
     }
 
@@ -51,6 +53,21 @@ export function initializeColorPickers(canvasInstance) {
     // Ajouter les écouteurs pour les sliders
     fillTransparencySlider.addEventListener('input', handleTransparencyChange);
     strokeWidthSlider.addEventListener('input', handleStrokeWidthChange);
+
+    // Ajouter l'écouteur pour le bouton "Aucune Couleur"
+    fillNoColorButton.addEventListener('click', handleNoFillColor);
+
+    const defaultFillColor = 'black';
+    const defaultFillOpacity = 1;
+    const defaultStrokeColor = 'black';
+    const defaultStrokeWidth = 1;
+
+    // Appliquer l'état initial à l'UI des pickers
+    updateFillPickerUI(defaultFillColor, defaultFillOpacity);
+    updateStrokePickerUI(defaultStrokeColor, defaultStrokeWidth);
+    // Assurer que les valeurs des sliders sont aussi mises à jour (si updateUI ne le fait pas déjà)
+    if (fillTransparencySlider) fillTransparencySlider.value = defaultFillOpacity;
+    if (strokeWidthSlider) strokeWidthSlider.value = defaultStrokeWidth;
 
     // Gérer la fermeture des dropdowns Bootstrap
     fillDropdownInstance = bootstrap.Dropdown.getOrCreateInstance(fillColorPickerButton);
@@ -72,22 +89,34 @@ export function initializeColorPickers(canvasInstance) {
  * @param {'fill' | 'stroke'} type - Le type de couleur (remplissage ou contour).
  */
 function createColorPalette(container, colors, type) {
-    container.innerHTML = ''; // Vider au cas où
+    container.innerHTML = '';
     colors.forEach(color => {
         const colorCell = document.createElement('div');
         colorCell.classList.add('color-cell');
         colorCell.style.backgroundColor = color;
-        colorCell.dataset.color = color; // Stocke la couleur pour la retrouver facilement
+        colorCell.dataset.color = color;
 
         colorCell.addEventListener('click', () => {
+            // Désélectionner le bouton "Aucune couleur" si une couleur est choisie
+            if (type === 'fill' && fillNoColorButton) {
+                 fillNoColorButton.classList.remove('active'); // Optionnel: style visuel pour le bouton "Aucune couleur"
+            }
+
             if (type === 'fill') {
                 applyFillColor(color);
-                updateFillPickerUI(color, parseFloat(fillTransparencySlider.value)); // Met à jour l'UI interne
-            } else {
+                updateFillPickerUI(color, parseFloat(fillTransparencySlider.value));
+                // Activer le slider de transparence quand une couleur est sélectionnée
+                if (fillTransparencySlider) fillTransparencySlider.disabled = false;
+            } else { // type === 'stroke'
                 applyStrokeColor(color);
-                updateStrokePickerUI(color, parseInt(strokeWidthSlider.value, 10)); // Met à jour l'UI interne
+                updateStrokePickerUI(color, parseInt(strokeWidthSlider.value, 10));
+
+                if (fabricCanvas && fabricCanvas.isDrawingMode) {
+                    let brushColor = (color === 'transparent') ? 'black' : color; // Utilise noir si transparent
+                    fabricCanvas.freeDrawingBrush.color = brushColor;
+                }
             }
-            // Gérer la classe 'selected'
+            // Gérer la classe 'selected' pour les cellules de couleur
             container.querySelectorAll('.color-cell').forEach(cell => cell.classList.remove('selected'));
             colorCell.classList.add('selected');
         });
@@ -95,17 +124,36 @@ function createColorPalette(container, colors, type) {
     });
 }
 
-// --- Fonctions pour appliquer les changements à l'objet Fabric ---
+// --- Gestionnaire pour "Aucune Couleur" ---
+function handleNoFillColor() {
+    applyFillColor(null); // Appliquer 'null' pour enlever le remplissage
+    updateFillPickerUI(null, 1); // Mettre à jour l'UI pour refléter l'absence de couleur
+    // Désélectionner toutes les cellules de couleur
+    fillColorPalette.querySelectorAll('.color-cell').forEach(cell => cell.classList.remove('selected'));
+    // Optionnel: Ajouter une classe 'active' au bouton "Aucune couleur"
+    if (fillNoColorButton) fillNoColorButton.classList.add('active');
+    // Désactiver le slider de transparence
+    if (fillTransparencySlider) fillTransparencySlider.disabled = true;
+}
 
-function applyFillColor(color) {
+// --- Fonctions pour appliquer les changements à l'objet Fabric ---
+function applyFillColor(color) { // color peut être une string ou null
     if (!fabricCanvas) return;
     const activeObject = fabricCanvas.getActiveObject();
     if (activeObject) {
+        // Fabric.js utilise null ou '' pour signifier "pas de remplissage"
         activeObject.set('fill', color);
+        // Si la couleur est null, l'opacité n'a plus de sens visuel direct sur le remplissage
+        // On pourrait la réinitialiser ou la laisser telle quelle pour une éventuelle recoloration.
+        // Laisser l'opacité telle quelle est souvent moins surprenant pour l'utilisateur.
+        // if (color === null) {
+        //     activeObject.set('opacity', 1); // Optionnel: réinitialiser l'opacité
+        // }
         fabricCanvas.renderAll();
-        saveCanvasState(fabricCanvas); // Sauvegarde l'état
+        saveCanvasState(fabricCanvas);
     }
 }
+
 
 function applyStrokeColor(color) {
     if (!fabricCanvas) return;
@@ -121,6 +169,12 @@ function applyStrokeColor(color) {
                  // Mettre à jour le slider de l'UI aussi
                  if (strokeWidthSlider) strokeWidthSlider.value = defaultStrokeWidth;
              }
+            // Si on rend le contour transparent, mettre l'épaisseur à 0 visuellement peut être cohérent
+             if (color === 'transparent' || color === null) {
+                 // Optionnel: Mettre strokeWidth à 0 ou le laisser ? Laisser peut être mieux si l'utilisateur remet une couleur.
+                 // activeObject.set('strokeWidth', 0);
+                 // if (strokeWidthSlider) strokeWidthSlider.value = 0;
+             }
              fabricCanvas.renderAll();
              saveCanvasState(fabricCanvas);
         }
@@ -132,28 +186,40 @@ function handleTransparencyChange(event) {
     const opacity = parseFloat(event.target.value);
     const activeObject = fabricCanvas.getActiveObject();
     if (activeObject) {
-        activeObject.set('opacity', opacity);
-        fabricCanvas.renderAll();
-        saveCanvasState(fabricCanvas);
+        // Ne pas appliquer l'opacité si le remplissage est null (transparent)
+        if (activeObject.fill !== null && activeObject.fill !== 'transparent') {
+            activeObject.set('opacity', opacity);
+            fabricCanvas.renderAll();
+            saveCanvasState(fabricCanvas);
+        }
     }
-    // Mettre à jour l'aperçu (optionnel, car updateFillPickerUI le fera lors de la sélection)
-    // updateFillPickerUI(activeObject?.fill, opacity);
 }
 
+
 function handleStrokeWidthChange(event) {
+    // ... (fonction inchangée, mais la logique de sauvegarde est déjà correcte) ...
     if (!fabricCanvas) return;
     const width = parseInt(event.target.value, 10);
     const activeObject = fabricCanvas.getActiveObject();
+    let stateChanged = false; // Pour suivre si une sauvegarde est nécessaire
+
     if (activeObject) {
-         // Ne pas appliquer d'épaisseur si la couleur de contour n'est pas définie (ou est transparente)
          if (activeObject.stroke && activeObject.stroke !== 'transparent') {
             activeObject.set('strokeWidth', width);
-            fabricCanvas.renderAll();
-            saveCanvasState(fabricCanvas);
+            // fabricCanvas.renderAll(); // Fait plus bas
+            stateChanged = true;
          }
     }
-    // Mettre à jour l'aperçu (optionnel)
-    // updateStrokePickerUI(activeObject?.stroke, width);
+
+    if (fabricCanvas.isDrawingMode) {
+        fabricCanvas.freeDrawingBrush.width = width || 1;
+        stateChanged = true; // Le changement du pinceau justifie une sauvegarde
+    }
+
+    if (stateChanged) {
+        fabricCanvas.renderAll();
+        saveCanvasState(fabricCanvas);
+   }
 }
 
 
@@ -165,20 +231,27 @@ function handleStrokeWidthChange(event) {
  * @param {number | null} opacity - L'opacité (0-1) ou null.
  */
 export function updateFillPickerUI(fillColor, opacity) {
-    if (!fillColorPreviewIcon || !fillTransparencySlider || !fillColorPalette) return;
+    if (!fillColorPreviewIcon || !fillTransparencySlider || !fillColorPalette || !fillNoColorButton) return;
 
-    const validColor = fillColor || 'transparent'; // Utilise transparent si null/undefined
+    const isFillTransparent = (fillColor === null || fillColor === 'transparent');
+    const validColor = isFillTransparent ? 'transparent' : fillColor;
     const validOpacity = (opacity === null || opacity === undefined) ? 1 : opacity;
 
+    // Mettre à jour l'aperçu : utiliser une icône spéciale si transparent ?
+    // Pour l'instant, on met juste le fond transparent.
+    // On pourrait ajouter une classe CSS pour afficher une icône "pas de couleur".
     fillColorPreviewIcon.style.backgroundColor = validColor;
-    fillTransparencySlider.value = validOpacity;
+    fillColorPreviewIcon.classList.toggle('no-color-preview', isFillTransparent); // Ajout d'une classe pour style CSS optionnel
 
-    // Mettre à jour la cellule sélectionnée
+    fillTransparencySlider.value = validOpacity;
+    // Désactiver le slider si pas de couleur
+    fillTransparencySlider.disabled = isFillTransparent;
+
+    // Gérer la sélection dans la palette et le bouton "Aucune Couleur"
     fillColorPalette.querySelectorAll('.color-cell').forEach(cell => {
-        // Comparaison simple pour les couleurs hex de la palette
-        // Pour une comparaison robuste (rgba, noms), une lib de couleur serait mieux
-        cell.classList.toggle('selected', cell.dataset.color?.toLowerCase() === validColor?.toLowerCase());
+        cell.classList.toggle('selected', !isFillTransparent && cell.dataset.color?.toLowerCase() === validColor?.toLowerCase());
     });
+    fillNoColorButton.classList.toggle('active', isFillTransparent); // Marquer le bouton "Aucune couleur" comme actif
 }
 
 /**
@@ -187,16 +260,22 @@ export function updateFillPickerUI(fillColor, opacity) {
  * @param {number | null} strokeWidth - L'épaisseur du contour ou null.
  */
 export function updateStrokePickerUI(strokeColor, strokeWidth) {
+    // ... (fonction inchangée, mais on pourrait ajouter une logique similaire pour un bouton "Aucun contour") ...
     if (!strokeColorPreviewIcon || !strokeWidthSlider || !strokeColorPalette) return;
 
-    const validColor = strokeColor || 'transparent';
+    const isStrokeTransparent = (strokeColor === null || strokeColor === 'transparent');
+    const validColor = isStrokeTransparent ? 'transparent' : strokeColor;
     const validWidth = (strokeWidth === null || strokeWidth === undefined) ? 0 : strokeWidth;
 
     strokeColorPreviewIcon.style.backgroundColor = validColor;
-    strokeWidthSlider.value = validWidth;
+    strokeColorPreviewIcon.classList.toggle('no-color-preview', isStrokeTransparent); // Style CSS optionnel
 
-    // Mettre à jour la cellule sélectionnée
+    strokeWidthSlider.value = validWidth;
+    // On pourrait désactiver le slider d'épaisseur si pas de couleur de contour
+    // strokeWidthSlider.disabled = isStrokeTransparent;
+
     strokeColorPalette.querySelectorAll('.color-cell').forEach(cell => {
-        cell.classList.toggle('selected', cell.dataset.color?.toLowerCase() === validColor?.toLowerCase());
+        cell.classList.toggle('selected', !isStrokeTransparent && cell.dataset.color?.toLowerCase() === validColor?.toLowerCase());
     });
+    // Si on avait un bouton "Aucun contour", on le mettrait à jour ici.
 }

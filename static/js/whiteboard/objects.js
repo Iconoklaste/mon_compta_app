@@ -1,313 +1,351 @@
-// objects.js
-// Importe addCustomControls au lieu de duplicateObject
-import { addCustomControls, deleteObject, renderIcon, deleteImg, cloneImg } from './controls.js';
+// static/js/whiteboard/objects.js
+import { addCustomControls } from './controls.js'; // Utilise la fonction centralisée
 import { saveCanvasState } from './state.js';
 
-// Helper function to create a regular polygon
+// --- Fonction interne pour créer des polygones réguliers ---
 function createRegularPolygon(centerX, centerY, sides, radius, angle = 0, options = {}) {
     const points = [];
+    const angleStep = (Math.PI * 2) / sides;
+    const startAngle = (angle * Math.PI / 180); // Convertir l'angle initial en radians
+
     for (let i = 0; i < sides; i++) {
-        const rad = (angle + (i * (360 / sides))) * Math.PI / 180;
         points.push({
-            x: centerX + radius * Math.cos(rad),
-            y: centerY + radius * Math.sin(rad)
+            x: centerX + radius * Math.cos(startAngle + i * angleStep),
+            y: centerY + radius * Math.sin(startAngle + i * angleStep)
         });
     }
-    return new fabric.Polygon(points, options);
+    return new fabric.Polygon(points, {
+        originX: 'center', // Centre est souvent mieux pour les polygones
+        originY: 'center',
+        left: centerX,
+        top: centerY,
+        ...options // Fusionner les options fournies
+    });
 }
 
-function addShape(canvas, shapeType, activatePanMode) {
+
+/**
+ * Gère la logique de dessin interactif d'une forme (Rect, Circle, Triangle, Hexagon).
+ * @param {fabric.Canvas} canvas - L'instance du canvas.
+ * @param {'rectangle' | 'circle' | 'triangle' | 'hexagon'} shapeType - Le type de forme.
+ * @param {function(): void} onCompleteCallback - Callback à exécuter après l'ajout réussi.
+ */
+function addShape(canvas, shapeType, onCompleteCallback) {
+    let isMouseDown = false;
     let isDragging = false;
     let origX, origY;
-    let shape;
-    let minDragDistance = 5;
+    let shape = null;
     let shapeAdded = false;
-    let isMouseDown = false;
+    const minDragDistance = 5; // Distance minimale pour considérer un ajout
 
-    canvas.selection = false;
-    canvas.defaultCursor = 'crosshair';
+    // Assurer que le flag interne est défini (utilisé par mode-manager cleanup)
     canvas.isDrawingShape = true;
+    // Le curseur et la sélection sont déjà gérés par setMode('shape')
 
     const handleMouseDown = (options) => {
+        // Ignorer si on clique sur un objet existant
         if (options.target) return;
+
         isMouseDown = true;
         isDragging = false;
+        shapeAdded = false;
         const pointer = canvas.getPointer(options.e);
         origX = pointer.x;
         origY = pointer.y;
-        shapeAdded = false;
 
+        // --- DÉBUT DE LA MODIFICATION ---
+
+        // 1. Récupérer les valeurs actuelles des pickers et sliders
+        let currentFillRaw = document.getElementById('fill-color-preview-icon')?.style.backgroundColor;
+        let currentStrokeRaw = document.getElementById('stroke-color-preview-icon')?.style.backgroundColor;
+        let currentStrokeWidthRaw = parseInt(document.getElementById('stroke-width-slider')?.value, 10);
+        let currentOpacityRaw = parseFloat(document.getElementById('fill-transparency-slider')?.value);
+
+        // 2. Définir les valeurs par défaut
+        const defaultColor = 'black';
+        const defaultStrokeWidth = 1;
+        const defaultOpacity = 1;
+
+        // 3. Valider les valeurs récupérées et appliquer les défauts si nécessaire
+        const fillColor = (!currentFillRaw || currentFillRaw === 'transparent' || currentFillRaw === 'rgba(0, 0, 0, 0)')
+                          ? defaultColor
+                          : currentFillRaw;
+
+        const strokeColor = (!currentStrokeRaw || currentStrokeRaw === 'transparent' || currentStrokeRaw === 'rgba(0, 0, 0, 0)')
+                            ? defaultColor // Mettre noir par défaut aussi pour le contour
+                            : currentStrokeRaw;
+
+        // Si une couleur de contour est définie (même noir par défaut) et que l'épaisseur est <= 0 ou NaN, mettre 1.
+        const strokeWidth = (strokeColor !== 'transparent' && strokeColor !== null && (isNaN(currentStrokeWidthRaw) || currentStrokeWidthRaw <= 0))
+                            ? defaultStrokeWidth
+                            : (currentStrokeWidthRaw || 0); // Sinon, utiliser la valeur ou 0 si invalide/null
+
+        const fillOpacity = (isNaN(currentOpacityRaw) || currentOpacityRaw < 0 || currentOpacityRaw > 1)
+                            ? defaultOpacity
+                            : currentOpacityRaw;
+
+        // 4. Utiliser les valeurs validées dans commonOptions
+        const commonOptions = {
+            left: origX,
+            top: origY,
+            originX: 'left',
+            originY: 'top',
+            fill: fillColor,         // Utilise la couleur validée
+            stroke: strokeColor,     // Utilise la couleur validée
+            strokeWidth: strokeWidth, // Utilise l'épaisseur validée
+            opacity: fillOpacity,    // Applique l'opacité validée
+            selectable: false,       // Non sélectionnable pendant le dessin
+            evented: false,          // Ne déclenche pas d'événements pendant le dessin
+        };
+
+        // --- FIN DE LA MODIFICATION ---
+        
         switch (shapeType) {
             case 'triangle':
-                shape = new fabric.Triangle({
-                    left: origX,
-                    top: origY,
-                    width: 0,
-                    height: 0,
-                    fill: 'blue', // Default color, can be changed
-                    originX: 'left',
-                    originY: 'top',
-                });
+                shape = new fabric.Triangle({ ...commonOptions, width: 0, height: 0 });
                 break;
             case 'rectangle':
-                shape = new fabric.Rect({
-                    left: origX,
-                    top: origY,
-                    width: 0,
-                    height: 0,
-                    fill: 'yellow', // Default color
-                    originX: 'left',
-                    originY: 'top',
-                });
+                shape = new fabric.Rect({ ...commonOptions, width: 0, height: 0 });
                 break;
             case 'circle':
+                // Pour le cercle, l'origine est gérée différemment pendant le dessin
                 shape = new fabric.Circle({
-                    left: origX,
-                    top: origY,
+                    ...commonOptions,
+                    left: origX, // Sera ajusté dans mouse:move
+                    top: origY,  // Sera ajusté dans mouse:move
                     radius: 0,
-                    fill: 'red', // Default color
-                    originX: 'left',
-                    originY: 'top',
+                    originX: 'center', // L'origine est au centre
+                    originY: 'center'
                 });
                 break;
             case 'hexagon':
-                shape = createRegularPolygon(origX, origY, 6, 0, 30, {
-                    fill: 'green', // Default color
-                    originX: 'center', // Center origin might be better for polygons
-                    originY: 'center',
-                });
-                // Adjust initial position for center origin
-                shape.set({ left: origX, top: origY });
+                // Créer un polygone avec rayon 0 initialement
+                shape = createRegularPolygon(origX, origY, 6, 0, 30, { // 30 degrés pour pointer vers le haut
+                     ...commonOptions,
+                     // L'origine est déjà gérée par createRegularPolygon
+                 });
                 break;
         }
 
-        // --- Utilisation de addCustomControls ---
         if (shape) {
-            // Appelle la fonction centralisée pour ajouter les contrôles
-            addCustomControls(shape, canvas);
+            canvas.add(shape); // Ajouter immédiatement pour le voir pendant le drag
+            shapeAdded = true; // Marquer comme ajouté (sera retiré si drag trop court)
+            canvas.requestRenderAll();
         }
-        // --- Fin Utilisation de addCustomControls ---
     };
 
     const handleMouseMove = (options) => {
-        if (!isMouseDown || !shape) return; // Vérifie aussi que shape existe
-        canvas.selection = false;
+        if (!isMouseDown || !shape) return;
+
         const pointer = canvas.getPointer(options.e);
-        const width = Math.abs(pointer.x - origX);
-        const height = Math.abs(pointer.y - origY);
+        const width = pointer.x - origX;
+        const height = pointer.y - origY;
         const distanceDragged = Math.sqrt(width * width + height * height);
 
-        if (distanceDragged > 0) {
+        if (!isDragging && distanceDragged > minDragDistance) {
             isDragging = true;
         }
 
-        // Adjust shape properties based on type and drag direction
-        let newLeft = origX;
-        let newTop = origY;
-        let newWidth = width;
-        let newHeight = height;
+        if (!isDragging) return; // Ne pas redessiner si on n'a pas assez bougé
 
-        if (pointer.x < origX) {
-            newLeft = pointer.x;
-        }
-        if (pointer.y < origY) {
-            newTop = pointer.y;
-        }
-
+        // Ajuster la forme en fonction du type et de la direction
         if (shapeType === 'circle') {
-            const radius = Math.max(width, height) / 2;
-            // Adjust position for circle origin (center)
+            const radius = Math.sqrt(width * width + height * height) / 2;
+            // Le centre du cercle est le milieu entre le point de départ et le point actuel
+            const centerX = origX + width / 2;
+            const centerY = origY + height / 2;
             shape.set({
-                left: origX, // Keep origin X
-                top: origY,  // Keep origin Y
+                left: centerX,
+                top: centerY,
                 radius: radius,
-                originX: 'center',
-                originY: 'center'
             });
-             // Recalculate position based on radius and drag direction
-             shape.set({
-                 left: origX + (pointer.x < origX ? -radius : radius),
-                 top: origY + (pointer.y < origY ? -radius : radius)
-             });
-
-
         } else if (shapeType === 'hexagon') {
-             const radius = Math.max(width, height) / 2;
+             const radius = Math.sqrt(width * width + height * height) / 2;
+             const centerX = origX + width / 2;
+             const centerY = origY + height / 2;
+             // Recréer les points du polygone
+             const newPoints = createRegularPolygon(centerX, centerY, 6, radius, 30).points;
              shape.set({
-                 points: createRegularPolygon(origX, origY, 6, radius, 30).points,
-                 left: origX, // Keep center origin
-                 top: origY,  // Keep center origin
-                 originX: 'center',
-                 originY: 'center'
+                 points: newPoints,
+                 left: centerX, // Mettre à jour la position du centre
+                 top: centerY,
              });
-             // Force recalculation of dimensions and position
-             shape.setCoords();
-
+             shape.setCoords(); // Important pour recalculer la boîte englobante
         } else { // Rectangle, Triangle
             shape.set({
-                left: newLeft,
-                top: newTop,
-                width: newWidth,
-                height: newHeight,
-                originX: 'left',
-                originY: 'top'
+                left: width > 0 ? origX : pointer.x,
+                top: height > 0 ? origY : pointer.y,
+                width: Math.abs(width),
+                height: Math.abs(height),
             });
         }
 
-
-        if (distanceDragged < minDragDistance) {
-            if (shapeAdded) {
-                canvas.remove(shape);
-                shapeAdded = false;
-            }
-        } else {
-            if (!shapeAdded) {
-                canvas.add(shape);
-                shapeAdded = true;
-            }
-        }
-        canvas.renderAll();
+        canvas.requestRenderAll();
     };
 
     const handleMouseUp = (options) => {
+        if (!isMouseDown) return; // Éviter double exécution
         isMouseDown = false;
-        if (!isDragging) {
-            if (shape) {
-                canvas.remove(shape); // Remove if not dragged significantly
-            }
-        } else {
-            if (shape && shapeAdded) {
-                // Ensure final properties are set correctly before activating
-                shape.setCoords(); // Recalculate coordinates and dimensions
-                canvas.setActiveObject(shape);
-                saveCanvasState(canvas);
-                activatePanMode(); // Switch back to pan mode after adding
+        canvas.isDrawingShape = false; // Fin du mode dessin de forme interne
+
+        if (shape && shapeAdded) {
+            if (!isDragging) {
+                // Si pas de drag significatif, retirer la forme
+                canvas.remove(shape);
+                shape = null;
                 canvas.requestRenderAll();
             } else {
-                // If dragging started but shape wasn't added (e.g., too small)
-                if (shape) {
-                    canvas.remove(shape);
-                }
+                // Finaliser la forme
+                shape.set({
+                    selectable: true, // Rendre sélectionnable
+                    evented: true     // Rendre interactif
+                });
+                shape.setCoords(); // Assurer que les coordonnées sont à jour
+
+                // Ajouter les contrôles personnalisés
+                addCustomControls(shape, canvas);
+
+                canvas.setActiveObject(shape); // Sélectionner la nouvelle forme
+                saveCanvasState(canvas);    // Sauvegarder l'état
+                canvas.requestRenderAll();
+                onCompleteCallback();       // Exécuter le callback (typiquement setMode('select'))
             }
         }
-        isDragging = false;
-        canvas.isDrawingShape = false; // Reset drawing flag
-        canvas.defaultCursor = 'default'; // Reset cursor
-        canvas.removeShapeListeners(); // Clean up listeners
+
+        // Nettoyer les listeners spécifiques à cette instance d'ajout de forme
+        removeListeners();
+        // Le mode global sera géré par onCompleteCallback via le modeManager
     };
 
-    // Add listeners for shape drawing
+    // Ajouter les listeners spécifiques au dessin de forme
     canvas.on('mouse:down', handleMouseDown);
     canvas.on('mouse:move', handleMouseMove);
     canvas.on('mouse:up', handleMouseUp);
 
-    // Function to remove these specific listeners
+    // Fonction pour supprimer ces listeners spécifiques
     const removeListeners = () => {
         canvas.off('mouse:down', handleMouseDown);
         canvas.off('mouse:move', handleMouseMove);
         canvas.off('mouse:up', handleMouseUp);
+        // console.log("Shape drawing listeners removed.");
     };
-    canvas.removeShapeListeners = removeListeners; // Attach cleanup function to canvas
+
+    // Exposer la fonction de nettoyage sur le canvas pour le modeManager
+    canvas.removeShapeListeners = removeListeners;
 }
 
 // --- Fonctions d'export pour chaque forme ---
 
-export function addTriangle(canvas, activatePanMode) {
-    if (canvas.removeShapeListeners) {
-        canvas.removeShapeListeners(); // Clean up previous listeners if any
-    }
-    addShape(canvas, 'triangle', activatePanMode);
+export function addTriangle(canvas, onCompleteCallback) {
+    if (canvas.removeShapeListeners) canvas.removeShapeListeners(); // Nettoyer les anciens listeners
+    addShape(canvas, 'triangle', onCompleteCallback);
 }
 
-export function addRectangle(canvas, activatePanMode) {
+export function addRectangle(canvas, onCompleteCallback) {
+    if (canvas.removeShapeListeners) canvas.removeShapeListeners();
+    addShape(canvas, 'rectangle', onCompleteCallback);
+}
+
+export function addCircle(canvas, onCompleteCallback) {
+    if (canvas.removeShapeListeners) canvas.removeShapeListeners();
+    addShape(canvas, 'circle', onCompleteCallback);
+}
+
+export function addHexagon(canvas, onCompleteCallback) {
+    if (canvas.removeShapeListeners) canvas.removeShapeListeners();
+    addShape(canvas, 'hexagon', onCompleteCallback);
+}
+
+/**
+ * Ajoute un objet Textbox au centre du canvas.
+ * @param {fabric.Canvas} canvas - L'instance du canvas.
+ * @param {function(): void} onCompleteCallback - Callback à exécuter après l'ajout.
+ */
+export function addText(canvas, onCompleteCallback) {
+    // Nettoyer les listeners de forme potentiels (même si on est en mode 'text')
     if (canvas.removeShapeListeners) {
         canvas.removeShapeListeners();
     }
-    addShape(canvas, 'rectangle', activatePanMode);
-}
+    canvas.isDrawingShape = false; // Assurer que ce flag est bien à false
 
-export function addCircle(canvas, activatePanMode) {
-    if (canvas.removeShapeListeners) {
-        canvas.removeShapeListeners();
-    }
-    addShape(canvas, 'circle', activatePanMode);
-}
-
-export function addHexagon(canvas, activatePanMode) {
-    if (canvas.removeShapeListeners) {
-        canvas.removeShapeListeners();
-    }
-    addShape(canvas, 'hexagon', activatePanMode);
-}
-
-export function addText(canvas, activatePanMode) {
-    if (canvas.removeShapeListeners) {
-        canvas.removeShapeListeners(); // Clean up shape listeners before adding text
-    }
-    canvas.isDrawingShape = false; // Ensure shape drawing mode is off
-    canvas.defaultCursor = 'default'; // Reset cursor
-
+    // Créer l'objet texte
     const text = new fabric.Textbox('Texte', {
-        left: canvas.getWidth() / 2,
-        top: canvas.getHeight() / 2,
-        fill: 'black', // Default color
-        fontSize: 20,
-        width: 200, // Initial width
+        left: canvas.getCenter().left, // Utiliser getCenter pour la position initiale
+        top: canvas.getCenter().top,
+        fill: document.getElementById('fill-color-preview-icon')?.style.backgroundColor || 'black', // Couleur depuis picker
+        fontSize: parseInt(document.getElementById('font-size-selector')?.value, 10) || 24, // Taille depuis sélecteur
+        fontFamily: document.getElementById('font-family-selector')?.value || 'Arial', // Police depuis sélecteur
+        width: 200,
         textAlign: 'left',
         originX: 'center',
         originY: 'center',
-        splitByGrapheme: true, // Better handling of complex characters
+        splitByGrapheme: true, // Meilleure gestion des caractères complexes
+        // stroke: ..., // Ajouter le contour si nécessaire depuis les pickers
+        // strokeWidth: ...,
     });
 
-    // --- Utilisation de addCustomControls ---
-    // Appelle la fonction centralisée pour ajouter les contrôles
+    // Ajouter les contrôles personnalisés
     addCustomControls(text, canvas);
-    // --- Fin Utilisation de addCustomControls ---
 
     canvas.add(text);
     canvas.setActiveObject(text);
+    text.enterEditing(); // Entrer en mode édition immédiatement
+    text.selectAll();    // Sélectionner tout le texte initial
+
     saveCanvasState(canvas);
-    activatePanMode(); // Switch back to pan mode
-    // canvas.removeShapeListeners(); // Not needed here as text doesn't use shape listeners
     canvas.requestRenderAll();
+
+    // Exécuter le callback immédiatement après l'ajout
+    onCompleteCallback(); // Typiquement setMode('select')
 }
 
-// --- Autres fonctions ---
+// --- Fonctions existantes (Delete, Z-Order, Color Change) ---
+// Ces fonctions n'ont pas besoin d'être modifiées car elles opèrent
+// sur l'objet actif et ne dépendent pas directement du mode global.
 
 export function deleteActiveObject(canvas) {
     const activeObject = canvas.getActiveObject();
     if (activeObject) {
+        // Si c'est un groupe, supprimer le groupe entier
         canvas.remove(activeObject);
-        canvas.discardActiveObject(); // Deselect after removing
+        // Si c'était un groupe avec sélection active à l'intérieur (moins courant)
+        if (activeObject.type === 'activeSelection') {
+            activeObject.forEachObject(obj => canvas.remove(obj));
+        }
+        canvas.discardActiveObject();
         saveCanvasState(canvas);
         canvas.requestRenderAll();
     }
 }
 
+// Fonction pour changer la couleur (peut être appelée par color-picker)
+// Note: color-picker.js a déjà sa propre logique pour appliquer les couleurs
+// Cette fonction pourrait être redondante ou servir à un autre usage.
 export function changeObjectColor(canvas, color) {
     const activeObject = canvas.getActiveObject();
     if (activeObject) {
-        // Handle groups specifically if needed (e.g., change fill of all rects in group)
-        if (activeObject.type === 'group') {
+        // Gérer les groupes et les sélections multiples
+        if (activeObject.type === 'activeSelection') {
             activeObject.forEachObject(obj => {
-                // Apply color more selectively if needed
-                obj.set('fill', color);
+                // Appliquer sélectivement (ex: ne pas changer le fill d'une image)
+                if (obj.set) obj.set('fill', color);
             });
         } else {
-            activeObject.set('fill', color);
+             // Appliquer sélectivement
+             if (activeObject.set) activeObject.set('fill', color);
         }
         canvas.renderAll();
         saveCanvasState(canvas);
     }
 }
 
-// --- Fonctions Z-Order ---
-// (Ces fonctions semblent correctes)
+
+// --- Fonctions Z-Order (inchangées) ---
 export function sendToBack(canvas) {
     const activeObject = canvas.getActiveObject();
     if (activeObject) {
         canvas.sendToBack(activeObject);
-        canvas.discardActiveObject(); // Deselect to see the change clearly
+        // canvas.discardActiveObject(); // Optionnel: désélectionner pour voir le changement
         canvas.requestRenderAll();
         saveCanvasState(canvas);
     }
@@ -317,7 +355,7 @@ export function bringToFront(canvas) {
     const activeObject = canvas.getActiveObject();
     if (activeObject) {
         canvas.bringToFront(activeObject);
-        canvas.discardActiveObject();
+        // canvas.discardActiveObject();
         canvas.requestRenderAll();
         saveCanvasState(canvas);
     }
@@ -326,8 +364,16 @@ export function bringToFront(canvas) {
 export function sendBackward(canvas) {
     const activeObject = canvas.getActiveObject();
     if (activeObject) {
-        canvas.sendBackwards(activeObject);
-        canvas.discardActiveObject();
+        // Gérer la sélection multiple
+        if (activeObject.type === 'activeSelection') {
+             // Envoyer tout le groupe vers l'arrière peut être complexe,
+             // Envoyer chaque objet individuellement pourrait changer leur ordre relatif.
+             // Solution simple: envoyer le groupe entier.
+             canvas.sendBackwards(activeObject);
+        } else {
+            canvas.sendBackwards(activeObject);
+        }
+        // canvas.discardActiveObject();
         canvas.requestRenderAll();
         saveCanvasState(canvas);
     }
@@ -336,8 +382,12 @@ export function sendBackward(canvas) {
 export function bringForward(canvas) {
     const activeObject = canvas.getActiveObject();
     if (activeObject) {
-        canvas.bringForward(activeObject);
-        canvas.discardActiveObject();
+         if (activeObject.type === 'activeSelection') {
+             canvas.bringForward(activeObject);
+         } else {
+            canvas.bringForward(activeObject);
+         }
+        // canvas.discardActiveObject();
         canvas.requestRenderAll();
         saveCanvasState(canvas);
     }

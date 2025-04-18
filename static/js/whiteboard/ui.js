@@ -1,137 +1,266 @@
-// ui.js
-import { changeObjectColor } from './objects.js';
+// static/js/whiteboard/ui.js
+import { changeObjectColor, addRectangle, addCircle, addTriangle, addHexagon, addText } from './objects.js'; // Import shape/text functions
 import { saveWhiteboard, loadCanvas } from './state.js';
 import { zoomIn, zoomOut } from './canvas.js';
 import { saveCanvasState } from './state.js';
+import { getCurrentMode } from './mode-manager.js'; // Import pour vérifier le mode si nécessaire
 
+// Références aux boutons de mode (déclarées en dehors pour être accessibles par updateModeButtonsUI)
+let selectionButton, panButton, freeDrawButton;
+let addRectButton, addCircleButton, addTriangleButton, addHexagonButton, addTextButton; // Ajout des boutons de forme/texte
+
+/**
+ * Initialise les éléments généraux de l'interface utilisateur.
+ * @param {fabric.Canvas} canvas
+ * @param {string} projetId
+ */
 export function initializeUI(canvas, projetId) {
     const fontSizeSelector = document.getElementById('font-size-selector');
     const fontFamilySelector = document.getElementById('font-family-selector');
 
-/*     // Initialize vanilla-picker
-    const parent = document.getElementById('color-picker-container');
-    const openPickerButton = document.getElementById('open-color-picker');
-    const picker = new Picker({
-        parent: parent,
-        popup: 'bottom',
-        color: 'rgb(255, 0, 0)',
-        alpha: true,
-        editor: true,
-        editorFormat: 'hex',
-        onChange: function(color) {
-            changeObjectColor(canvas, color.rgbaString);
-        },
-    }); */
-
-
-
+    // --- Gestion Font Size ---
     fontSizeSelector.addEventListener('change', () => {
         const selectedFontSize = parseInt(fontSizeSelector.value, 10);
         const activeObject = canvas.getActiveObject();
         const target = getTargetTextbox(activeObject);
         if (target) {
+            // Appliquer au texte sélectionné ou à tout le textbox
             if (target.selectionStart !== target.selectionEnd) {
                 target.setSelectionStyles({ fontSize: selectedFontSize }, target.selectionStart, target.selectionEnd);
             } else {
                 target.set('fontSize', selectedFontSize);
             }
             canvas.renderAll();
-            saveCanvasState(canvas);
+            saveCanvasState(canvas); // Sauvegarder après modification
         }
     });
 
+    // --- Gestion Font Family ---
     fontFamilySelector.addEventListener('change', async () => {
         const selectedFontFamily = fontFamilySelector.value;
         const activeObject = canvas.getActiveObject();
         const target = getTargetTextbox(activeObject);
         if (target) {
-            // Check if the font is loaded
-            if (!document.fonts.check(`12px ${selectedFontFamily}`)) {
-                // If not loaded, wait for it to load
-                await document.fonts.load(`12px ${selectedFontFamily}`);
+            try {
+                // Vérifier et charger la police si nécessaire
+                if (!document.fonts.check(`12px ${selectedFontFamily}`)) {
+                    await document.fonts.load(`12px ${selectedFontFamily}`);
+                }
+                // Appliquer au texte sélectionné ou à tout le textbox
+                if (target.selectionStart !== target.selectionEnd) {
+                    target.setSelectionStyles({ fontFamily: selectedFontFamily }, target.selectionStart, target.selectionEnd);
+                } else {
+                    target.set('fontFamily', selectedFontFamily);
+                }
+                canvas.renderAll();
+                saveCanvasState(canvas); // Sauvegarder après modification
+            } catch (error) {
+                console.error(`Erreur lors du chargement de la police ${selectedFontFamily}:`, error);
+                // Informer l'utilisateur ?
             }
-            if (target.selectionStart !== target.selectionEnd) {
-                target.setSelectionStyles({ fontFamily: selectedFontFamily }, target.selectionStart, target.selectionEnd);
-            } else {
-                target.set('fontFamily', selectedFontFamily);
-            }
-            canvas.renderAll();
-            saveCanvasState(canvas);
         }
     });
 
-    document.getElementById('zoom-in').addEventListener('click', () => {
-        zoomIn(canvas);
-    });
+    // --- Boutons Zoom & Sauvegarde ---
+    document.getElementById('zoom-in')?.addEventListener('click', () => zoomIn(canvas));
+    document.getElementById('zoom-out')?.addEventListener('click', () => zoomOut(canvas));
+    document.getElementById('saveButton')?.addEventListener('click', () => saveWhiteboard(canvas, projetId));
 
-    document.getElementById('zoom-out').addEventListener('click', () => {
-        zoomOut(canvas);
-    });
+    // --- Mise à jour initiale indicateur de zoom ---
+    updateZoomIndicator(canvas);
+}
 
-    document.getElementById('saveButton').addEventListener('click', () => {
-        saveWhiteboard(canvas, projetId);
+/**
+ * Initialise les boutons de contrôle de mode (Select, Pan, Draw, Shapes, Text).
+ * @param {fabric.Canvas} canvas - Instance du canvas.
+ * @param {function(import('./mode-manager.js').InteractionMode): void} setModeCallback - Fonction pour changer le mode via le modeManager.
+ */
+export function initializeModeButtons(canvas, setModeCallback) {
+    selectionButton = document.getElementById('selection-button');
+    panButton = document.getElementById('pan-button');
+    freeDrawButton = document.getElementById('free-draw-button'); // Le bouton principal du dropdown
+
+    addRectButton = document.getElementById('add-rect');
+    addCircleButton = document.getElementById('add-circle');
+    addTriangleButton = document.getElementById('add-triangle');
+    addHexagonButton = document.getElementById('add-hexagon');
+    addTextButton = document.getElementById('add-text');
+
+    if (!selectionButton || !panButton || !freeDrawButton || !addRectButton || !addCircleButton || !addTriangleButton || !addHexagonButton || !addTextButton) {
+        console.error("Impossible de trouver tous les boutons de mode ou d'ajout.");
+        return;
+    }
+
+    // --- Écouteurs pour les modes principaux ---
+    selectionButton.addEventListener('click', () => setModeCallback('select'));
+    panButton.addEventListener('click', () => setModeCallback('pan'));
+    // Note: Le clic sur freeDrawButton ouvre le dropdown (géré par Bootstrap).
+    // Le passage en mode 'draw' est déclenché par brush-manager.js en cliquant sur un pinceau.
+
+    // --- Callback pour revenir en mode sélection après ajout ---
+    const returnToSelectMode = () => setModeCallback('select');
+
+    // --- Écouteurs pour l'ajout de formes/texte ---
+    addRectButton.addEventListener('click', () => {
+        setModeCallback('shape'); // Passe en mode intermédiaire 'shape'
+        addRectangle(canvas, returnToSelectMode); // Lance l'ajout et fournit le callback
+    });
+    addCircleButton.addEventListener('click', () => {
+        setModeCallback('shape');
+        addCircle(canvas, returnToSelectMode);
+    });
+    addTriangleButton.addEventListener('click', () => {
+        setModeCallback('shape');
+        addTriangle(canvas, returnToSelectMode);
+    });
+    addHexagonButton.addEventListener('click', () => {
+        setModeCallback('shape');
+        addHexagon(canvas, returnToSelectMode);
+    });
+    addTextButton.addEventListener('click', () => {
+        setModeCallback('text'); // Passe en mode intermédiaire 'text'
+        addText(canvas, returnToSelectMode); // Lance l'ajout et fournit le callback
     });
 }
+
+/**
+ * Met à jour l'état visuel (classe .active) des boutons de mode principaux.
+ * @param {import('./mode-manager.js').InteractionMode} activeMode - Le mode actuellement actif.
+ */
+export function updateModeButtonsUI(activeMode) {
+    // Assurez-vous que les boutons ont été récupérés
+    if (!selectionButton || !panButton || !freeDrawButton) {
+        // console.warn("Tentative de mise à jour de l'UI des boutons avant initialisation.");
+        // Tenter de les récupérer à nouveau peut être une solution de secours, mais idéalement l'ordre d'appel est correct.
+        selectionButton = document.getElementById('selection-button');
+        panButton = document.getElementById('pan-button');
+        freeDrawButton = document.getElementById('free-draw-button');
+        if (!selectionButton || !panButton || !freeDrawButton) return; // Sortir si toujours pas trouvés
+    }
+
+    // Utiliser classList.toggle pour une gestion propre
+    selectionButton.classList.toggle('active', activeMode === 'select');
+    panButton.classList.toggle('active', activeMode === 'pan');
+    // Le bouton free-draw est actif si le mode est 'draw'
+    freeDrawButton.classList.toggle('active', activeMode === 'draw');
+
+    // Optionnel: Gérer l'état actif des boutons d'ajout de forme/texte s'ils doivent rester actifs pendant le dessin
+    // addRectButton.classList.toggle('active', activeMode === 'shape'); // Probablement pas nécessaire car le mode 'shape' est transitoire
+}
+
+
+// --- Fonctions utilitaires existantes (inchangées ou légèrement modifiées) ---
 
 function getTargetTextbox(activeObject) {
     if (!activeObject) return null;
     if (activeObject.type === 'textbox') {
         return activeObject;
-    } else if (activeObject.type === 'group') {
-        return activeObject.getObjects().find(obj => obj.type === 'textbox');
+    }
+    // Gérer les groupes contenant un textbox (si nécessaire)
+    if (activeObject.type === 'group') {
+        // Chercher le premier textbox dans le groupe
+        return activeObject.getObjects('textbox')[0] || null;
     }
     return null;
 }
 
 export function updateFontSizeSelector(canvas) {
+    const fontSizeSelector = document.getElementById('font-size-selector');
+    if (!fontSizeSelector) return;
     const activeObject = canvas.getActiveObject();
     const target = getTargetTextbox(activeObject);
+
     if (target) {
-        document.getElementById('font-size-selector').value = target.fontSize;
+        // Gérer la sélection partielle : afficher la taille si elle est uniforme, sinon vide
+        let currentSize = '';
+        if (target.selectionStart !== target.selectionEnd) {
+            const selectionStyles = target.getSelectionStyles(target.selectionStart, target.selectionEnd);
+            // Vérifier si tous les styles de la sélection ont la même taille
+            const allSameSize = selectionStyles.every(style => style.fontSize === selectionStyles[0].fontSize);
+            if (allSameSize && selectionStyles.length > 0) {
+                currentSize = selectionStyles[0].fontSize;
+            }
+        } else {
+            currentSize = target.fontSize || ''; // Utiliser la taille globale de l'objet
+        }
+        fontSizeSelector.value = currentSize;
     } else {
-        document.getElementById('font-size-selector').value = null;
+        fontSizeSelector.value = ''; // Ou une valeur par défaut
     }
 }
 
 export async function updateFontFamilySelector(canvas) {
+    const fontFamilySelector = document.getElementById('font-family-selector');
+    if (!fontFamilySelector) return;
     const activeObject = canvas.getActiveObject();
     const target = getTargetTextbox(activeObject);
+
     if (target) {
-        const fontFamily = target.fontFamily;
-        // Check if the font is loaded
-        if (!document.fonts.check(`12px ${fontFamily}`)) {
-            // If not loaded, wait for it to load
-            await document.fonts.load(`12px ${fontFamily}`);
+        let currentFamily = '';
+        // Gérer la sélection partielle
+        if (target.selectionStart !== target.selectionEnd) {
+            const selectionStyles = target.getSelectionStyles(target.selectionStart, target.selectionEnd);
+            const allSameFamily = selectionStyles.every(style => style.fontFamily === selectionStyles[0].fontFamily);
+            if (allSameFamily && selectionStyles.length > 0) {
+                currentFamily = selectionStyles[0].fontFamily;
+            }
+        } else {
+            currentFamily = target.fontFamily || '';
         }
-        document.getElementById('font-family-selector').value = fontFamily;
+
+        // Vérifier si la police est chargée avant de définir la valeur (évite les problèmes d'affichage)
+        if (currentFamily && !document.fonts.check(`12px ${currentFamily}`)) {
+            try {
+                await document.fonts.load(`12px ${currentFamily}`);
+            } catch (error) {
+                console.warn(`Impossible de précharger la police ${currentFamily} pour le sélecteur.`);
+            }
+        }
+        fontFamilySelector.value = currentFamily;
+
     } else {
-        document.getElementById('font-family-selector').value = null;
+        fontFamilySelector.value = ''; // Ou une valeur par défaut
     }
 }
 
 export function updateZoomIndicator(canvas) {
-    const zoomPercentage = Math.round(canvas.getZoom() * 100);
-    document.getElementById('zoom-indicator').textContent = `Zoom: ${zoomPercentage}%`;
+    const zoomIndicator = document.getElementById('zoom-indicator');
+    if (zoomIndicator) {
+        const zoomPercentage = Math.round(canvas.getZoom() * 100);
+        zoomIndicator.textContent = `Zoom: ${zoomPercentage}%`;
+    }
 }
 
 export function loadData(canvas, projetId) {
     fetch(`/load/${projetId}`)
         .then(response => {
             if (!response.ok) {
-                throw new Error('Network response was not ok');
+                // Essayer de lire le message d'erreur JSON s'il existe
+                return response.json().catch(() => {
+                    // Si pas de JSON, lancer une erreur générique
+                    throw new Error(`Network response was not ok (${response.status})`);
+                }).then(errData => {
+                    // Si JSON lu, lancer l'erreur avec le message serveur
+                    throw new Error(errData.message || `Network response was not ok (${response.status})`);
+                });
             }
             return response.json();
         })
         .then(data => {
             if (data.whiteboard_data) {
-                loadCanvas(canvas, data.whiteboard_data);
-                // Update the font selector after loading the canvas
+                loadCanvas(canvas, data.whiteboard_data); // loadCanvas est dans state.js
+                // Mettre à jour les sélecteurs après chargement (peut être asynchrone)
                 updateFontFamilySelector(canvas);
+                updateFontSizeSelector(canvas);
+                updateZoomIndicator(canvas); // Mettre à jour l'indicateur de zoom initial
             } else {
-                console.log('No data found for this project.');
+                console.log('No whiteboard data found for this project.');
+                // Peut-être initialiser un canvas vide ou afficher un message
             }
         })
         .catch((error) => {
-            console.error('Error:', error);
+            console.error('Error loading whiteboard data:', error);
+            // Afficher une erreur à l'utilisateur
+            alert(`Erreur lors du chargement du tableau blanc: ${error.message}`);
         });
 }

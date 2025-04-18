@@ -8,234 +8,9 @@
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Merriweather:wght@400;700&family=Playfair+Display:wght@400;700&family=Oswald:wght@400;700&family=Roboto+Slab:wght@400;700&family=Dancing+Script:wght@400;700&family=Pacifico&family=Caveat&family=Inconsolata&family=Amatic+SC:wght@400;700&family=Satisfy&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
-    <link rel="stylesheet" href="{{ url_for('static', filename='whiteboard.css') }}">
-    <!-- <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/vanilla-picker@2.12.3/dist/vanilla-picker.csp.min.css"> -->
-    <style>
-        .content {
-            background-color: brown;
-            padding: 0;
-            margin-top: var(--navbar-height);
-            width: 100%;
-
-        }
-        .container-fluid {
-            padding: 0; /* Remove padding from container-fluid */
-
-        }
-        .main-content{
-            margin: 0;
-        }
-
-        .navbar-actions-container {
-            display: flex; /* Use flexbox for horizontal layout */
-            align-items: center; /* Vertically center the items */
-            gap: 10px; /* Add some space between the buttons */
-        }
-        .custom-navbar-button {
-            margin-left: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        
-        .custom-navbar-button i {
-            margin-right: 5px;
-        }
-/* Style the font family selector options */
-#font-family-selector option {
-    font-size: 16px;
-    padding: 5px;
-}
-
-/* Style the optgroup labels */
-#font-family-selector optgroup {
-    font-style: italic;
-    font-weight: bold;
-}
-
-/* Apply the font-family to each option */
-#font-family-selector option[value="Roboto"] {
-    font-family: "Roboto", sans-serif;
-}
-
-#font-family-selector option[value="Montserrat"] {
-    font-family: "Montserrat", sans-serif;
-}
-
-#font-family-selector option[value="Merriweather"] {
-    font-family: "Merriweather", serif;
-}
-
-#font-family-selector option[value="Playfair Display"] {
-    font-family: "Playfair Display", serif;
-}
-
-#font-family-selector option[value="Oswald"] {
-    font-family: "Oswald", sans-serif;
-}
-
-#font-family-selector option[value="Roboto Slab"] {
-    font-family: "Roboto Slab", serif;
-}
-
-#font-family-selector option[value="Dancing Script"] {
-    font-family: "Dancing Script", cursive;
-}
-
-#font-family-selector option[value="Pacifico"] {
-    font-family: "Pacifico", cursive;
-}
-
-#font-family-selector option[value="Caveat"] {
-    font-family: "Caveat", cursive;
-}
-
-#font-family-selector option[value="Inconsolata"] {
-    font-family: "Inconsolata", monospace;
-}
-
-#font-family-selector option[value="Amatic SC"] {
-    font-family: "Amatic SC", cursive;
-}
-
-#font-family-selector option[value="Satisfy"] {
-    font-family: "Satisfy", cursive;
-}
-
-/* Style for the bold and italic buttons */
-.text-style-button {
-    background-color: #f0f0f0; /* Light gray background */
-    border: 1px solid #ccc; /* Light gray border */
-    padding: 5px 10px;
-    margin: 0 5px;
-    cursor: pointer;
-    border-radius: 4px;
-}
-
-.text-style-button.active {
-    background-color: #ddd; /* Darker gray when active */
-    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.2); /* Inset shadow for pressed effect */
-}
-
-/* Style for the icon button */
-#add-shape-dropdown {
-    padding: 5px 10px; /* Adjust padding as needed */
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: auto; /* Adjust width as needed */
-    height: auto;
-    border-radius: 4px;
-}
-
-/* Style for the SVG icon */
-.shape-icon {
-    width: 1.5em; /* Adjust icon size as needed */
-    height: 1.5em; /* Adjust icon size as needed */
-    vertical-align: middle;
+    <link rel="stylesheet" href="{{ url_for('static', filename='whiteboard-2-0.css') }}">
     
-}
 
-.dropdown-item {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.25rem 0.5rem; /* Adjust padding as needed */
-    width: auto; /* Make the dropdown items fit the content */
-    white-space: nowrap; /* Prevent text from wrapping */
-    margin-top: 0.5em; /* Add vertical spacing between items */
-    margin-bottom: 0.5em;
-}
-
-.dropdown-item:first-child {
-    margin-top: 0; /* Remove top margin for the first item */
-}
-
-
-.dropdown-menu {
-    min-width: fit-content; /* Adjust the dropdown width to fit the content */
-}
-
-.text-icon {
-    width: 1.5em; /* Adjust icon size as needed */
-    height: 1.5em; /* Adjust icon size as needed */
-}
-/* Style for the pan and selection buttons */
-.mode-button {
-    background-color: black; /* Default color */
-    color: white;
-    border: none;
-    padding: 5px 10px;
-    margin: 0 5px;
-    cursor: pointer;
-    border-radius: 4px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.mode-button.active {
-    background-color: #333; /* Active color */
-    color: white;
-}
-
-.mode-button i {
-    font-size: 1.2em; /* Adjust icon size as needed */
-}
-/* Style for the pan button */
-#pan-button {
-    background-color: ''; /* Default color */
-}
-
-#pan-button.active {
-    background-color: #333; /* Active color */
-    color: white;
-}
-/* Style for the selection button */
-#selection-button {
-    background-color: ''; /* Default color */
-}
-
-#selection-button.active {
-    background-color: #333; /* Active color */
-    color: white;
-}
-
-
-
-.color-preview-icon {
-        display: inline-block;
-        width: 20px;
-        height: 20px;
-        border-radius: 3px;
-        vertical-align: middle;
-    }
-
-    .color-palette-grid {
-        display: grid;
-        grid-template-columns: repeat(6, 1fr); /* Ajustez le nombre de colonnes */
-        gap: 4px;
-        max-width: 180px; /* Ajustez si besoin */
-    }
-    .color-cell {
-        width: 24px; /* Taille des cellules */
-        height: 24px;
-        border: 1px solid #eee;
-        border-radius: 3px;
-        cursor: pointer;
-        transition: transform 0.1s ease-in-out;
-    }
-    .color-cell:hover {
-        transform: scale(1.1);
-    }
-    .color-cell.selected {
-        border: 2px solid #007bff; /* Indicateur de sélection */
-        box-shadow: 0 0 5px rgba(0, 123, 255, 0.5);
-    }
-
-
-
-    </style>
 
 {% endblock %}
 
@@ -315,14 +90,26 @@
             </svg>
         </button>
 
-        <button id="free-draw-button">
-            <svg class="text-icon" viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">
-                <g id="SVGRepo_iconCarrier">
-                    <path d="M56.009,51.832l0,4.2l-33.652,-0.026l4.709,-4.174l28.943,0Z" style="fill-rule:nonzero;"></path>
-                    <path d="M48.453,8.119c1.65,0 2.506,0.129 4.753,2.011c2.294,1.922 2.707,3.42 2.803,5.088c0.102,1.795 -0.504,3.975 -2.188,5.681l-31.961,31.961c-0.52,0.475 -0.63,0.449 -0.977,0.553l-10.226,2.556c-1.472,0.299 -2.854,-1.049 -2.55,-2.549l2.557,-10.226c0.1,-0.334 0.133,-0.517 0.553,-0.977c10.696,-10.696 21.195,-21.593 32.09,-32.087c1.421,-1.335 3.497,-2.011 5.146,-2.011Zm0,4.143c-0.86,0.016 -1.698,0.371 -2.311,0.976l-31.54,31.541l-1.566,6.261l6.262,-1.565c10.544,-10.544 21.419,-20.768 31.63,-31.634c1.674,-1.825 0.444,-5.453 -2.306,-5.577c-0.056,-0.002 -0.112,-0.003 -0.169,-0.002Z" style="fill-rule:nonzero;"></path>
-                </g>
-            </svg>
-        </button>
+        <div class="btn-group"> <!-- Utiliser btn-group pour regrouper le bouton et son menu -->
+            <button type="button" class="btn btn-secondary dropdown-toggle mode-button" id="free-draw-button" data-bs-toggle="dropdown" aria-expanded="false" title="Mode Dessin Libre">
+                <!-- L'icône ici reflètera le pinceau choisi et l'état actif/inactif -->
+                <svg class="text-icon" viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">
+                    <g id="SVGRepo_iconCarrier">
+                        <path d="M56.009,51.832l0,4.2l-33.652,-0.026l4.709,-4.174l28.943,0Z" style="fill-rule:nonzero;"></path>
+                        <path d="M48.453,8.119c1.65,0 2.506,0.129 4.753,2.011c2.294,1.922 2.707,3.42 2.803,5.088c0.102,1.795 -0.504,3.975 -2.188,5.681l-31.961,31.961c-0.52,0.475 -0.63,0.449 -0.977,0.553l-10.226,2.556c-1.472,0.299 -2.854,-1.049 -2.55,-2.549l2.557,-10.226c0.1,-0.334 0.133,-0.517 0.553,-0.977c10.696,-10.696 21.195,-21.593 32.09,-32.087c1.421,-1.335 3.497,-2.011 5.146,-2.011Zm0,4.143c-0.86,0.016 -1.698,0.371 -2.311,0.976l-31.54,31.541l-1.566,6.261l6.262,-1.565c10.544,-10.544 21.419,-20.768 31.63,-31.634c1.674,-1.825 0.444,-5.453 -2.306,-5.577c-0.056,-0.002 -0.112,-0.003 -0.169,-0.002Z" style="fill-rule:nonzero;"></path>
+                    </g>
+                </svg>
+            </button>
+            <ul class="dropdown-menu" aria-labelledby="free-draw-button" id="brush-options-dropdown"> <!-- Added id="brush-options-dropdown" -->
+                <li><button class="dropdown-item brush-selector active" data-brush-type="PencilBrush"><i class="fas fa-pencil-alt me-2"></i>Crayon</button></li>
+                <li><button class="dropdown-item brush-selector" data-brush-type="CircleBrush"><i class="fas fa-paint-brush me-2"></i>Rond</button></li>
+                <li><button class="dropdown-item brush-selector" data-brush-type="SprayBrush"><i class="fas fa-spray-can me-2"></i>Spray</button></li>
+                <li><button class="dropdown-item brush-selector" data-brush-type="SlashBrush"><svg class="me-2"><!-- Icône Trait --></svg>Trait</button></li>
+            </ul>
+
+        </div>
+
+
 
         <!-- Sélecteur de Couleur de Remplissage -->
         <div class="dropdown">
@@ -332,6 +119,12 @@
             <div class="dropdown-menu p-2" aria-labelledby="fill-color-picker-button" id="fill-color-dropdown-menu">
                 <label for="fill-transparency-slider" class="form-label mb-1">Transparence</label>
                 <input type="range" class="form-range mb-2" id="fill-transparency-slider" min="0" max="1" step="0.05" value="1">
+
+                <!-- Bouton "Aucune Couleur" -->
+                <button type="button" class="btn btn-sm btn-outline-secondary w-100 mb-2" id="fill-no-color-button">
+                    Aucune couleur <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-slash-lg" viewBox="0 0 16 16" style="vertical-align: text-bottom;"><path fill-rule="evenodd" d="M13.854 2.146a.5.5 0 0 1 0 .708l-11 11a.5.5 0 0 1-.708-.708l11-11a.5.5 0 0 1 .708 0Z"/></svg>
+                </button>
+
                 <div class="color-palette-grid" id="fill-color-palette">
                     <!-- Les cellules de couleur seront générées ici par JS -->
                 </div>
@@ -429,6 +222,6 @@
 });
 
 </script>
-<!-- <script src="https://cdn.jsdelivr.net/npm/vanilla-picker@2.12.3/dist/vanilla-picker.min.js"></script> -->
+
 <script type="module" src="{{ url_for('static', filename='js/whiteboard/main.js') }}"></script>
 {% endblock %}
