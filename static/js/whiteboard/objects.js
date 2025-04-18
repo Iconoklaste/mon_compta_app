@@ -1,5 +1,5 @@
 // static/js/whiteboard/objects.js
-import { addCustomControls } from './controls.js'; // Utilise la fonction centralisée
+// import { addCustomControls } from './controls.js'; // Utilise la fonction centralisée
 import { saveCanvasState } from './state.js';
 
 // --- Fonction interne pour créer des polygones réguliers ---
@@ -203,7 +203,7 @@ function addShape(canvas, shapeType, onCompleteCallback) {
                 shape.setCoords(); // Assurer que les coordonnées sont à jour
 
                 // Ajouter les contrôles personnalisés
-                addCustomControls(shape, canvas);
+                // addCustomControls(shape, canvas);
 
                 canvas.setActiveObject(shape); // Sélectionner la nouvelle forme
                 saveCanvasState(canvas);    // Sauvegarder l'état
@@ -297,7 +297,7 @@ export function addText(canvas, onCompleteCallback) {
     });
 
     // Ajouter les contrôles personnalisés
-    addCustomControls(text, canvas);
+     // addCustomControls(text, canvas);
 
     canvas.add(text);
     canvas.setActiveObject(text);
@@ -311,24 +311,7 @@ export function addText(canvas, onCompleteCallback) {
     onCompleteCallback(); // Typiquement setMode('select')
 }
 
-// --- Fonctions existantes (Delete, Z-Order, Color Change) ---
-// Ces fonctions n'ont pas besoin d'être modifiées car elles opèrent
-// sur l'objet actif et ne dépendent pas directement du mode global.
 
-export function deleteActiveObject(canvas) {
-    const activeObject = canvas.getActiveObject();
-    if (activeObject) {
-        // Si c'est un groupe, supprimer le groupe entier
-        canvas.remove(activeObject);
-        // Si c'était un groupe avec sélection active à l'intérieur (moins courant)
-        if (activeObject.type === 'activeSelection') {
-            activeObject.forEachObject(obj => canvas.remove(obj));
-        }
-        canvas.discardActiveObject();
-        saveCanvasState(canvas);
-        canvas.requestRenderAll();
-    }
-}
 
 // Fonction pour changer la couleur (peut être appelée par color-picker)
 // Note: color-picker.js a déjà sa propre logique pour appliquer les couleurs

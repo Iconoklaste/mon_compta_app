@@ -19,7 +19,7 @@ let fabricCanvas = null; // Référence au canvas Fabric.js
 // --- Références aux éléments DOM ---
 let fillColorPickerButton, fillColorPreviewIcon, fillColorPalette, fillTransparencySlider, fillNoColorButton;
 let strokeColorPickerButton, strokeColorPreviewIcon, strokeColorPalette, strokeWidthSlider;
-let fillDropdownInstance, strokeDropdownInstance; // Instances Bootstrap Dropdown
+export let fillDropdownInstance, strokeDropdownInstance; // Instances Bootstrap Dropdown
 
 /**
  * Initialise le module color-picker.

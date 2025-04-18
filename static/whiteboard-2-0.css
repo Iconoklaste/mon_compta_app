@@ -199,12 +199,14 @@ body.whiteboard-page #main-navbar {
 
 .dropdown-menu {
     min-width: fit-content;
+    z-index: 1010;
 }
 
 /* Styles pour le dropdown des pinceaux */
-#free-draw-button {
-    /* Devrait déjà utiliser .mode-button */
-}
+/* Devrait déjà utiliser .mode-button */
+/* #free-draw-button {
+    
+} */
 
 .brush-selector { /* Styles pour les éléments DANS le dropdown pinceau */
     cursor: pointer;
@@ -352,3 +354,89 @@ body.whiteboard-page #main-navbar {
     /* margin-right: 5px; */ /* Remplacé par gap */
 }
 
+.object-toolbar {
+    background-color: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 0.25rem;
+    padding: 5px;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+    display: flex; /* Aligner les sections horizontalement */
+    gap: 10px; /* Espace entre les sections */
+    align-items: center;
+}
+
+.object-toolbar .toolbar-section {
+    display: flex;
+    align-items: center;
+    gap: 5px; /* Espace entre les boutons dans une section */
+}
+
+/* Style pour les boutons de la barre d'outils */
+.object-toolbar button,
+.object-toolbar select,
+.object-toolbar input {
+    padding: 3px 6px;
+    font-size: 0.9em;
+    border: 1px solid #ced4da;
+    border-radius: 0.2rem;
+    background-color: #fff;
+    cursor: pointer;
+    line-height: 1.2; /* Ajustement pour l'alignement vertical */
+}
+
+.object-toolbar button:hover {
+    background-color: #e9ecef;
+}
+
+.object-toolbar button.active {
+    background-color: #0d6efd;
+    color: white;
+    border-color: #0d6efd;
+}
+
+/* Ajustements spécifiques si nécessaire */
+.object-toolbar select {
+    padding: 4px 6px; /* Ajuster padding pour select */
+}
+.object-toolbar input[type="number"] {
+     padding: 4px 6px; /* Ajuster padding pour input */
+}
+
+/* Style pour les boutons d'aperçu de couleur dans la toolbar */
+.toolbar-color-preview {
+    padding: 2px; /* Minimal padding */
+    border: 1px solid #ccc;
+    background: none;
+    cursor: pointer;
+    height: 24px; /* Ajuster pour correspondre aux autres boutons */
+    width: 24px;  /* Ajuster pour correspondre aux autres boutons */
+    display: inline-flex; /* Pour centrer le swatch */
+    justify-content: center;
+    align-items: center;
+    vertical-align: middle; /* Aligner avec les autres boutons */
+    margin: 0 2px; /* Un peu d'espace */
+    border-radius: 0.2rem; /* Correspondre aux autres boutons */
+}
+
+.toolbar-color-preview:hover {
+    background-color: #e9ecef; /* Correspondre au hover des autres boutons */
+}
+
+/* Le carré de couleur à l'intérieur du bouton */
+.color-preview-swatch {
+    display: inline-block;
+    width: 16px;  /* Taille du carré de couleur */
+    height: 16px;
+    border: 1px solid #888; /* Bordure pour le carré lui-même */
+    background-color: black; /* Couleur par défaut */
+    pointer-events: none; /* Pour que le clic passe au bouton parent */
+}
+
+/* Style pour l'aperçu transparent (checkerboard) */
+.color-preview-swatch.no-color-preview {
+     background-image: linear-gradient(45deg, #eee 25%, transparent 25%, transparent 75%, #eee 75%, #eee),
+                       linear-gradient(45deg, #eee 25%, transparent 25%, transparent 75%, #eee 75%, #eee);
+     background-size: 8px 8px; /* Taille du damier */
+     background-position: 0 0, 4px 4px;
+     background-color: white; /* Fond pour le damier */
+}

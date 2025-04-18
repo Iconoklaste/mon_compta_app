@@ -218,6 +218,51 @@
     
     <canvas id="canvas"></canvas>
     <div id="zoom-indicator">Zoom: 100%</div>
+
+    <!-- Barre d'outils contextuelle (initialement cachée) -->
+<div id="object-toolbar" class="object-toolbar" style="display: none; position: absolute; z-index: 1000;">
+    <!-- Section commune -->
+    <div class="toolbar-section toolbar-common">
+        <button id="toolbar-duplicate" title="Dupliquer"><i class="fas fa-copy"></i></button>
+        <button id="toolbar-delete" title="Supprimer"><i class="fas fa-trash-alt"></i></button>
+        <button id="toolbar-bring-forward" title="Avancer"><i class="fas fa-arrow-up"></i></button>
+        <button id="toolbar-send-backward" title="Reculer"><i class="fas fa-arrow-down"></i></button>
+        <!-- Autres boutons communs : bringToFront, sendToBack -->
+    </div>
+
+    <!-- Section spécifique au texte -->
+    <div class="toolbar-section toolbar-text" style="display: none;">
+        <select id="toolbar-font-family">
+            <!-- Options de police (peuvent être chargées dynamiquement) -->
+            <option value="Arial">Arial</option>
+            <option value="Verdana">Verdana</option>
+            <option value="Times New Roman">Times New Roman</option>
+            <option value="Courier New">Courier New</option>
+            <option value="Georgia">Georgia</option>
+            <option value="Impact">Impact</option>
+        </select>
+        <input type="number" id="toolbar-font-size" min="1" value="20" style="width: 60px;">
+        <button id="toolbar-bold" title="Gras"><i class="fas fa-bold"></i></button>
+        <button id="toolbar-italic" title="Italique"><i class="fas fa-italic"></i></button>
+        <!-- Autres options texte : alignement, couleur texte (si différent du fill) -->
+    </div>
+
+    <!-- Section spécifique aux formes/images (exemple : couleur) -->
+    <div class="toolbar-section toolbar-shape" style="display: none;">
+        <!-- Ici, on pourrait mettre des raccourcis pour les couleurs,
+             ou un bouton pour ouvrir le color picker existant -->
+             <button id="toolbar-open-fill-picker" type="button" class="toolbar-color-preview" title="Couleur de remplissage">
+                <span id="toolbar-fill-preview" class="color-preview-swatch"></span>
+            </button>
+            <!-- AJOUT : Bouton/Aperçu pour ouvrir le sélecteur de contour -->
+            <button id="toolbar-open-stroke-picker" type="button" class="toolbar-color-preview" title="Couleur du contour">
+                <span id="toolbar-stroke-preview" class="color-preview-swatch"></span>
+            </button>
+    </div>
+
+    <!-- Ajoutez d'autres sections pour d'autres types d'objets si nécessaire -->
+</div>
+
 </div>
 
 {% endblock %}

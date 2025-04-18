@@ -1,111 +1,142 @@
-// state.js
-// Importe addCustomControls au lieu de addDuplicateControl et duplicateObject
-import { addCustomControls, deleteObject, renderIcon, deleteImg, cloneImg } from './controls.js';
+// static/js/whiteboard/state.js
+
+// --- SUPPRIMÉ : Imports liés aux anciens contrôles ---
+// import { addCustomControls, deleteObject, renderIcon, deleteImg, cloneImg } from './controls.js';
 
 let undoStack = [];
 let redoStack = [];
-let isSaving = false; // Flag to prevent concurrent saves
+let isSaving = false; // Flag pour éviter les sauvegardes concurrentes
+let saveTimeout;      // Variable pour le debounce
 
-// Debounced save function
+// Fonction de sauvegarde avec debounce
 function debouncedSaveCanvasState(canvas) {
-    if (isSaving) return; // Prevent concurrent saves
-    isSaving = true;
-    setTimeout(() => {
-        // Inclure les noms des contrôles personnalisés dans toJSON
-        const clonedCanvas = JSON.parse(JSON.stringify(canvas.toJSON(['deleteControl', 'duplicateControl'])));
-        undoStack.push(clonedCanvas);
-        redoStack = [];
-        isSaving = false;
-    }, 100); // Adjust delay as needed
+    clearTimeout(saveTimeout); // Annule le timeout précédent
+    if (isSaving) return; // Évite les sauvegardes concurrentes si une est déjà en cours de traitement
+
+    saveTimeout = setTimeout(() => {
+        isSaving = true; // Marque comme en cours de sauvegarde
+        try {
+            // --- MODIFIÉ : Ne plus inclure les noms des contrôles personnalisés ---
+            const clonedCanvasState = canvas.toJSON(); // Obtenir l'état JSON standard
+            undoStack.push(clonedCanvasState);
+            redoStack = []; // Vider la pile redo lors d'une nouvelle action
+            // console.log("Canvas state saved to undo stack.");
+        } catch (error) {
+            console.error("Erreur lors de la sauvegarde de l'état du canvas:", error);
+        } finally {
+            isSaving = false; // Marque la fin de la sauvegarde (même en cas d'erreur)
+        }
+    }, 300); // Délai de debounce (ajuster si nécessaire)
 }
 
+/**
+ * Sauvegarde l'état actuel du canvas dans la pile undo (avec debounce).
+ * @param {fabric.Canvas} canvas
+ */
 export function saveCanvasState(canvas) {
     debouncedSaveCanvasState(canvas);
 }
 
-// Fonction simplifiée pour ajouter les contrôles via la fonction centralisée
-function addControlsToObject(obj, canvas) {
-    // Appelle la fonction centralisée de controls.js pour ajouter les deux contrôles
-    addCustomControls(obj, canvas);
-}
+// --- SUPPRIMÉ : Fonction addControlsToObject ---
+// function addControlsToObject(obj, canvas) { ... }
 
+/**
+ * Annule la dernière action.
+ * @param {fabric.Canvas} canvas
+ */
 export function undo(canvas) {
-    if (undoStack.length > 1) {
-        redoStack.push(undoStack.pop());
-        // Utilise le dernier état valide dans undoStack
+    if (undoStack.length > 1) { // Besoin d'au moins 2 états (l'état actuel et le précédent)
+        redoStack.push(undoStack.pop()); // Déplace l'état actuel vers redo
+        // Charge l'état précédent depuis undoStack
         const stateToLoad = undoStack[undoStack.length - 1];
-        canvas.loadFromJSON(stateToLoad, function() { // Callback après chargement
-            canvas.getObjects().forEach(function(obj) {
-                // Ré-applique les contrôles après le chargement
-                addControlsToObject(obj, canvas);
-            });
+        canvas.loadFromJSON(stateToLoad, () => { // Callback après chargement
+            // --- SUPPRIMÉ : Boucle pour ré-appliquer les contrôles ---
+            // canvas.getObjects().forEach(obj => addControlsToObject(obj, canvas));
             canvas.renderAll();
+            console.log("Undo complete.");
         });
+    } else {
+        console.log("Undo stack empty or only initial state.");
     }
 }
 
+/**
+ * Rétablit la dernière action annulée.
+ * @param {fabric.Canvas} canvas
+ */
 export function redo(canvas) {
     if (redoStack.length > 0) {
-        const stateToLoad = redoStack.pop();
-        undoStack.push(stateToLoad);
-        canvas.loadFromJSON(stateToLoad, function() { // Callback après chargement
-            canvas.getObjects().forEach(function(obj) {
-                // Ré-applique les contrôles après le chargement
-                addControlsToObject(obj, canvas);
-            });
+        const stateToLoad = redoStack.pop(); // Prend l'état depuis redo
+        undoStack.push(stateToLoad); // Le remet dans undo
+        canvas.loadFromJSON(stateToLoad, () => { // Callback après chargement
+            // --- SUPPRIMÉ : Boucle pour ré-appliquer les contrôles ---
+            // canvas.getObjects().forEach(obj => addControlsToObject(obj, canvas));
             canvas.renderAll();
+            console.log("Redo complete.");
         });
+    } else {
+        console.log("Redo stack empty.");
     }
 }
 
+/**
+ * Charge les données du tableau blanc (objets, zoom, viewport) dans le canvas.
+ * @param {fabric.Canvas} canvas
+ * @param {object | string} data - Les données à charger (peut être l'objet complet {version, zoom, viewport, objects} ou juste les objets JSON).
+ */
 export function loadCanvas(canvas, data) {
-    // --- MODIFICATION ICI ---
-    // Vérifier si les données ont la nouvelle structure (avec zoom/viewport)
-    // ou l'ancienne structure (juste les objets) pour la compatibilité descendante.
     let objectsData = data;
-    let initialZoom = 1; // Zoom par défaut
-    let initialViewport = fabric.iMatrix.concat(); // Viewport par défaut (identité)
+    let initialZoom = 1;
+    let initialViewport = fabric.iMatrix.concat(); // Matrice identité par défaut
 
+    // Vérifier si les données ont la structure {version, zoom, viewport, objects}
     if (data && typeof data === 'object' && data.objects && data.zoom && data.viewport) {
-        // Nouvelle structure détectée
-        objectsData = data.objects;
+        objectsData = data.objects; // Utiliser les objets imbriqués
         initialZoom = data.zoom;
         initialViewport = data.viewport;
         console.log("Loading canvas with zoom and viewport data.");
     } else {
-        console.log("Loading canvas with legacy object data only.");
-        // Si data n'est pas un objet ou n'a pas les clés attendues,
-        // on suppose que c'est l'ancien format (juste les objets JSON)
-        // ou des données invalides (loadFromJSON gérera les erreurs).
-        objectsData = data;
+        console.log("Loading canvas with legacy object data or empty data.");
+        // Si data n'a pas la structure attendue, on suppose que c'est l'ancien format (juste les objets)
+        // ou des données vides/invalides. loadFromJSON gérera les erreurs si objectsData n'est pas valide.
+        objectsData = data; // Assigner data même si potentiellement invalide, loadFromJSON gère
     }
-    // --- FIN MODIFICATION ---
 
     // Charger les objets
-    canvas.loadFromJSON(objectsData, function() { // Callback après chargement des objets
+    canvas.loadFromJSON(objectsData, () => { // Callback après chargement des objets
         // Appliquer le zoom et le viewport APRÈS le chargement des objets
-        canvas.setZoom(initialZoom);
-        canvas.setViewportTransform(initialViewport);
+        canvas.setViewportTransform(initialViewport); // Appliquer le viewport d'abord
+        canvas.setZoom(initialZoom);                // Appliquer le zoom ensuite
 
-        // Ré-appliquer les contrôles personnalisés après le chargement
-        canvas.getObjects().forEach(function(obj) {
-            addControlsToObject(obj, canvas);
-        });
+        // --- SUPPRIMÉ : Boucle pour ré-appliquer les contrôles ---
+        // canvas.getObjects().forEach(obj => addControlsToObject(obj, canvas));
 
         // Rendre le canvas avec le bon zoom/viewport
         canvas.renderAll();
+        console.log("Canvas loaded successfully.");
 
-        // Sauvegarde l'état initial chargé dans l'historique undo
-        saveCanvasState(canvas);
-        // Réinitialise redoStack car on charge un nouvel état
-        redoStack = [];
+        // Sauvegarder l'état initial chargé comme premier état dans l'historique undo
+        // Utiliser une sauvegarde directe sans debounce pour l'état initial
+        clearTimeout(saveTimeout); // Annuler tout debounce en cours
+        isSaving = false;          // Réinitialiser le flag
+        const initialCanvasState = canvas.toJSON(); // Obtenir l'état JSON standard
+        undoStack = [initialCanvasState]; // Initialiser la pile undo avec cet état
+        redoStack = []; // Réinitialiser redoStack car on charge un nouvel état
+        console.log("Initial loaded state saved to undo stack.");
+    }, (o, object) => {
+        // Fonction de rappel pour chaque objet chargé (reviver) - utile pour le débogage
+        // console.log("Loaded object:", o, object);
     });
 }
 
+/**
+ * Sauvegarde l'état complet du tableau blanc (objets, zoom, viewport) sur le serveur.
+ * @param {fabric.Canvas} canvas
+ * @param {string} projetId
+ */
 export function saveWhiteboard(canvas, projetId) {
-    // --- MODIFICATION ICI ---
-    // 1. Obtenir les données des objets
-    const objectsData = canvas.toJSON(['deleteControl', 'duplicateControl']);
+    // 1. Obtenir les données des objets (sans les contrôles)
+    const objectsData = canvas.toJSON();
     // 2. Obtenir le niveau de zoom actuel
     const currentZoom = canvas.getZoom();
     // 3. Obtenir la transformation du viewport actuelle
@@ -116,9 +147,8 @@ export function saveWhiteboard(canvas, projetId) {
         version: '1.1', // Version pour identifier la structure
         zoom: currentZoom,
         viewport: currentViewport,
-        objects: objectsData // Les données des objets sont maintenant imbriquées
+        objects: objectsData // Les données des objets sont imbriquées
     };
-    // --- FIN MODIFICATION ---
 
     const csrfTokenElement = document.getElementById('csrfToken');
     if (!csrfTokenElement) {
@@ -134,15 +164,14 @@ export function saveWhiteboard(canvas, projetId) {
             'Content-Type': 'application/json',
             'X-CSRFToken': csrfToken,
         },
-        // Envoyer la nouvelle structure de données
-        body: JSON.stringify(saveData),
+        body: JSON.stringify(saveData), // Envoyer la nouvelle structure
     })
     .then(response => {
-        // ... (gestion de la réponse inchangée) ...
         if (!response.ok) {
+            // Essayer de lire le message d'erreur JSON, sinon utiliser le statut HTTP
             return response.json().then(errData => {
                 throw new Error(errData.message || `Erreur réseau ${response.status}`);
-            }).catch(() => {
+            }).catch(() => { // Si response.json() échoue aussi
                 throw new Error(`Erreur réseau ${response.status}`);
             });
         }
@@ -150,7 +179,8 @@ export function saveWhiteboard(canvas, projetId) {
     })
     .then(data => {
         console.log('Sauvegarde réussie (avec zoom/viewport):', data);
-        // alert('Tableau blanc sauvegardé avec succès !');
+        // Optionnel: Afficher une notification de succès discrète
+        // showNotification('Tableau blanc sauvegardé !');
     })
     .catch((error) => {
         console.error('Erreur lors de la sauvegarde:', error);
