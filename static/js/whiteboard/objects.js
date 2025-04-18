@@ -268,13 +268,25 @@ export function addText(canvas, onCompleteCallback) {
     }
     canvas.isDrawingShape = false; // Assurer que ce flag est bien à false
 
+    // --- MODIFICATION ICI ---
+    // 1. Récupérer la couleur de remplissage brute depuis l'UI
+    // let currentFillRaw = document.getElementById('fill-color-preview-icon')?.style.backgroundColor;
+    const fillColor = 'black'; // Couleur par défaut si transparent
+
+
+
+    // 3. Récupérer les autres styles (police, taille)
+    const fontSize = parseInt(document.getElementById('font-size-selector')?.value, 10) || 24;
+    const fontFamily = document.getElementById('font-family-selector')?.value || 'Arial';
+    // --- FIN DE LA MODIFICATION ---
+
     // Créer l'objet texte
     const text = new fabric.Textbox('Texte', {
         left: canvas.getCenter().left, // Utiliser getCenter pour la position initiale
         top: canvas.getCenter().top,
-        fill: document.getElementById('fill-color-preview-icon')?.style.backgroundColor || 'black', // Couleur depuis picker
-        fontSize: parseInt(document.getElementById('font-size-selector')?.value, 10) || 24, // Taille depuis sélecteur
-        fontFamily: document.getElementById('font-family-selector')?.value || 'Arial', // Police depuis sélecteur
+        fill: fillColor,
+        fontSize: fontSize,
+        fontFamily: fontFamily,
         width: 200,
         textAlign: 'left',
         originX: 'center',

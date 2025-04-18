@@ -192,6 +192,8 @@ export function initializeCanvas() {
     // Sauvegarder l'état initial (après chargement potentiel)
     // saveCanvasState(canvas); // Déplacé dans loadData pour être après le chargement
 
+
+
     return canvas;
 }
 

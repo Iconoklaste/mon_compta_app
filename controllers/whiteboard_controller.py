@@ -13,6 +13,12 @@ def whiteboard_view(projet_id):
     return render_template('whiteboard.html', projet=projet, projet_id=projet_id)
 
 
+@whiteboard_bp.route('/whiteboard-test/<int:projet_id>')
+def whiteboard_test_view(projet_id):
+    projet = Projet.query.get_or_404(projet_id)
+    return render_template('test-pen.html', projet=projet, projet_id=projet_id)
+
+
 @whiteboard_bp.route('/save_whiteboard/<int:projet_id>', methods=['POST'])
 def save_whiteboard(projet_id):
     data = request.get_json()

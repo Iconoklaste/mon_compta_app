@@ -60,6 +60,15 @@ app.register_blueprint(whiteboard_bp) # Register the whiteboard blueprint
 app.register_blueprint(plan_comptable_bp)
 app.register_blueprint(ecritures_bp)
 
+@app.route('/test-pen') # Vous pouvez choisir l'URL que vous voulez
+def test_pen_page():
+    """
+    Affiche la page de test pour les pinceaux Fabric.js.
+    """
+    # Assurez-vous que le fichier 'test-pen.html' se trouve
+    # dans votre dossier 'templates'
+    return render_template('test-pen.html')
+
 @app.route('/test/projet_detail')
 def test_projet_detail():
     return render_template('test/test_projet_detail.html')

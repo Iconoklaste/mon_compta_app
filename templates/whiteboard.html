@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
+    <script type="module" src="{{ url_for('static', filename='js/whiteboard/fabric.brushes.js') }}"></script>
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Merriweather:wght@400;700&family=Playfair+Display:wght@400;700&family=Oswald:wght@400;700&family=Roboto+Slab:wght@400;700&family=Dancing+Script:wght@400;700&family=Pacifico&family=Caveat&family=Inconsolata&family=Amatic+SC:wght@400;700&family=Satisfy&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
 
@@ -100,11 +101,26 @@
                     </g>
                 </svg>
             </button>
-            <ul class="dropdown-menu" aria-labelledby="free-draw-button" id="brush-options-dropdown"> <!-- Added id="brush-options-dropdown" -->
-                <li><button class="dropdown-item brush-selector active" data-brush-type="PencilBrush"><i class="fas fa-pencil-alt me-2"></i>Crayon</button></li>
-                <li><button class="dropdown-item brush-selector" data-brush-type="CircleBrush"><i class="fas fa-paint-brush me-2"></i>Rond</button></li>
-                <li><button class="dropdown-item brush-selector" data-brush-type="SprayBrush"><i class="fas fa-spray-can me-2"></i>Spray</button></li>
-                <li><button class="dropdown-item brush-selector" data-brush-type="SlashBrush"><svg class="me-2"><!-- Icône Trait --></svg>Trait</button></li>
+            <ul class="dropdown-menu p-2" aria-labelledby="free-draw-button" id="brush-options-dropdown">
+                <!-- Pinceaux Fabric.js standards ou autres existants -->
+                <li><button class="dropdown-item brush-selector active" type="button" data-brush-type="pencil"><i class="fas fa-pencil-alt me-2"></i>Crayon (Fabric)</button></li>
+                <li><button class="dropdown-item brush-selector" type="button" data-brush-type="circle"><i class="fas fa-circle me-2"></i>Rond (Fabric)</button></li>
+                <li><button class="dropdown-item brush-selector" type="button" data-brush-type="spray"><i class="fas fa-spray-can-sparkles me-2"></i>Spray (Fabric)</button></li>
+                <!-- Si SlashBrush est un pinceau spécifique, gardez-le. Sinon, vous pouvez le retirer ou l'adapter -->
+                <li><button class="dropdown-item brush-selector" type="button" data-brush-type="slash"><svg class="me-2"><!-- Icône Trait --></svg>Trait</button></li>
+
+                <!-- Pinceaux de fabric-brushes -->
+                <li><button class="dropdown-item brush-selector" type="button" data-brush-type="crayon"><i class="fas fa-paint-brush me-2"></i>Crayon (Custom)</button></li>
+                <li><button class="dropdown-item brush-selector" type="button" data-brush-type="fur"><i class="fas fa-feather me-2"></i>Fourrure</button></li>
+                <li><button class="dropdown-item brush-selector" type="button" data-brush-type="ink"><i class="fas fa-pen-fancy me-2"></i>Encre</button></li>
+                <li><button class="dropdown-item brush-selector" type="button" data-brush-type="longfur"><i class="fas fa-feather-alt me-2"></i>Fourrure Longue</button></li>
+                <li><button class="dropdown-item brush-selector" type="button" data-brush-type="marker"><i class="fas fa-highlighter me-2"></i>Marqueur</button></li>
+                <li><button class="dropdown-item brush-selector" type="button" data-brush-type="ribbon"><i class="fas fa-ribbon me-2"></i>Ruban</button></li>
+                <li><button class="dropdown-item brush-selector" type="button" data-brush-type="shaded"><i class="fas fa-fill-drip me-2"></i>Ombré</button></li>
+                <li><button class="dropdown-item brush-selector" type="button" data-brush-type="sketchy"><i class="fas fa-signature me-2"></i>Esquisse</button></li>
+                <li><button class="dropdown-item brush-selector" type="button" data-brush-type="spraypaint"><i class="fas fa-spray-can me-2"></i>Spray (Custom)</button></li>
+                <li><button class="dropdown-item brush-selector" type="button" data-brush-type="squares"><i class="fas fa-th-large me-2"></i>Carrés</button></li>
+                <li><button class="dropdown-item brush-selector" type="button" data-brush-type="web"><i class="fas fa-spider me-2"></i>Toile</button></li>
             </ul>
 
         </div>
@@ -223,5 +239,7 @@
 
 </script>
 
+
 <script type="module" src="{{ url_for('static', filename='js/whiteboard/main.js') }}"></script>
+
 {% endblock %}

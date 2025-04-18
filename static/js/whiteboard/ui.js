@@ -91,38 +91,47 @@ export function initializeModeButtons(canvas, setModeCallback) {
         return;
     }
 
+    // --- Fonction utilitaire pour retarder le changement de mode ---
+    const delayedSetMode = (mode) => {
+        // Utiliser un délai minimal (0ms fonctionne souvent, mais 1ms est plus sûr)
+        // Cela pousse l'exécution au prochain "tick" de la boucle d'événements.
+        setTimeout(() => {
+            setModeCallback(mode);
+        }, 1); // Délai de 1 milliseconde
+    };
+    // --- Fin fonction utilitaire ---
+
     // --- Écouteurs pour les modes principaux ---
-    selectionButton.addEventListener('click', () => setModeCallback('select'));
-    panButton.addEventListener('click', () => setModeCallback('pan'));
-    // Note: Le clic sur freeDrawButton ouvre le dropdown (géré par Bootstrap).
-    // Le passage en mode 'draw' est déclenché par brush-manager.js en cliquant sur un pinceau.
+    selectionButton.addEventListener('click', () => delayedSetMode('select')); // <-- MODIFIÉ
+    panButton.addEventListener('click', () => delayedSetMode('pan'));         // <-- MODIFIÉ
+    // Note: Le clic sur freeDrawButton ouvre le dropdown. Le mode 'draw' est activé
+    // via brush-manager.js lors de la sélection d'un pinceau (à modifier aussi).
 
     // --- Callback pour revenir en mode sélection après ajout ---
-    const returnToSelectMode = () => setModeCallback('select');
+    const returnToSelectMode = () => delayedSetMode('select'); // <-- MODIFIÉ (Utiliser le délai ici aussi)
 
     // --- Écouteurs pour l'ajout de formes/texte ---
     addRectButton.addEventListener('click', () => {
-        setModeCallback('shape'); // Passe en mode intermédiaire 'shape'
-        addRectangle(canvas, returnToSelectMode); // Lance l'ajout et fournit le callback
+        delayedSetMode('shape'); // <-- MODIFIÉ
+        addRectangle(canvas, returnToSelectMode);
     });
     addCircleButton.addEventListener('click', () => {
-        setModeCallback('shape');
+        delayedSetMode('shape'); // <-- MODIFIÉ
         addCircle(canvas, returnToSelectMode);
     });
     addTriangleButton.addEventListener('click', () => {
-        setModeCallback('shape');
+        delayedSetMode('shape'); // <-- MODIFIÉ
         addTriangle(canvas, returnToSelectMode);
     });
     addHexagonButton.addEventListener('click', () => {
-        setModeCallback('shape');
+        delayedSetMode('shape'); // <-- MODIFIÉ
         addHexagon(canvas, returnToSelectMode);
     });
     addTextButton.addEventListener('click', () => {
-        setModeCallback('text'); // Passe en mode intermédiaire 'text'
-        addText(canvas, returnToSelectMode); // Lance l'ajout et fournit le callback
+        delayedSetMode('text'); // <-- MODIFIÉ
+        addText(canvas, returnToSelectMode);
     });
 }
-
 /**
  * Met à jour l'état visuel (classe .active) des boutons de mode principaux.
  * @param {import('./mode-manager.js').InteractionMode} activeMode - Le mode actuellement actif.
@@ -234,13 +243,11 @@ export function updateZoomIndicator(canvas) {
 export function loadData(canvas, projetId) {
     fetch(`/load/${projetId}`)
         .then(response => {
+            // ... (gestion des erreurs inchangée) ...
             if (!response.ok) {
-                // Essayer de lire le message d'erreur JSON s'il existe
                 return response.json().catch(() => {
-                    // Si pas de JSON, lancer une erreur générique
                     throw new Error(`Network response was not ok (${response.status})`);
                 }).then(errData => {
-                    // Si JSON lu, lancer l'erreur avec le message serveur
                     throw new Error(errData.message || `Network response was not ok (${response.status})`);
                 });
             }
@@ -248,19 +255,25 @@ export function loadData(canvas, projetId) {
         })
         .then(data => {
             if (data.whiteboard_data) {
-                loadCanvas(canvas, data.whiteboard_data); // loadCanvas est dans state.js
-                // Mettre à jour les sélecteurs après chargement (peut être asynchrone)
+                // ICI: On passe bien whiteboard_data à loadCanvas.
+                // loadCanvas (dans state.js) gérera la nouvelle structure.
+                loadCanvas(canvas, data.whiteboard_data);
+
+                // Mettre à jour l'UI après le chargement (déjà présent)
                 updateFontFamilySelector(canvas);
                 updateFontSizeSelector(canvas);
                 updateZoomIndicator(canvas); // Mettre à jour l'indicateur de zoom initial
             } else {
                 console.log('No whiteboard data found for this project.');
-                // Peut-être initialiser un canvas vide ou afficher un message
+                // Initialiser un canvas vide ou afficher un message
+                // S'assurer que l'état initial est sauvegardé même pour un canvas vide
+                saveCanvasState(canvas);
+                redoStack = []; // Réinitialiser redo pour un nouveau canvas
             }
         })
         .catch((error) => {
             console.error('Error loading whiteboard data:', error);
-            // Afficher une erreur à l'utilisateur
             alert(`Erreur lors du chargement du tableau blanc: ${error.message}`);
         });
 }
+

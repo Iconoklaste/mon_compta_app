@@ -6,6 +6,7 @@ import { undo, redo, saveCanvasState } from './state.js'; // Ajout saveCanvasSta
 import { initializeColorPickers, updateFillPickerUI, updateStrokePickerUI } from './color-picker.js';
 import { initializeBrushSelectors } from './brush-manager.js';
 import { initializeModeManager, setMode } from './mode-manager.js'; // Import du mode manager
+import { handlePaste } from './clipboard.js';
 
 document.addEventListener('DOMContentLoaded', () => {
     const canvas = initializeCanvas();
@@ -18,7 +19,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // 1. Initialiser le gestionnaire de modes (AVANT l'UI qui en dépend)
     // Passe la fonction de mise à jour de l'UI des boutons
-    initializeModeManager(canvas, updateModeButtonsUI, 'select'); // Commence en mode 'select'
+    initializeModeManager(canvas, updateModeButtonsUI, 'pan'); // Commence en mode 'pan'
 
     // 2. Initialiser les éléments UI généraux (police, zoom, sauvegarde)
     initializeUI(canvas, projetId);
@@ -34,6 +35,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Passe la fonction setMode pour activer le mode 'draw' lors de la sélection d'un pinceau
     initializeBrushSelectors(canvas, setMode);
 
+    document.addEventListener('paste', (event) => handlePaste(event, canvas));
+
     // 6. Charger les données existantes du tableau blanc
     loadData(canvas, projetId);
 
@@ -43,6 +46,12 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('keydown', (event) => {
         // Ignorer si un input/textarea est focus pour éviter de déclencher undo/redo en tapant
         const targetTagName = event.target.tagName.toLowerCase();
+
+        const isInputFocused = targetTagName === 'input' || targetTagName === 'textarea' || event.target.isContentEditable;
+        if (isInputFocused) {
+            return; // Ignorer si un input/textarea/contentEditable est focus
+        }
+        
         if (targetTagName === 'input' || targetTagName === 'textarea') {
             return;
         }

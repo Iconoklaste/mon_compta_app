@@ -6,7 +6,7 @@
 
 let _canvas = null;
 /** @type {InteractionMode} */
-let _currentMode = 'select'; // Mode initial par défaut
+let _currentMode = 'pan'; // Mode initial par défaut
 let _updateModeButtonsUICallback = () => {}; // Callback pour mettre à jour l'UI des boutons
 
 /**
@@ -15,7 +15,7 @@ let _updateModeButtonsUICallback = () => {}; // Callback pour mettre à jour l'U
  * @param {function(InteractionMode): void} updateButtonsCallback - Fonction pour mettre à jour l'UI des boutons.
  * @param {InteractionMode} [initialMode='select'] - Le mode initial.
  */
-export function initializeModeManager(canvasInstance, updateButtonsCallback, initialMode = 'select') {
+export function initializeModeManager(canvasInstance, updateButtonsCallback, initialMode = 'pan') {
     if (!canvasInstance) {
         console.error("ModeManager: Instance de canvas non fournie.");
         return;
@@ -78,19 +78,59 @@ export function getCurrentMode() {
 function _cleanupPreviousMode(previousMode) {
     if (!_canvas) return;
 
-    // Désactiver le mode dessin
-    _canvas.isDrawingMode = false;
-    // Désactiver le flag de dessin de forme (si utilisé)
-    _canvas.isDrawingShape = false; // Assurez-vous que ce flag existe et est utilisé dans objects.js
-    // Désactiver le panning spécifique du canvas (arrière-plan)
-    _canvas.togglePanningMode(false); // Assurez-vous que canvas.js expose cette fonction
-    // Supprimer les listeners spécifiques au dessin de formes (si présents)
-    if (typeof _canvas.removeShapeListeners === 'function') {
-        _canvas.removeShapeListeners();
+    // --- MODIFICATION START ---
+    // Si on quitte le mode 'draw'...
+    if (previousMode === 'draw') {
+        console.log('[ModeManager] Cleaning up from DRAW mode.');
+        // Vérifier si un pinceau est actif et si quelque chose a été dessiné
+        if (_canvas.freeDrawingBrush && _canvas.freeDrawingBrush._drawn === true) {
+            console.log('[ModeManager] Drawing detected (_drawn=true). Forcing convertToImg...');
+            try {
+                // Appeler convertToImg explicitement AVANT de changer quoi que ce soit d'autre
+                _canvas.freeDrawingBrush.convertToImg();
+                console.log('[ModeManager] convertToImg finished successfully.');
+                // _drawn est remis à false par convertToImg lui-même
+            } catch (error) {
+                console.error('[ModeManager] Error calling convertToImg during cleanup:', error);
+                // Nettoyer le canvas temporaire en cas d'erreur pour éviter les artefacts
+                if (_canvas.contextTop) {
+                    _canvas.clearContext(_canvas.contextTop);
+                }
+                // Réinitialiser le flag manuellement si convertToImg a échoué avant
+                if (_canvas.freeDrawingBrush) {
+                    _canvas.freeDrawingBrush._drawn = false;
+                }
+            }
+        } else {
+             console.log('[ModeManager] No drawing detected (_drawn=false or no brush). Skipping forced convertToImg.');
+             // Nettoyer le canvas temporaire s'il n'y avait rien à convertir
+             if (_canvas.contextTop) {
+                 _canvas.clearContext(_canvas.contextTop);
+             }
+        }
+
+        // On ne met toujours PAS isDrawingMode = false ici.
+        // _configureCanvasForMode s'en chargera pour le nouveau mode.
+
+        // Assurer le nettoyage des listeners de forme (au cas où)
+        if (typeof _canvas.removeShapeListeners === 'function') {
+            _canvas.removeShapeListeners();
+        }
+
+    } else {
+        // Pour tous les autres modes, on peut mettre isDrawingMode = false sans risque
+        _canvas.isDrawingMode = false;
     }
+    // --- MODIFICATION END ---
+
+    // Désactiver le flag de dessin de forme (si utilisé)
+    _canvas.isDrawingShape = false;
+    // Désactiver le panning spécifique du canvas (arrière-plan)
+    _canvas.togglePanningMode(false);
+
     // Réinitialiser les curseurs (sera redéfini par le nouveau mode)
     _canvas.defaultCursor = 'default';
-    _canvas.hoverCursor = 'move'; // Ou 'default' selon votre préférence
+    _canvas.hoverCursor = 'move';
 
     // Assurer que la sélection est généralement réactivée (sauf si le nouveau mode la désactive)
     _canvas.selection = true;
@@ -103,43 +143,43 @@ function _cleanupPreviousMode(previousMode) {
 function _configureCanvasForMode(newMode) {
     if (!_canvas) return;
 
+    // Définir les valeurs par défaut (seront écrasées si nécessaire)
+    _canvas.isDrawingMode = false; // Important de le définir ici pour les modes NON-draw
+    _canvas.selection = true;
+    _canvas.defaultCursor = 'default';
+    _canvas.hoverCursor = 'move';
+    _canvas.togglePanningMode(false);
+
     switch (newMode) {
         case 'select':
-            _canvas.selection = true;
-            _canvas.defaultCursor = 'default';
-            _canvas.hoverCursor = 'move';
-            _canvas.togglePanningMode(false); // Désactive le pan de l'arrière-plan
-            _canvas.isDrawingMode = false;
+            // Les valeurs par défaut sont correctes
             break;
         case 'pan':
-            _canvas.selection = true; // Permet la sélection/déplacement d'objets *aussi*
             _canvas.defaultCursor = 'grab';
             _canvas.hoverCursor = 'grab'; // Ou 'grabbing' si géré dans canvas.js
             _canvas.togglePanningMode(true); // Active le pan de l'arrière-plan
-            _canvas.isDrawingMode = false;
+            // isDrawingMode est déjà false par défaut
             break;
         case 'draw':
             _canvas.selection = false;
-            _canvas.isDrawingMode = true;
+            _canvas.isDrawingMode = true; // Définir explicitement sur true
             _canvas.defaultCursor = 'crosshair'; // Ou le curseur spécifique du pinceau
             _canvas.hoverCursor = 'crosshair';
-            _canvas.togglePanningMode(false);
-            // La configuration du pinceau (couleur, épaisseur) est gérée par brush-manager.js
+            // La configuration du pinceau est gérée par brush-manager.js
             break;
+        // ... autres cas (shape, text) ...
         case 'shape':
             _canvas.selection = false; // Désactivé pendant le dessin de la forme
             _canvas.defaultCursor = 'crosshair';
             _canvas.hoverCursor = 'crosshair';
-            _canvas.togglePanningMode(false);
-            _canvas.isDrawingMode = false;
+            // isDrawingMode est déjà false par défaut
             // Les listeners pour dessiner la forme sont ajoutés par objects.js
             break;
         case 'text':
             _canvas.selection = false; // Désactivé temporairement jusqu'à ce que le texte soit ajouté
-            _canvas.defaultCursor = 'text'; // Ou 'default' car l'objet est ajouté immédiatement
+            _canvas.defaultCursor = 'text';
             _canvas.hoverCursor = 'text';
-            _canvas.togglePanningMode(false);
-            _canvas.isDrawingMode = false;
+            // isDrawingMode est déjà false par défaut
             // L'objet texte est ajouté immédiatement par objects.js
             break;
         default:

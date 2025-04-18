@@ -59,14 +59,43 @@ export function redo(canvas) {
 }
 
 export function loadCanvas(canvas, data) {
-    canvas.loadFromJSON(data, function() { // Callback après chargement
+    // --- MODIFICATION ICI ---
+    // Vérifier si les données ont la nouvelle structure (avec zoom/viewport)
+    // ou l'ancienne structure (juste les objets) pour la compatibilité descendante.
+    let objectsData = data;
+    let initialZoom = 1; // Zoom par défaut
+    let initialViewport = fabric.iMatrix.concat(); // Viewport par défaut (identité)
+
+    if (data && typeof data === 'object' && data.objects && data.zoom && data.viewport) {
+        // Nouvelle structure détectée
+        objectsData = data.objects;
+        initialZoom = data.zoom;
+        initialViewport = data.viewport;
+        console.log("Loading canvas with zoom and viewport data.");
+    } else {
+        console.log("Loading canvas with legacy object data only.");
+        // Si data n'est pas un objet ou n'a pas les clés attendues,
+        // on suppose que c'est l'ancien format (juste les objets JSON)
+        // ou des données invalides (loadFromJSON gérera les erreurs).
+        objectsData = data;
+    }
+    // --- FIN MODIFICATION ---
+
+    // Charger les objets
+    canvas.loadFromJSON(objectsData, function() { // Callback après chargement des objets
+        // Appliquer le zoom et le viewport APRÈS le chargement des objets
+        canvas.setZoom(initialZoom);
+        canvas.setViewportTransform(initialViewport);
+
+        // Ré-appliquer les contrôles personnalisés après le chargement
         canvas.getObjects().forEach(function(obj) {
-            // Ré-applique les contrôles après le chargement
             addControlsToObject(obj, canvas);
         });
+
+        // Rendre le canvas avec le bon zoom/viewport
         canvas.renderAll();
+
         // Sauvegarde l'état initial chargé dans l'historique undo
-        // (Important pour que le premier 'undo' ne vide pas le canvas)
         saveCanvasState(canvas);
         // Réinitialise redoStack car on charge un nouvel état
         redoStack = [];
@@ -74,45 +103,57 @@ export function loadCanvas(canvas, data) {
 }
 
 export function saveWhiteboard(canvas, projetId) {
-    // Inclure les noms des contrôles personnalisés dans toJSON
-    const canvasData = canvas.toJSON(['deleteControl', 'duplicateControl']);
-    const csrfTokenElement = document.getElementById('csrfToken'); // Vérifier si l'élément existe
+    // --- MODIFICATION ICI ---
+    // 1. Obtenir les données des objets
+    const objectsData = canvas.toJSON(['deleteControl', 'duplicateControl']);
+    // 2. Obtenir le niveau de zoom actuel
+    const currentZoom = canvas.getZoom();
+    // 3. Obtenir la transformation du viewport actuelle
+    const currentViewport = canvas.viewportTransform;
 
+    // 4. Créer l'objet de données complet à sauvegarder
+    const saveData = {
+        version: '1.1', // Version pour identifier la structure
+        zoom: currentZoom,
+        viewport: currentViewport,
+        objects: objectsData // Les données des objets sont maintenant imbriquées
+    };
+    // --- FIN MODIFICATION ---
+
+    const csrfTokenElement = document.getElementById('csrfToken');
     if (!csrfTokenElement) {
         console.error("L'élément CSRF token avec l'ID 'csrfToken' n'a pas été trouvé.");
         alert("Erreur de sécurité : Impossible de sauvegarder le tableau blanc.");
-        return; // Arrêter si le token n'est pas trouvé
+        return;
     }
     const csrfToken = csrfTokenElement.value;
 
-    fetch(`/save_whiteboard/${projetId}`, { // Assure-toi que cette route est correcte
+    fetch(`/save_whiteboard/${projetId}`, {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
             'X-CSRFToken': csrfToken,
         },
-        body: JSON.stringify(canvasData),
+        // Envoyer la nouvelle structure de données
+        body: JSON.stringify(saveData),
     })
     .then(response => {
+        // ... (gestion de la réponse inchangée) ...
         if (!response.ok) {
-            // Essayer de lire le message d'erreur du serveur si possible
             return response.json().then(errData => {
                 throw new Error(errData.message || `Erreur réseau ${response.status}`);
             }).catch(() => {
-                // Si le corps n'est pas JSON ou vide
                 throw new Error(`Erreur réseau ${response.status}`);
             });
         }
         return response.json();
     })
     .then(data => {
-        console.log('Sauvegarde réussie:', data);
-        // Optionnel: Afficher une notification de succès à l'utilisateur
+        console.log('Sauvegarde réussie (avec zoom/viewport):', data);
         // alert('Tableau blanc sauvegardé avec succès !');
     })
     .catch((error) => {
         console.error('Erreur lors de la sauvegarde:', error);
-        // Afficher une erreur plus visible à l'utilisateur
         alert(`Erreur lors de la sauvegarde du tableau blanc : ${error.message}`);
     });
 }
