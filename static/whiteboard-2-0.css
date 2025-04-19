@@ -338,6 +338,31 @@ body.whiteboard-page #main-navbar {
     z-index: 10; /* Au-dessus du canvas */
 }
 
+/* --- Minimap Styles --- */
+#minimap-container {
+    position: absolute;
+    bottom: 15px; /* Adjust as needed */
+    right: 15px;  /* Adjust as needed */
+    width: 200px; /* Example width */
+    height: 150px; /* Example height */
+    border: 1px solid #ccc;
+    background-color: rgba(255, 255, 255, 0.8); /* Slightly transparent background */
+    z-index: 100; /* Above canvas, below object toolbar if needed */
+    overflow: hidden; /* Hide parts of the minimap canvas that might overflow */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+#minimap-canvas {
+    display: block; /* Remove extra space below canvas */
+    width: 100%;
+    height: 100%;
+    cursor: grab; /* Indicate draggability */
+}
+
+#minimap-canvas:active {
+    cursor: grabbing; /* Indicate dragging */
+}
+
 /* --- Styles pour les boutons de la Navbar (Sauvegarder, Retour) --- */
 .navbar-actions-container {
     display: flex;

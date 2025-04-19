@@ -4,6 +4,7 @@ import { saveCanvasState } from './state.js';
 /**
  * Supprime l'objet actif (ou les objets d'un groupe) du canvas.
  * Destinée à être appelée depuis la barre d'outils ou un autre bouton/action.
+ * @param {fabric.Object} target - L'objet à verrouiller/déverrouiller.
  * @param {fabric.Canvas} canvas - L'instance du canvas.
  * @returns {boolean} - True si un objet a été supprimé, false sinon.
  */
@@ -53,10 +54,49 @@ export function duplicateObject(target, canvas) {
     }); // Pas besoin de spécifier les anciens contrôles dans les propriétés à cloner
 }
 
-// --- Les éléments suivants sont supprimés car gérés par la toolbar HTML ---
-// - SVG Icons (cloneIcon, deleteIcon)
-// - Image elements (deleteImg, cloneImg)
-// - renderIcon (fonction de rendu pour les contrôles Fabric)
-// - addDuplicateControl (ajout du contrôle Fabric spécifique)
-// - addCustomControls (ajout des deux contrôles Fabric)
-// - Les fonctions deleteObject/duplicateObject originales liées aux événements Fabric sont remplacées par celles-ci.
+
+/**
+ * Verrouille ou déverrouille l'objet cible.
+ * Modifie les propriétés de l'objet pour empêcher/autoriser les modifications.
+ * @param {fabric.Object} target - L'objet à verrouiller/déverrouiller.
+ * @param {fabric.Canvas} canvas - L'instance du canvas.
+ */
+export function toggleObjectLock(target, canvas) {
+    if (!target || !canvas) {
+        console.warn("Tentative de verrouillage sans cible ou sans canvas.");
+        return;
+    }
+
+    // Inverse l'état de verrouillage (utilise une propriété personnalisée)
+    const currentlyLocked = target.isLocked === true;
+    const newLockedState = !currentlyLocked;
+
+    target.set('isLocked', newLockedState);
+
+    // Applique les propriétés Fabric correspondantes
+    target.set({
+        lockMovementX: newLockedState,
+        lockMovementY: newLockedState,
+        lockRotation: newLockedState,
+        lockScalingX: newLockedState,
+        lockScalingY: newLockedState,
+        lockSkewingX: newLockedState,
+        lockSkewingY: newLockedState,
+        lockUniScaling: newLockedState, // Verrouille aussi la mise à l'échelle uniforme
+        hasControls: !newLockedState,   // Cache les contrôles si verrouillé
+        hasBorders: !newLockedState,    // Cache les bordures si verrouillé
+        selectable: !newLockedState,    // Rend l'objet non sélectionnable si verrouillé (attention, peut empêcher de le déverrouiller facilement via clic !)
+                                        // Alternative: Laisser selectable=true mais bloquer les actions via les locks.*
+                                        // Pour cet exemple, on le laisse sélectionnable pour pouvoir le déverrouiller via la toolbar.
+        // selectable: true, // Laisser sélectionnable pour pouvoir cliquer et afficher la toolbar
+    });
+
+    // Si on veut le rendre vraiment non-sélectionnable quand il est verrouillé:
+    // target.set('selectable', !newLockedState);
+    // Mais il faudra un autre moyen pour le déverrouiller (ex: un bouton global, clic droit?)
+
+    console.log(`Objet ${newLockedState ? 'verrouillé' : 'déverrouillé'}:`, target);
+
+    canvas.requestRenderAll(); // Met à jour l'affichage (cache/affiche contrôles/bordures)
+    saveCanvasState(canvas);   // Sauvegarde l'état pour l'undo/redo et la persistance
+}

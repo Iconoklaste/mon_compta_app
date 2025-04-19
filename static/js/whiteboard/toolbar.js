@@ -1,6 +1,6 @@
 // static/js/whiteboard/toolbar.js
 import { saveCanvasState } from './state.js';
-import { deleteActiveObject } from './controls.js'; // <-- Importe depuis controls.js
+import { deleteActiveObject, toggleObjectLock } from './controls.js'; // <-- Importe depuis controls.js
 import { sendToBack, bringToFront, sendBackward, bringForward } from './objects.js'; // Garde les autres depuis objects.js
 import { fillDropdownInstance, strokeDropdownInstance } from './color-picker.js';
 
@@ -14,6 +14,7 @@ let textSection, fontFamilySelect, fontSizeInput, boldButton, italicButton;
 let shapeSection; // Ajoutez d'autres sections si nécessaire
 let openFillPickerButton, fillPreviewSwatch;
 let openStrokePickerButton, strokePreviewSwatch;
+let lockButton;
 
 /**
  * Initialise la barre d'outils et attache les écouteurs aux boutons.
@@ -37,6 +38,7 @@ export function initializeToolbar(canvas) {
     bringForwardButton = document.getElementById('toolbar-bring-forward');
     sendBackwardButton = document.getElementById('toolbar-send-backward');
     // ... récupérer bringToFront, sendToBack ...
+    lockButton = document.getElementById('toolbar-lock');
 
     textSection = toolbarElement.querySelector('.toolbar-text');
     fontFamilySelect = document.getElementById('toolbar-font-family');
@@ -56,6 +58,7 @@ export function initializeToolbar(canvas) {
     bringForwardButton?.addEventListener('click', () => bringForward(canvasInstance));
     sendBackwardButton?.addEventListener('click', () => sendBackward(canvasInstance));
     // ... ajouter listeners pour bringToFront, sendToBack ...
+    lockButton?.addEventListener('click', handleLockToggle);
 
     // Listeners spécifiques au texte
     fontFamilySelect?.addEventListener('change', handleFontFamilyChange);
@@ -137,8 +140,21 @@ function handleDuplicate() {
     });
 }
 
+/**
+ * Gère le clic sur le bouton Verrouiller/Déverrouiller.
+ */
+function handleLockToggle() {
+    if (currentTarget && canvasInstance) {
+        toggleObjectLock(currentTarget, canvasInstance); // Appelle la fonction dans controls.js
+        // L'état du bouton sera mis à jour par updateToolbarContent qui est appelé
+        // par handleObjectModified après la modification de l'objet.
+        // On peut aussi forcer la mise à jour ici si handleObjectModified n'est pas fiable pour ça.
+        updateToolbarContent(currentTarget); // Forcer la mise à jour immédiate de l'UI du bouton
+    }
+}
+
 // --- Fonctions de gestion du texte ---
-// ... (handleFontFamilyChange, handleFontSizeChange, handleBold, handleItalic, applyTextStyle inchangés) ...
+
 async function handleFontFamilyChange(event) {
     if (!currentTarget || currentTarget.type !== 'textbox') return;
     const newFont = event.target.value;
@@ -243,7 +259,7 @@ export function hideToolbar() {
  * @param {fabric.Object} target - L'objet cible.
  */
 function updateToolbarPosition(target) {
-    // ... (code inchangé) ...
+
     if (!target || !toolbarElement || !canvasInstance) return;
 
     const canvasRect = canvasInstance.getElement().getBoundingClientRect();
@@ -287,9 +303,10 @@ function updateToolbarContent(target) {
     shapeSection = toolbarElement.querySelector('.toolbar-shape');
     fillPreviewSwatch = document.getElementById('toolbar-fill-preview'); // Re-sélectionner
     strokePreviewSwatch = document.getElementById('toolbar-stroke-preview'); // Re-sélectionner
+    lockButton = document.getElementById('toolbar-lock');
 
-    if (!textSection || !shapeSection || !fillPreviewSwatch || !strokePreviewSwatch) {
-        console.warn("[Toolbar] Missing sections or swatches in updateToolbarContent");
+    if (!textSection || !shapeSection || !fillPreviewSwatch || !strokePreviewSwatch || !lockButton) {
+        console.warn("[Toolbar] Missing sections, swatches or lock button in updateToolbarContent");
         return;
     }
 
@@ -327,6 +344,20 @@ function updateToolbarContent(target) {
         strokePreviewSwatch.style.backgroundColor = isStrokeTransparent ? 'transparent' : stroke;
         strokePreviewSwatch.classList.toggle('no-color-preview', isStrokeTransparent);
     }
+
+    // --- MODIFICATION START: Mettre à jour le bouton de verrouillage ---
+    if (lockButton) {
+        // Utilise la propriété personnalisée 'isLocked' définie dans controls.js
+        const isLocked = target.isLocked === true;
+        lockButton.classList.toggle('active', isLocked); // Style visuel si verrouillé
+        const icon = lockButton.querySelector('i');
+        if (icon) {
+            // L'icône initiale est fa-unlock, on la change en fa-lock si verrouillé
+            icon.className = isLocked ? 'fas fa-lock' : 'fas fa-unlock';
+        }
+        // Mettre à jour le title pour l'accessibilité et l'info au survol
+        lockButton.title = isLocked ? 'Déverrouiller' : 'Verrouiller';
+    }
 }
 
 // --- Gestionnaires d'événements Fabric pour maintenir la barre d'outils ---
@@ -361,20 +392,32 @@ function handleCanvasMouseDown(options) {
 
     console.log("[handleCanvasMouseDown] Fired. Target:", target, "Click on Toolbar:", isClickOnToolbar);
 
-    if (target && !isClickOnToolbar && !isClickInOpenColorDropdown) {
-        console.log("[handleCanvasMouseDown] Clicked ON an object. Calling showToolbar.");
+    // --- MODIFICATION: Ne pas cacher la toolbar si on clique sur l'objet déjà sélectionné ---
+    if (target && target === currentTarget && !isClickOnToolbar && !isClickInOpenColorDropdown) {
+        // Clic sur l'objet déjà sélectionné, on ne fait rien (la toolbar reste)
+        console.log("[handleCanvasMouseDown] Clicked on the ALREADY selected object. Toolbar stays.");
+        // Fermer les dropdowns couleur si ouverts
+        fillDropdownInstance?.hide();
+        strokeDropdownInstance?.hide();
+    } else if (target && target !== currentTarget && !isClickOnToolbar && !isClickInOpenColorDropdown) {
+        // Clic sur un NOUVEL objet
+        console.log("[handleCanvasMouseDown] Clicked ON a NEW object. Calling showToolbar.");
         showToolbar(target);
         // Fermer les dropdowns couleur
         fillDropdownInstance?.hide();
         strokeDropdownInstance?.hide();
     } else if (!target && !isClickOnToolbar && !isClickInOpenColorDropdown) {
+        // Clic sur le fond
         console.log("[handleCanvasMouseDown] Clicked on BACKGROUND. Scheduling hideToolbar (50ms).");
+        // Utiliser un petit délai pour permettre aux clics sur les boutons de la toolbar d'être traités avant de cacher
         setTimeout(hideToolbar, 50);
         // Fermer les dropdowns couleur
         fillDropdownInstance?.hide();
         strokeDropdownInstance?.hide();
     }
+    // Si isClickOnToolbar ou isClickInOpenColorDropdown est true, on ne fait rien ici (laisse les listeners spécifiques gérer)
 }
+
 
 // --- AJOUT : Fonction pour gérer les clics sur le document ---
 function handleDocumentClickForDropdowns(event) {
