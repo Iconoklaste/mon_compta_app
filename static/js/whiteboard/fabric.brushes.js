@@ -674,6 +674,7 @@ fabric.FurBrush = fabric.util.createClass(fabric.BaseBrush, {
 
 	onMouseUp: function(options) { // Accept options
 		// convertToImg called by BaseBrush.onMouseUp
+		fabric.BaseBrush.prototype.onMouseUp.call(this, options);
         this._reset();
 	},
 
@@ -766,6 +767,7 @@ fabric.InkBrush = fabric.util.createClass(fabric.BaseBrush, {
 
 	onMouseUp: function(options) { // Accept options
 		// convertToImg called by BaseBrush.onMouseUp
+		fabric.BaseBrush.prototype.onMouseUp.call(this, options);
 		this.canvas.contextTop.globalAlpha = 1; // Reset alpha
         this._reset();
 	},
@@ -914,6 +916,7 @@ fabric.LongfurBrush = fabric.util.createClass(fabric.BaseBrush, {
 	},
 
 	onMouseUp: function(options) { // Accept options
+		fabric.BaseBrush.prototype.onMouseUp.call(this, options);
 		// convertToImg called by BaseBrush.onMouseUp
         this._reset();
 	},
@@ -1015,6 +1018,7 @@ fabric.MarkerBrush = fabric.util.createClass(fabric.BaseBrush, {
 	},
 
 	onMouseUp: function(options) { // Accept options
+		fabric.BaseBrush.prototype.onMouseUp.call(this, options);
 		// convertToImg called by BaseBrush.onMouseUp
         this._reset();
 	},
@@ -1118,6 +1122,7 @@ fabric.RibbonBrush = fabric.util.createClass(fabric.BaseBrush, {
 		clearInterval(this._interval);
         this._interval = null;
 		// convertToImg called by BaseBrush.onMouseUp
+		fabric.BaseBrush.prototype.onMouseUp.call(this, options);
         this._reset();
 	},
 
@@ -1218,6 +1223,7 @@ fabric.ShadedBrush = fabric.util.createClass(fabric.BaseBrush, {
 
 	onMouseUp: function(options) { // Accept options
 		// convertToImg called by BaseBrush.onMouseUp
+		fabric.BaseBrush.prototype.onMouseUp.call(this, options);
         this._reset();
 	},
 
@@ -1312,6 +1318,7 @@ fabric.SketchyBrush = fabric.util.createClass(fabric.BaseBrush, {
 	},
 
 	onMouseUp: function(options) { // Accept options
+		fabric.BaseBrush.prototype.onMouseUp.call(this, options);
 		// convertToImg called by BaseBrush.onMouseUp
         this._reset();
 	},
@@ -1397,6 +1404,7 @@ fabric.SpraypaintBrush = fabric.util.createClass(fabric.BaseBrush, {
 	},
 
 	onMouseUp: function(options) { // Accept options
+		fabric.BaseBrush.prototype.onMouseUp.call(this, options);
         clearTimeout(this._renderTimer); // Stop the spray interval
         this._renderTimer = null;
 		// convertToImg called by BaseBrush.onMouseUp
@@ -1560,6 +1568,7 @@ fabric.SquaresBrush = fabric.util.createClass(fabric.BaseBrush, {
 	},
 
 	onMouseUp: function(options) { // Accept options
+		fabric.BaseBrush.prototype.onMouseUp.call(this, options);
 		// convertToImg called by BaseBrush.onMouseUp
 		this.canvas.contextTop.globalAlpha = 1; // Reset alpha
         this._reset();
@@ -1654,6 +1663,7 @@ fabric.WebBrush = fabric.util.createClass(fabric.BaseBrush, {
 	},
 
 	onMouseUp: function(options) { // Accept options
+		fabric.BaseBrush.prototype.onMouseUp.call(this, options);
 		// convertToImg called by BaseBrush.onMouseUp
         this._reset();
 	},

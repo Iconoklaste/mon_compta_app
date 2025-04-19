@@ -100,3 +100,53 @@ export function toggleObjectLock(target, canvas) {
     canvas.requestRenderAll(); // Met à jour l'affichage (cache/affiche contrôles/bordures)
     saveCanvasState(canvas);   // Sauvegarde l'état pour l'undo/redo et la persistance
 }
+
+/**
+ * Groupe les objets actuellement sélectionnés (ActiveSelection) sur le canvas.
+ * @param {fabric.Canvas} canvas - L'instance du canvas.
+ */
+export function groupObjects(canvas) {
+    const activeObject = canvas.getActiveObject();
+
+    // Vérifie s'il y a une sélection active et si c'est bien une sélection multiple
+    if (!activeObject || activeObject.type !== 'activeSelection') {
+        console.log("Group: Aucune sélection multiple active.");
+        return;
+    }
+
+    // Convertit la sélection active en groupe
+    const group = activeObject.toGroup();
+
+    // Fabric.js gère la suppression des objets originaux et l'ajout du groupe.
+    // Il désélectionne aussi l'ancienne ActiveSelection.
+
+    // Optionnel: Sélectionner le nouveau groupe créé
+    canvas.setActiveObject(group);
+
+    console.log("Objets groupés:", group);
+    canvas.requestRenderAll();
+    saveCanvasState(canvas); // Sauvegarder l'état après groupement
+}
+
+/**
+ * Dégroupe l'objet de groupe actuellement sélectionné.
+ * @param {fabric.Canvas} canvas - L'instance du canvas.
+ */
+export function ungroupObjects(canvas) {
+    const activeObject = canvas.getActiveObject();
+
+    // Vérifie s'il y a une sélection active et si c'est bien un groupe
+    if (!activeObject || activeObject.type !== 'group') {
+        console.log("Ungroup: Aucun groupe sélectionné.");
+        return;
+    }
+
+    // Convertit le groupe en sélection active (les objets sont ajoutés au canvas)
+    const activeSelection = activeObject.toActiveSelection();
+
+    // Fabric.js gère la suppression du groupe et la création/sélection de l'ActiveSelection.
+
+    console.log("Groupe dégroupé. Nouvelle sélection:", activeSelection);
+    canvas.requestRenderAll();
+    saveCanvasState(canvas); // Sauvegarder l'état après dégroupement
+}

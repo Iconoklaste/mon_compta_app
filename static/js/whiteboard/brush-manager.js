@@ -208,9 +208,9 @@ function setBrushType(canvas, brushType) {
     }
 
     // Assurer que le mode dessin est actif (peut être redondant si setModeCallback le fait déjà)
-    if (canvas.isDrawingMode === false) {
-        canvas.isDrawingMode = true;
-    }
+    //if (canvas.isDrawingMode === false) {
+    //    canvas.isDrawingMode = true;
+    //}
 }
 
 

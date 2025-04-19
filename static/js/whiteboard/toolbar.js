@@ -1,6 +1,6 @@
 // static/js/whiteboard/toolbar.js
 import { saveCanvasState } from './state.js';
-import { deleteActiveObject, toggleObjectLock } from './controls.js'; // <-- Importe depuis controls.js
+import { deleteActiveObject, toggleObjectLock, groupObjects, ungroupObjects } from './controls.js'; // <-- Importe depuis controls.js
 import { sendToBack, bringToFront, sendBackward, bringForward } from './objects.js'; // Garde les autres depuis objects.js
 import { fillDropdownInstance, strokeDropdownInstance } from './color-picker.js';
 
@@ -10,6 +10,7 @@ let currentTarget = null; // L'objet Fabric actuellement ciblé par la barre d'o
 
 // Références aux éléments de la barre d'outils
 let duplicateButton, deleteButton, bringForwardButton, sendBackwardButton;
+let groupButton, ungroupButton;
 let textSection, fontFamilySelect, fontSizeInput, boldButton, italicButton;
 let shapeSection; // Ajoutez d'autres sections si nécessaire
 let openFillPickerButton, fillPreviewSwatch;
@@ -39,6 +40,8 @@ export function initializeToolbar(canvas) {
     sendBackwardButton = document.getElementById('toolbar-send-backward');
     // ... récupérer bringToFront, sendToBack ...
     lockButton = document.getElementById('toolbar-lock');
+    groupButton = document.getElementById('toolbar-group');
+    ungroupButton = document.getElementById('toolbar-ungroup');
 
     textSection = toolbarElement.querySelector('.toolbar-text');
     fontFamilySelect = document.getElementById('toolbar-font-family');
@@ -59,6 +62,8 @@ export function initializeToolbar(canvas) {
     sendBackwardButton?.addEventListener('click', () => sendBackward(canvasInstance));
     // ... ajouter listeners pour bringToFront, sendToBack ...
     lockButton?.addEventListener('click', handleLockToggle);
+    groupButton?.addEventListener('click', handleGroup);
+    ungroupButton?.addEventListener('click', handleUngroup);
 
     // Listeners spécifiques au texte
     fontFamilySelect?.addEventListener('change', handleFontFamilyChange);
@@ -304,14 +309,19 @@ function updateToolbarContent(target) {
     fillPreviewSwatch = document.getElementById('toolbar-fill-preview'); // Re-sélectionner
     strokePreviewSwatch = document.getElementById('toolbar-stroke-preview'); // Re-sélectionner
     lockButton = document.getElementById('toolbar-lock');
+    groupButton = document.getElementById('toolbar-group');
+    ungroupButton = document.getElementById('toolbar-ungroup');
 
-    if (!textSection || !shapeSection || !fillPreviewSwatch || !strokePreviewSwatch || !lockButton) {
+
+    if (!textSection || !shapeSection || !fillPreviewSwatch || !strokePreviewSwatch || !lockButton  || !groupButton || !ungroupButton) {
         console.warn("[Toolbar] Missing sections, swatches or lock button in updateToolbarContent");
         return;
     }
 
     textSection.style.display = 'none';
     shapeSection.style.display = 'none';
+    groupButton.style.display = 'none';   // <-- Cacher par défaut
+    ungroupButton.style.display = 'none';
     
 
     if (target.type === 'textbox') {
@@ -326,39 +336,84 @@ function updateToolbarContent(target) {
     // Ajouter d'autres types si nécessaire (ex: 'path' pour le dessin libre)
     else if (target.type === 'path') {
          shapeSection.style.display = 'flex'; // Les tracés ont souvent un contour
+    } else if (target.type === 'group') {
+        // Pour un groupe sélectionné
+        shapeSection.style.display = 'flex'; // Un groupe peut avoir un fond/contour (moins courant)
+        ungroupButton.style.display = 'inline-block'; // <-- Afficher "Dégrouper"
+    } else if (target.type === 'activeSelection') {
+        // Pour une sélection multiple
+        shapeSection.style.display = 'flex'; // La sélection multiple peut avoir des couleurs communes
+        groupButton.style.display = 'inline-block'; // <-- Afficher "Grouper"
     }
 
     // Mettre à jour les aperçus de couleur (si la section shape est visible)
-    if (shapeSection.style.display === 'flex') {
-        // Remplissage
+    if (shapeSection.style.display === 'flex' && target.type !== 'activeSelection') {
         const fill = target.fill || null;
         const isFillTransparent = (fill === null || fill === 'transparent' || fill === '');
         fillPreviewSwatch.style.backgroundColor = isFillTransparent ? 'transparent' : fill;
         fillPreviewSwatch.classList.toggle('no-color-preview', isFillTransparent);
 
-        // Contour
         const stroke = target.stroke || null;
         const strokeWidth = target.strokeWidth || 0;
-        // Considérer le contour comme transparent s'il n'y a pas de couleur OU si l'épaisseur est nulle
         const isStrokeTransparent = (stroke === null || stroke === 'transparent' || stroke === '' || strokeWidth <= 0);
         strokePreviewSwatch.style.backgroundColor = isStrokeTransparent ? 'transparent' : stroke;
         strokePreviewSwatch.classList.toggle('no-color-preview', isStrokeTransparent);
+    } else if (target.type === 'activeSelection') {
+        // Optionnel: Gérer l'affichage des couleurs pour la sélection multiple
+        // Vous pourriez essayer de trouver une couleur commune ou afficher un état "mixte".
+        // Pour l'instant, on cache ou on met un état indéfini.
+        fillPreviewSwatch.style.backgroundColor = 'transparent'; // Ou une icône "mixte"
+        fillPreviewSwatch.classList.add('no-color-preview'); // Indique un état non défini
+        strokePreviewSwatch.style.backgroundColor = 'transparent';
+        strokePreviewSwatch.classList.add('no-color-preview');
     }
 
-    // --- MODIFICATION START: Mettre à jour le bouton de verrouillage ---
-    if (lockButton) {
-        // Utilise la propriété personnalisée 'isLocked' définie dans controls.js
+    // Mettre à jour le bouton de verrouillage
+    if (lockButton && target.type !== 'activeSelection') { // Ne pas verrouiller une sélection multiple directement
         const isLocked = target.isLocked === true;
-        lockButton.classList.toggle('active', isLocked); // Style visuel si verrouillé
+        lockButton.style.display = 'inline-block'; // Afficher le bouton
+        lockButton.classList.toggle('active', isLocked);
         const icon = lockButton.querySelector('i');
         if (icon) {
-            // L'icône initiale est fa-unlock, on la change en fa-lock si verrouillé
             icon.className = isLocked ? 'fas fa-lock' : 'fas fa-unlock';
         }
-        // Mettre à jour le title pour l'accessibilité et l'info au survol
         lockButton.title = isLocked ? 'Déverrouiller' : 'Verrouiller';
+    } else if (lockButton) {
+        lockButton.style.display = 'none'; // Cacher pour ActiveSelection
     }
 }
+/**
+ * Gère le clic sur le bouton Grouper.
+ */
+function handleGroup() {
+    if (!canvasInstance) return;
+    groupObjects(canvasInstance);
+    // Après groupement, l'objet actif devient le groupe. Mettre à jour la toolbar.
+    const newGroup = canvasInstance.getActiveObject();
+    if (newGroup) {
+        updateToolbarContent(newGroup); // Met à jour pour afficher "Dégrouper"
+        updateToolbarPosition(newGroup); // Repositionne si nécessaire
+    } else {
+        hideToolbar(); // Cache si le groupement a échoué (peu probable)
+    }
+}
+
+/**
+ * Gère le clic sur le bouton Dégrouper.
+ */
+function handleUngroup() {
+    if (!canvasInstance) return;
+    ungroupObjects(canvasInstance);
+    // Après dégroupement, l'objet actif devient une ActiveSelection. Mettre à jour la toolbar.
+    const newSelection = canvasInstance.getActiveObject();
+    if (newSelection && newSelection.type === 'activeSelection') {
+        updateToolbarContent(newSelection); // Met à jour pour afficher "Grouper"
+        updateToolbarPosition(newSelection); // Repositionne si nécessaire
+    } else {
+        hideToolbar(); // Cache si le dégroupement a échoué ou n'a rien sélectionné
+    }
+}
+
 
 // --- Gestionnaires d'événements Fabric pour maintenir la barre d'outils ---
 
@@ -381,43 +436,41 @@ function handleZoom() {
     }
 }
 
+// --- MODIFICATION: Ajuster handleCanvasMouseDown ---
 function handleCanvasMouseDown(options) {
-    const target = options.target;
+    // --- NOUVEAU: Utiliser event.target pour obtenir l'objet cliqué ou la sélection ---
+    const target = options.target; // Peut être un objet, un groupe, une ActiveSelection ou null
+
     const isClickOnToolbar = toolbarElement && toolbarElement.contains(options.e.target);
-    // Vérifier si le clic est DANS un dropdown de couleur ouvert
     const clickedDropdownMenu = options.e.target.closest('.dropdown-menu');
     const isClickInOpenColorDropdown = clickedDropdownMenu &&
-                                       (clickedDropdownMenu.id === 'fill-color-dropdown-menu' || clickedDropdownMenu.id === 'stroke-color-dropdown-menu'); // Ajuste les ID si nécessaire
-
+                                       (clickedDropdownMenu.id === 'fill-color-dropdown-menu' || clickedDropdownMenu.id === 'stroke-color-dropdown-menu');
 
     console.log("[handleCanvasMouseDown] Fired. Target:", target, "Click on Toolbar:", isClickOnToolbar);
 
-    // --- MODIFICATION: Ne pas cacher la toolbar si on clique sur l'objet déjà sélectionné ---
+    // Si on clique sur l'objet/sélection déjà ciblé par la toolbar
     if (target && target === currentTarget && !isClickOnToolbar && !isClickInOpenColorDropdown) {
-        // Clic sur l'objet déjà sélectionné, on ne fait rien (la toolbar reste)
-        console.log("[handleCanvasMouseDown] Clicked on the ALREADY selected object. Toolbar stays.");
-        // Fermer les dropdowns couleur si ouverts
-        fillDropdownInstance?.hide();
-        strokeDropdownInstance?.hide();
-    } else if (target && target !== currentTarget && !isClickOnToolbar && !isClickInOpenColorDropdown) {
-        // Clic sur un NOUVEL objet
-        console.log("[handleCanvasMouseDown] Clicked ON a NEW object. Calling showToolbar.");
-        showToolbar(target);
-        // Fermer les dropdowns couleur
-        fillDropdownInstance?.hide();
-        strokeDropdownInstance?.hide();
-    } else if (!target && !isClickOnToolbar && !isClickInOpenColorDropdown) {
-        // Clic sur le fond
-        console.log("[handleCanvasMouseDown] Clicked on BACKGROUND. Scheduling hideToolbar (50ms).");
-        // Utiliser un petit délai pour permettre aux clics sur les boutons de la toolbar d'être traités avant de cacher
-        setTimeout(hideToolbar, 50);
-        // Fermer les dropdowns couleur
+        console.log("[handleCanvasMouseDown] Clicked on the ALREADY selected target. Toolbar stays.");
         fillDropdownInstance?.hide();
         strokeDropdownInstance?.hide();
     }
-    // Si isClickOnToolbar ou isClickInOpenColorDropdown est true, on ne fait rien ici (laisse les listeners spécifiques gérer)
+    // Si on clique sur un NOUVEL objet, groupe ou crée une nouvelle sélection multiple
+    else if (target && target !== currentTarget && !isClickOnToolbar && !isClickInOpenColorDropdown) {
+        console.log("[handleCanvasMouseDown] Clicked ON a NEW target. Calling showToolbar.");
+        // --- NOUVEAU: showToolbar reçoit maintenant l'objet, le groupe ou l'ActiveSelection ---
+        showToolbar(target);
+        fillDropdownInstance?.hide();
+        strokeDropdownInstance?.hide();
+    }
+    // Si on clique sur le fond (target est null)
+    else if (!target && !isClickOnToolbar && !isClickInOpenColorDropdown) {
+        console.log("[handleCanvasMouseDown] Clicked on BACKGROUND. Scheduling hideToolbar (50ms).");
+        setTimeout(hideToolbar, 50);
+        fillDropdownInstance?.hide();
+        strokeDropdownInstance?.hide();
+    }
+    // Si on clique sur la toolbar ou dans un dropdown couleur, on ne fait rien ici.
 }
-
 
 // --- AJOUT : Fonction pour gérer les clics sur le document ---
 function handleDocumentClickForDropdowns(event) {

@@ -131,21 +131,25 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Pour la barre d'outils flottante et l'UI contextuelle
     canvas.on('selection:created', (event) => {
-        const selectedObject = event.selected ? event.selected[0] : null;
-        if (selectedObject) {
-            showToolbar(selectedObject);
+        // --- MODIFICATION: Utiliser event.target ---
+        const target = event.target; // C'est l'objet, le groupe ou l'ActiveSelection
+        if (target) {
+            showToolbar(target); // Passe la cible correcte
+            updateContextualUI(canvas, target.type === 'activeSelection' ? null : target); // L'UI contextuelle gère moins bien ActiveSelection pour l'instant
         }
-        updateContextualUI(canvas, selectedObject);
     });
 
     canvas.on('selection:updated', (event) => {
-        const selectedObject = event.selected ? event.selected[0] : null;
-         if (selectedObject) {
-            showToolbar(selectedObject);
+        // --- MODIFICATION: Utiliser event.target ---
+        const target = event.target; // C'est l'objet, le groupe ou l'ActiveSelection
+         if (target) {
+            showToolbar(target); // Passe la cible correcte
+            updateContextualUI(canvas, target.type === 'activeSelection' ? null : target);
         } else {
+            // Normalement, selection:updated a toujours une cible, mais par sécurité
             hideToolbar();
+            updateContextualUI(canvas, null);
         }
-        updateContextualUI(canvas, selectedObject);
     });
 
     canvas.on('selection:cleared', () => {
