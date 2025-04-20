@@ -1,0 +1,213 @@
+<!-- c:\wamp\www\mon_compta_app\templates\phase_form.html -->
+{% extends 'base.html' %}
+
+{% block page_title %}
+<h1>{{ projet.nom }}</h1>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-12">
+            <h5 class="mb-4">{{ title }}</h5>
+            <form method="POST">
+                {{ form.hidden_tag() }}
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="info-card">
+                            <div class="card-header rounded-top card-header-custom two-line-header">
+                                <h5 class="card-title">Informations Générales</h5>
+                            </div>
+                            <div class="card-body">
+                                <div class="mb-3">
+                                    {{ form.nom.label(class="form-label") }}
+                                    {{ form.nom(class="form-control") }}
+                                    {% if form.nom.errors %}
+                                    <ul class="errors">
+                                        {% for error in form.nom.errors %}
+                                        <li class="text-danger">{{ error }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                    {% endif %}
+                                </div>
+                                <div class="mb-3">
+                                    {{ form.date_debut.label(class="form-label") }}
+                                    {{ form.date_debut(class="form-control") }}
+                                    {% if form.date_debut.errors %}
+                                    <ul class="errors">
+                                        {% for error in form.date_debut.errors %}
+                                        <li class="text-danger">{{ error }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                    {% endif %}
+                                </div>
+                                <div class="mb-3">
+                                    {{ form.date_fin.label(class="form-label") }}
+                                    {{ form.date_fin(class="form-control") }}
+                                    {% if form.date_fin.errors %}
+                                    <ul class="errors">
+                                        {% for error in form.date_fin.errors %}
+                                        <li class="text-danger">{{ error }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                    {% endif %}
+                                </div>
+                                <div class="mb-3">
+                                    {{ form.statut.label(class="form-label") }}
+                                    {{ form.statut(class="form-select") }}
+                                    {% if form.statut.errors %}
+                                    <ul class="errors">
+                                        {% for error in form.statut.errors %}
+                                        <li class="text-danger">{{ error }}</li>
+                                        {% endfor %}
+                                    </ul>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="info-card">
+                            <div class="card-header rounded-top card-header-custom two-line-header">
+                                <h5 class="card-title">Jalons</h5>
+                            </div>
+                            <div class="card-body">
+                                <ul id="jalons-list" style="padding: 0;">
+                                    {% for jalon_form in form.jalons %}
+                                    <li class="jalon-item" data-jalon-id="{{ jalon_form.id.data if jalon_form.id.data else '' }}">
+                                        <div class="jalon-box">
+                                            <div class="jalon-header">
+                                                <span class="jalon-name me-2">
+                                                    {{ jalon_form.nom(class="form-control form-control-sm", required=True) }}
+                                                    {# Optionnel : Affichage des erreurs pour ce champ spécifique #}
+                                                    {% if jalon_form.nom.errors %}
+                                                        <ul class="errors">
+                                                            {% for error in jalon_form.nom.errors %}
+                                                                <li class="text-danger">{{ error }}</li>
+                                                            {% endfor %}
+                                                        </ul>
+                                                    {% endif %}
+                                                </span>
+                                                <button type="button" class="btn btn-danger btn-sm remove-jalon">
+                                                    <i class="fas fa-trash-alt"></i>
+                                                </button>
+                                            </div>
+                                            <div class="jalon-details">
+                                                <span class="jalon-date">
+                                                    {# Rendu du champ date du jalon #}
+                                                    {{ jalon_form.date(class="form-control form-control-sm") }}
+                                                    {# Affichage des erreurs spécifiques à CE champ date #}
+                                                    {% if jalon_form.date.errors %}
+                                                        <ul class="errors mb-0 mt-1"> {# Ajout mt-1 pour petit espace, mb-0 pour compacité #}
+                                                            {% for error in jalon_form.date.errors %}
+                                                                <li class="text-danger small">{{ error }}</li> {# 'small' pour discrétion #}
+                                                            {% endfor %}
+                                                        </ul>
+                                                    {% endif %}
+                                                </span>
+                                                <div class="form-check">
+                                                    {{ jalon_form.atteint(class="form-check-input") }}
+                                                    {{ jalon_form.atteint.label(class="form-check-label") }}
+                                                </div>
+                                            </div>
+                                
+                                            {% if jalon_form.id.data %}
+                                            {{ jalon_form.id(class="jalon-id") }}
+                                            {% endif %}
+                                        </div>
+                                    </li>
+                                    {% endfor %}
+                                </ul>
+                                <button type="button" id="add-jalon" class="btn btn-secondary">Ajouter un jalon</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="mt-4">
+                    {{ form.submit(class="btn btn-primary") }}
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% endblock %}
+
+
+{# --- JavaScript spécifique à cette page --- #}
+{% block extra_scripts %}
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const addJalonButton = document.getElementById('add-jalon');
+        const jalonsList = document.getElementById('jalons-list');
+        let jalonCounter = {{ form.jalons|length }}; // Initialize counter with existing jalons
+
+        addJalonButton.addEventListener('click', function () {
+            const newJalonItem = document.createElement('li');
+            newJalonItem.classList.add('jalon-item');
+            newJalonItem.dataset.jalonId = ''; // Mark as new jalon
+            newJalonItem.innerHTML = `
+                <div class="jalon-box">
+                    <div class="jalon-header">
+                        <span class="jalon-name me-2"><input class="form-control form-control-sm" id="jalons-${jalonCounter}-nom" name="jalons-${jalonCounter}-nom" type="text" value="" required placeholder="Entrez le nom du jalon"></span>
+                        <button type="button" class="btn btn-danger btn-sm remove-jalon">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </div>
+                    <div class="jalon-details">
+                        <span class="jalon-date">
+                            <input class="form-control form-control-sm" id="jalons-${jalonCounter}-date" name="jalons-${jalonCounter}-date" type="date" value="" required>
+                            {# --- Ajout de la structure pour les erreurs de date --- #}
+                            <ul class="errors mb-0 mt-1" id="errors-jalons-${jalonCounter}-date">
+                                {# Les erreurs seront insérées ici par le serveur si nécessaire #}
+                            </ul>
+                            {# ---------------------------------------------------- #}
+                        </span>
+                        <div class="form-check">
+                            <input class="form-check-input" id="jalons-${jalonCounter}-atteint" name="jalons-${jalonCounter}-atteint" type="checkbox">
+                            <label class="form-check-label" for="jalons-${jalonCounter}-atteint">Atteint</label>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+            jalonsList.appendChild(newJalonItem);
+            jalonCounter++;
+        });
+
+        jalonsList.addEventListener('click', function (event) {
+            if (event.target.classList.contains('remove-jalon')) {
+                const jalonItem = event.target.closest('.jalon-item');
+                const jalonId = jalonItem.dataset.jalonId;
+
+                if (jalonId) {
+                    // Existing jalon, send AJAX request to delete
+                    fetch(`/projets/{{ projet_id }}/phases/{{ phase_id }}/jalons/${jalonId}/supprimer`, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': '{{ csrf_token() }}'
+                        }
+                    })
+                    .then(response => {
+                        if (response.ok) {
+                            jalonItem.remove();
+                        } else {
+                            console.error('Error deleting jalon:', response.statusText);
+                            // Handle error (e.g., show a message to the user)
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        // Handle error (e.g., show a message to the user)
+                    });
+                } else {
+                    // New jalon, just remove from the form
+                    jalonItem.remove();
+                }
+            }
+        });
+    });
+</script>
+
+{% endblock %}

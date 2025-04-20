@@ -1,0 +1,189 @@
+{% extends 'base.html' %}
+
+{# Ajout d'un titre de page #}
+{% block page_title %}
+    <h1>Modifier l'organisation</h1>
+{% endblock %}
+
+{% block content %}
+    <form method="POST" enctype="multipart/form-data">
+        {{ form.hidden_tag() }}
+
+        {# Remplacement de form-group par mb-3 #}
+        <div class="mb-3">
+            {{ form.designation.label(class="form-label") }}
+            {{ form.designation(class="form-control" + (" is-invalid" if form.designation.errors else "")) }}
+            {% if form.designation.errors %}
+                <div class="invalid-feedback"> {# Utilisation de invalid-feedback suggérée #}
+                    {% for error in form.designation.errors %}<span>{{ error }}</span>{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        {# Remplacement de form-group par mb-3 #}
+        <div class="mb-3">
+            {{ form.siret.label(class="form-label") }}
+            {{ form.siret(class="form-control" + (" is-invalid" if form.siret.errors else "")) }}
+            {% if form.siret.errors %}
+                <div class="invalid-feedback">
+                    {% for error in form.siret.errors %}<span>{{ error }}</span>{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        {# Remplacement de form-group par mb-3 et ajout structure form-check #}
+        <div class="mb-3 form-check"> {# Ajout form-check ici #}
+            {{ form.exonere_tva(class="form-check-input", id="exonere_tva") }} {# Ajout form-check-input et id #}
+            {{ form.exonere_tva.label(class="form-check-label") }} {# Ajout form-check-label #}
+            {# Les erreurs pour checkbox sont moins courantes, mais peuvent être ajoutées si besoin #}
+        </div>
+
+        {# Remplacement de form-group par mb-3 #}
+        <div class="mb-3" id="tva_field" {% if organisation.exonere_tva %}style="display: none;"{% endif %}>
+            {{ form.tva_intracommunautaire.label(class="form-label") }}
+            {{ form.tva_intracommunautaire(class="form-control" + (" is-invalid" if form.tva_intracommunautaire.errors else "")) }}
+            {% if form.tva_intracommunautaire.errors %}
+                <div class="invalid-feedback">
+                    {% for error in form.tva_intracommunautaire.errors %}<span>{{ error }}</span>{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        {# Remplacement de form-group par mb-3 #}
+        <div class="mb-3">
+            {{ form.forme_juridique.label(class="form-label") }}
+            {# Si c'est un select, utiliser form-select, sinon form-control #}
+            {{ form.forme_juridique(class="form-control" + (" is-invalid" if form.forme_juridique.errors else "")) }}
+            {% if form.forme_juridique.errors %}
+                <div class="invalid-feedback">
+                    {% for error in form.forme_juridique.errors %}<span>{{ error }}</span>{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        {# Remplacement de form-group par mb-3 #}
+        <div class="mb-3">
+            {{ form.adresse.label(class="form-label") }}
+            {{ form.adresse(class="form-control" + (" is-invalid" if form.adresse.errors else "")) }}
+            {% if form.adresse.errors %}
+                <div class="invalid-feedback">
+                    {% for error in form.adresse.errors %}<span>{{ error }}</span>{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        {# Remplacement de form-group par mb-3 #}
+        <div class="mb-3">
+            {{ form.code_postal.label(class="form-label") }}
+            {{ form.code_postal(class="form-control" + (" is-invalid" if form.code_postal.errors else "")) }}
+            {% if form.code_postal.errors %}
+                <div class="invalid-feedback">
+                    {% for error in form.code_postal.errors %}<span>{{ error }}</span>{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        {# Remplacement de form-group par mb-3 #}
+        <div class="mb-3">
+            {{ form.ville.label(class="form-label") }}
+            {{ form.ville(class="form-control" + (" is-invalid" if form.ville.errors else "")) }}
+            {% if form.ville.errors %}
+                <div class="invalid-feedback">
+                    {% for error in form.ville.errors %}<span>{{ error }}</span>{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        {# Remplacement de form-group par mb-3 #}
+        <div class="mb-3">
+            {{ form.telephone.label(class="form-label") }}
+            {{ form.telephone(class="form-control" + (" is-invalid" if form.telephone.errors else "")) }}
+            {% if form.telephone.errors %}
+                <div class="invalid-feedback">
+                    {% for error in form.telephone.errors %}<span>{{ error }}</span>{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        {# Remplacement de form-group par mb-3 #}
+        <div class="mb-3">
+            {{ form.mail_contact.label(class="form-label") }}
+            {{ form.mail_contact(class="form-control" + (" is-invalid" if form.mail_contact.errors else "")) }}
+            {% if form.mail_contact.errors %}
+                <div class="invalid-feedback">
+                    {% for error in form.mail_contact.errors %}<span>{{ error }}</span>{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        {# Remplacement de form-group par mb-3 #}
+        <div class="mb-3">
+            {{ form.iban.label(class="form-label") }}
+            {{ form.iban(class="form-control" + (" is-invalid" if form.iban.errors else "")) }}
+            {% if form.iban.errors %}
+                <div class="invalid-feedback">
+                    {% for error in form.iban.errors %}<span>{{ error }}</span>{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        {# Remplacement de form-group par mb-3 #}
+        <div class="mb-3">
+            {{ form.bic.label(class="form-label") }}
+            {{ form.bic(class="form-control" + (" is-invalid" if form.bic.errors else "")) }}
+            {% if form.bic.errors %}
+                <div class="invalid-feedback">
+                    {% for error in form.bic.errors %}<span>{{ error }}</span>{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        {# Remplacement de form-group par mb-3 et form-control-file par form-control #}
+        <div class="mb-3">
+            {{ form.logo.label(class="form-label") }}
+            {{ form.logo(class="form-control" + (" is-invalid" if form.logo.errors else "")) }} {# Utiliser form-control pour les fichiers #}
+            {% if form.logo.errors %}
+                <div class="invalid-feedback">
+                    {% for error in form.logo.errors %}<span>{{ error }}</span>{% endfor %}
+                </div>
+            {% endif %}
+            {% if organisation.logo %}
+                <div class="mt-2"> {# Marge pour séparer l'image #}
+                    <img src="{{ url_for('organisations.get_logo', organisation_id=organisation.id) }}" alt="Logo actuel" style="max-width: 100px; max-height: 100px; border: 1px solid #ddd; padding: 2px;">
+                    <small class="form-text text-muted d-block">Logo actuel</small> {# Texte d'aide #}
+                </div>
+            {% endif %}
+        </div>
+
+        <button type="submit" class="btn btn-primary">Modifier</button>
+        <a href="{{ url_for('users.index') }}" class="btn btn-secondary">Annuler</a> {# Bouton Annuler suggéré #}
+    </form>
+{% endblock %}
+
+{# --- JavaScript spécifique à cette page --- #}
+{% block extra_scripts %}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() { // Attend que le DOM soit prêt
+            const tvaField = document.getElementById("tva_field");
+            const exonereTvaCheckbox = document.getElementById("exonere_tva");
+
+            function toggleTvaField() {
+                if (!tvaField || !exonereTvaCheckbox) return; // Sécurité si les éléments n'existent pas
+
+                if (exonereTvaCheckbox.checked) {
+                    tvaField.style.display = "none";
+                } else {
+                    tvaField.style.display = "block";
+                }
+            }
+
+            // Call the function on page load to set the initial state
+            toggleTvaField();
+
+            // Add event listener for changes on the checkbox
+            if (exonereTvaCheckbox) {
+                exonereTvaCheckbox.addEventListener('change', toggleTvaField);
+            }
+        });
+    </script>
+{% endblock %}

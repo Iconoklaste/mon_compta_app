@@ -1,0 +1,307 @@
+{% extends 'base.html' %}
+
+{% block extra_head %}
+    {{ super() }}
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fabric.js/5.3.0/fabric.min.js"></script>
+    <script type="module" src="{{ url_for('static', filename='js/whiteboard/fabric.brushes.js') }}"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700&family=Merriweather:wght@400;700&family=Playfair+Display:wght@400;700&family=Oswald:wght@400;700&family=Roboto+Slab:wght@400;700&family=Dancing+Script:wght@400;700&family=Pacifico&family=Caveat&family=Inconsolata&family=Amatic+SC:wght@400;700&family=Satisfy&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" integrity="sha512-9usAa10IRO0HhonpyAIVpjrylPvoDwiPUiKdWk5t3PyolY1cOd4DSE0Ga+ri4AuTroPR5aQvXU9xC6qOPnzFeg==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='whiteboard-2-0.css') }}">
+
+
+
+{% endblock %}
+
+{% block body_class %}whiteboard-page{% endblock %}
+
+{% block page_title %}
+<h1>{{ projet.nom }}</h1>
+{% endblock %}
+
+{% block navbar_actions %}
+<div class="navbar-actions-container">
+    <button id="saveButton" class="btn btn-secondary custom-navbar-button">
+        <i class="fas fa-save"></i> Sauvegarder
+    </button>
+    <button id="backButton" class="btn btn-secondary custom-navbar-button">
+        <i class="fas fa-file-alt"></i>
+        <span class="tooltiptext"></span>
+    </button>
+</div>
+{% endblock %}
+
+{% block sidebar %}
+{% endblock %}
+
+{% block content %}
+<input type="hidden" id="csrfToken" value="{{ csrf_token() }}">
+<div id="canvas-container" class="canvas-container">
+    <div id="toolbar">
+        {# ... (Le reste de la barre d'outils principale reste inchangé) ... #}
+        <button id="pan-button" class="mode-button">
+            <svg class="text-icon" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+                <path d="M20,14 L20,17 C20,19.209139 18.209139,21 16,21 L10.0216594,21 C8.75045497,21 7.55493392,20.3957659 6.80103128,19.3722467 L3.34541668,14.6808081 C2.81508416,13.9608139 2.94777982,12.950548 3.64605479,12.391928 C4.35756041,11.8227235 5.38335813,11.8798792 6.02722571,12.5246028 L8,14.5 L8,13 L8.00393081,13 L8,11 L8.0174523,6.5 C8.0174523,5.67157288 8.68902517,5 9.5174523,5 C10.3458794,5 11.0174523,5.67157288 11.0174523,6.5 L11.0174523,11 L11.0174523,4.5 C11.0174523,3.67157288 11.6890252,3 12.5174523,3 C13.3458794,3 14.0174523,3.67157288 14.0174523,4.5 L14.0174523,11 L14.0174523,5.5 C14.0174523,4.67157288 14.6890252,4 15.5174523,4 C16.3458794,4 17.0174523,4.67157288 17.0174523,5.5 L17.0174523,11 L17.0174523,7.5 C17.0174523,6.67157288 17.6890252,6 18.5174523,6 C19.3458794,6 20.0174523,6.67157288 20.0174523,7.5 L20.0058962,14 L20,14 Z"></path>
+            </svg>
+        </button>
+
+        <button id="selection-button" class="mode-button">
+            <svg class="text-icon" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <path d="M2.1 0v1.914H0v6h3V3h5.1V0h-6zm9 0v3h6V0h-6zm9 0v3h6V0h-6zm9 0v3h6V0h-6zm9 0v3h6V0h-6zm9 0v3h6V0h-6zm9 0v3h6V0h-6zm9 0v3h1.8v1.2h3V0h-4.8zm1.8 7.2v6h3v-6h-3zM0 10.913v6h3v-6H0zM66.9 16.2v6h3v-6h-3zM0 19.914v6h3v-6H0zM66.9 25.2v6h3v-6h-3zM0 28.914v6h3v-6H0zM66.9 34.2v6h3v-6h-3zM0 37.914v6h3v-6H0zM66.9 43.2v6h3v-6h-3zM0 46.914v6h3v-6H0zM66.9 52.2v6h3v-6h-3zM0 55.914v5.191h3.809v-3H3v-2.19H0zm6.809 2.191v3h6v-3h-6zm9 0v3h6v-3h-6zm9 0v3h6v-3h-6zm9 0v3h6v-3h-6zm9 0v3h6v-3h-6zm9 0v3h6v-3h-6zm9 0v3h6v-3h-6zm9.648 1.899a2.076 2.076 0 0 0-2.19 2.324l3.137 33.676c.2 1.635 2.135 2.399 3.397 1.34l6.623-5.371l2.969 5.142c1.707 2.958 4.417 3.684 7.375 1.977c2.957-1.708 3.684-4.417 1.976-7.375l-2.959-5.125l7.848-3.008c1.548-.564 1.855-2.62.539-3.611L71.576 60.416a2.073 2.073 0 0 0-1.119-.412z"></path>
+            </svg>
+        </button>
+
+        <div class="btn-group">
+            <button type="button" class="btn btn-primary dropdown-toggle" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false" id="add-shape-dropdown">
+                <svg class="shape-icon" width="250px" height="250px" viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg"><g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round" stroke="#CCCCCC" stroke-width="0.192"></g><g id="SVGRepo_iconCarrier"> <rect width="48" height="48" fill="white" fill-opacity="0.01"></rect> <rect x="6" y="29" width="14" height="14" fill="#ffffff" stroke="#000000" stroke-width="1.6320000000000001" stroke-linecap="round" stroke-linejoin="round"></rect> <path d="M24 4L34 21H14L24 4Z" fill="#ffffff" stroke="#000000" stroke-width="1.6320000000000001" stroke-linecap="round" stroke-linejoin="round"></path> <circle cx="36" cy="36" r="8" fill="#ffffff" stroke="#000000" stroke-width="1.6320000000000001" stroke-linecap="round" stroke-linejoin="round"></circle> </g></svg>
+            </button>
+            <div class="dropdown-menu">
+                <button id="add-rect" class="dropdown-item" title="Ajouter une boîte">
+                    <svg class="shape-icon" viewBox="0 0 24 24">
+                        <rect x="4" y="4" width="16" height="16" stroke="black" stroke-width="2" fill="none" />
+                    </svg>
+                </button>
+                <button id="add-circle" class="dropdown-item" title="Ajouter un cercle">
+                    <svg class="shape-icon" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="8" stroke="black" stroke-width="2" fill="none" />
+                    </svg>
+                </button>
+                <button id="add-triangle" class="dropdown-item" title="Ajouter un triangle">
+                    <svg class="shape-icon" viewBox="0 0 24 24">
+                        <polygon points="12,4 20,20 4,20" stroke="black" stroke-width="2" fill="none" />
+                    </svg>
+                </button>
+                <button id="add-hexagon" class="dropdown-item" title="Ajouter un héxagone">
+                    <svg class="shape-icon" viewBox="0 0 24 24">
+                        <polygon points="6,4 18,4 22,12 18,20 6,20 2,12" stroke="black" stroke-width="2" fill="none" />
+                    </svg>
+                </button>
+            </div>
+
+        </div>
+        <button id="add-text">
+            <svg class="text-icon" fill="#000000" viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">
+                <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                <g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
+                <g id="SVGRepo_iconCarrier">
+                    <path d="M 35.5702 52.3984 L 49.2580 52.3984 C 50.3125 52.3984 50.8751 51.8828 50.8751 51.0156 C 50.8751 50.1250 50.3125 49.6563 49.2580 49.6563 L 43.9843 49.6563 L 43.9843 6.3203 L 49.2580 6.3203 C 50.3125 6.3203 50.8751 5.8281 50.8751 4.9375 C 50.8751 4.0703 50.3125 3.6016 49.2580 3.6016 L 35.5702 3.6016 C 34.4921 3.6016 33.9531 4.0703 33.9531 4.9375 C 33.9531 5.8281 34.4921 6.3203 35.5702 6.3203 L 40.8202 6.3203 L 40.8202 49.6563 L 35.5702 49.6563 C 34.4921 49.6563 33.9531 50.1250 33.9531 51.0156 C 33.9531 51.8828 34.4921 52.3984 35.5702 52.3984 Z M 18.8593 45.3672 C 20.1952 45.3672 21.0858 44.5234 21.0858 43.1641 L 21.0858 15.2500 L 30.6015 15.2500 C 31.7734 15.2500 32.6171 14.4766 32.6171 13.2812 C 32.6171 12.0859 31.7734 11.3125 30.6015 11.3125 L 7.1640 11.3125 C 5.9687 11.3125 5.1249 12.0859 5.1249 13.2812 C 5.1249 14.4766 5.9687 15.2500 7.1640 15.2500 L 16.6796 15.2500 L 16.6796 43.1641 C 16.6796 44.5234 17.5233 45.3672 18.8593 45.3672 Z"></path>
+                </g>
+            </svg>
+        </button>
+
+        <div class="btn-group"> <!-- Utiliser btn-group pour regrouper le bouton et son menu -->
+            <button type="button" class="btn btn-secondary dropdown-toggle mode-button" id="free-draw-button" data-bs-toggle="dropdown" aria-expanded="false" title="Mode Dessin Libre">
+                <!-- L'icône ici reflètera le pinceau choisi et l'état actif/inactif -->
+                <svg class="text-icon" viewBox="0 0 56 56" xmlns="http://www.w3.org/2000/svg">
+                    <g id="SVGRepo_iconCarrier">
+                        <path d="M56.009,51.832l0,4.2l-33.652,-0.026l4.709,-4.174l28.943,0Z" style="fill-rule:nonzero;"></path>
+                        <path d="M48.453,8.119c1.65,0 2.506,0.129 4.753,2.011c2.294,1.922 2.707,3.42 2.803,5.088c0.102,1.795 -0.504,3.975 -2.188,5.681l-31.961,31.961c-0.52,0.475 -0.63,0.449 -0.977,0.553l-10.226,2.556c-1.472,0.299 -2.854,-1.049 -2.55,-2.549l2.557,-10.226c0.1,-0.334 0.133,-0.517 0.553,-0.977c10.696,-10.696 21.195,-21.593 32.09,-32.087c1.421,-1.335 3.497,-2.011 5.146,-2.011Zm0,4.143c-0.86,0.016 -1.698,0.371 -2.311,0.976l-31.54,31.541l-1.566,6.261l6.262,-1.565c10.544,-10.544 21.419,-20.768 31.63,-31.634c1.674,-1.825 0.444,-5.453 -2.306,-5.577c-0.056,-0.002 -0.112,-0.003 -0.169,-0.002Z" style="fill-rule:nonzero;"></path>
+                    </g>
+                </svg>
+            </button>
+            <ul class="dropdown-menu p-2" aria-labelledby="free-draw-button" id="brush-options-dropdown">
+                <!-- Pinceaux Fabric.js standards ou autres existants -->
+                <li><button class="dropdown-item brush-selector active" type="button" data-brush-type="pencil"><i class="fas fa-pencil-alt me-2"></i>Crayon (Fabric)</button></li>
+                <li><button class="dropdown-item brush-selector" type="button" data-brush-type="circle"><i class="fas fa-circle me-2"></i>Rond (Fabric)</button></li>
+                <li><button class="dropdown-item brush-selector" type="button" data-brush-type="spray"><i class="fas fa-spray-can-sparkles me-2"></i>Spray (Fabric)</button></li>
+                <!-- Si SlashBrush est un pinceau spécifique, gardez-le. Sinon, vous pouvez le retirer ou l'adapter -->
+                <!-- <li><button class="dropdown-item brush-selector" type="button" data-brush-type="slash"><svg class="me-2">Icône Trait</svg>Trait</button></li>-->
+
+                <!-- Pinceaux de fabric-brushes -->
+                <li><button class="dropdown-item brush-selector" type="button" data-brush-type="crayon"><i class="fas fa-paint-brush me-2"></i>Crayon (Custom)</button></li>
+                <li><button class="dropdown-item brush-selector" type="button" data-brush-type="fur"><i class="fas fa-feather me-2"></i>Fourrure</button></li>
+                <li><button class="dropdown-item brush-selector" type="button" data-brush-type="ink"><i class="fas fa-pen-fancy me-2"></i>Encre</button></li>
+                <li><button class="dropdown-item brush-selector" type="button" data-brush-type="longfur"><i class="fas fa-feather-alt me-2"></i>Fourrure Longue</button></li>
+                <li><button class="dropdown-item brush-selector" type="button" data-brush-type="marker"><i class="fas fa-highlighter me-2"></i>Marqueur</button></li>
+                <li><button class="dropdown-item brush-selector" type="button" data-brush-type="ribbon"><i class="fas fa-ribbon me-2"></i>Ruban</button></li>
+                <li><button class="dropdown-item brush-selector" type="button" data-brush-type="shaded"><i class="fas fa-fill-drip me-2"></i>Ombré</button></li>
+                <li><button class="dropdown-item brush-selector" type="button" data-brush-type="sketchy"><i class="fas fa-signature me-2"></i>Esquisse</button></li>
+                <li><button class="dropdown-item brush-selector" type="button" data-brush-type="spraypaint"><i class="fas fa-spray-can me-2"></i>Spray (Custom)</button></li>
+                <li><button class="dropdown-item brush-selector" type="button" data-brush-type="squares"><i class="fas fa-th-large me-2"></i>Carrés</button></li>
+                <li><button class="dropdown-item brush-selector" type="button" data-brush-type="web"><i class="fas fa-spider me-2"></i>Toile</button></li>
+            </ul>
+
+        </div>
+
+
+
+        <!-- Sélecteur de Couleur de Remplissage -->
+        <div class="dropdown">
+            <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="fill-color-picker-button" data-bs-toggle="dropdown" aria-expanded="false" title="Couleur de remplissage">
+                <span class="color-preview-icon" id="fill-color-preview-icon" style="background-color: black;"></span> <!-- L'aperçu -->
+            </button>
+            <div class="dropdown-menu p-2" aria-labelledby="fill-color-picker-button" id="fill-color-dropdown-menu">
+                <label for="fill-transparency-slider" class="form-label mb-1">Transparence</label>
+                <input type="range" class="form-range mb-2" id="fill-transparency-slider" min="0" max="1" step="0.05" value="1">
+
+                <!-- Bouton "Aucune Couleur" -->
+                <button type="button" class="btn btn-sm btn-outline-secondary w-100 mb-2" id="fill-no-color-button">
+                    Aucune couleur <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" class="bi bi-slash-lg" viewBox="0 0 16 16" style="vertical-align: text-bottom;"><path fill-rule="evenodd" d="M13.854 2.146a.5.5 0 0 1 0 .708l-11 11a.5.5 0 0 1-.708-.708l11-11a.5.5 0 0 1 .708 0Z"/></svg>
+                </button>
+
+                <div class="color-palette-grid" id="fill-color-palette">
+                    <!-- Les cellules de couleur seront générées ici par JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Sélecteur de Couleur de Contour -->
+        <div class="dropdown">
+            <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="stroke-color-picker-button" data-bs-toggle="dropdown" aria-expanded="false" title="Couleur du contour">
+                <span class="color-preview-icon" id="stroke-color-preview-icon" style="background-color: black; border: 1px solid #ccc;"></span> <!-- L'aperçu avec bordure pour visibilité -->
+            </button>
+            <div class="dropdown-menu p-2" aria-labelledby="stroke-color-picker-button" id="stroke-color-dropdown-menu">
+                <label for="stroke-width-slider" class="form-label mb-1">Épaisseur</label>
+                <input type="range" class="form-range mb-2" id="stroke-width-slider" min="0" max="30" step="1" value="1">
+                <div class="color-palette-grid" id="stroke-color-palette">
+                    <!-- Les cellules de couleur seront générées ici par JS -->
+                </div>
+            </div>
+        </div>
+
+
+
+        <button id="zoom-in">Zoom In</button>
+        <button id="zoom-out">Zoom Out</button>
+        <button id="delete">Supprimer</button>
+
+        <button id="send-to-back">Send to Back</button>
+        <button id="bring-to-front">Bring to Front</button>
+        <button id="send-backward">Send Backward</button>
+        <button id="bring-forward">Bring Forward</button>
+
+
+
+        <!-- New Bold and Italic buttons -->
+        <!-- <button id="bold-button" class="text-style-button"><b>B</b></button>
+        <button id="italic-button" class="text-style-button"><i>I</i></button> -->
+
+
+        <label for="font-family-selector">Font Family:</label>
+        <select id="font-family-selector">
+            <option value="Roboto">Roboto</option>
+            <option value="Montserrat">Montserrat</option>
+            <option value="Merriweather">Merriweather</option>
+            <option value="Playfair Display">Playfair Display</option>
+            <option value="Oswald">Oswald</option>
+            <option value="Roboto Slab">Roboto Slab</option>
+            <option value="Dancing Script">Dancing Script</option>
+            <option value="Pacifico">Pacifico</option>
+            <option value="Caveat">Caveat</option>
+            <option value="Inconsolata">Inconsolata</option>
+            <option value="Amatic SC">Amatic SC</option>
+            <option value="Satisfy">Satisfy</option>
+        </select>
+
+
+
+
+
+
+        <label for="font-size-selector">Font Size:</label>
+        <select id="font-size-selector">
+            <option value="12">12</option>
+            <option value="14">14</option>
+            <option value="16">16</option>
+            <option value="18">18</option>
+            <option value="20" selected>20</option>
+            <option value="24">24</option>
+            <option value="28">28</option>
+            <option value="32">32</option>
+            <option value="36">36</option>
+            <option value="48">48</option>
+            <option value="72">72</option>
+        </select>
+    </div>
+
+
+    <canvas id="canvas"></canvas>
+    <div id="zoom-indicator">Zoom: 100%</div>
+
+    <!-- START: Minimap Elements -->
+<!--      TODO : cf main.js pour plus d'info
+    <div id="minimap-container">
+        <canvas id="minimap-canvas"></canvas>
+    </div> -->
+    <!-- END: Minimap Elements -->
+
+    <!-- Barre d'outils contextuelle (initialement cachée) -->
+    <div id="object-toolbar" class="object-toolbar" style="display: none; position: absolute; z-index: 1000;">
+        {# ... (Le contenu existant de la barre d'outils objet reste ici) ... #}
+        <!-- Section commune -->
+        <div class="toolbar-section toolbar-common">
+            <button id="toolbar-duplicate" title="Dupliquer"><i class="fas fa-copy"></i></button>
+            <button id="toolbar-delete" title="Supprimer"><i class="fas fa-trash-alt"></i></button>
+            <button id="toolbar-bring-forward" title="Avancer"><i class="fas fa-arrow-up"></i></button>
+            <button id="toolbar-send-backward" title="Reculer"><i class="fas fa-arrow-down"></i></button>
+            <!-- NOUVEAU BOUTON DE VERROUILLAGE -->
+            <button id="toolbar-lock" title="Verrouiller"><i class="fas fa-unlock"></i></button> <!-- Icône initiale: déverrouillé -->
+            <!-- Autres boutons communs : bringToFront, sendToBack -->
+            <button id="toolbar-group" class="btn btn-sm btn-outline-secondary me-1" title="Grouper" style="display: none;">
+                <i class="fas fa-object-group"></i>
+            </button>
+            <button id="toolbar-ungroup" class="btn btn-sm btn-outline-secondary me-1" title="Dégrouper" style="display: none;">
+                <i class="fas fa-object-ungroup"></i>
+            </button>
+        </div>
+
+        <!-- Section spécifique au texte -->
+        <div class="toolbar-section toolbar-text" style="display: none;">
+            <select id="toolbar-font-family">
+                <!-- Options de police (peuvent être chargées dynamiquement) -->
+                <option value="Arial">Arial</option>
+                <option value="Verdana">Verdana</option>
+                <option value="Times New Roman">Times New Roman</option>
+                <option value="Courier New">Courier New</option>
+                <option value="Georgia">Georgia</option>
+                <option value="Impact">Impact</option>
+            </select>
+            <input type="number" id="toolbar-font-size" min="1" value="20" style="width: 60px;">
+            <button id="toolbar-bold" title="Gras"><i class="fas fa-bold"></i></button>
+            <button id="toolbar-italic" title="Italique"><i class="fas fa-italic"></i></button>
+            <!-- Autres options texte : alignement, couleur texte (si différent du fill) -->
+        </div>
+
+        <!-- Section spécifique aux formes/images (exemple : couleur) -->
+        <div class="toolbar-section toolbar-shape" style="display: none;">
+            <!-- Ici, on pourrait mettre des raccourcis pour les couleurs,
+                 ou un bouton pour ouvrir le color picker existant -->
+                 <button id="toolbar-open-fill-picker" type="button" class="toolbar-color-preview" title="Couleur de remplissage">
+                    <span id="toolbar-fill-preview" class="color-preview-swatch"></span>
+                </button>
+                <!-- AJOUT : Bouton/Aperçu pour ouvrir le sélecteur de contour -->
+                <button id="toolbar-open-stroke-picker" type="button" class="toolbar-color-preview" title="Couleur du contour">
+                    <span id="toolbar-stroke-preview" class="color-preview-swatch"></span>
+                </button>
+        </div>
+
+        <!-- Ajoutez d'autres sections pour d'autres types d'objets si nécessaire -->
+    </div>
+
+</div>
+
+{% endblock %}
+
+
+{# --- JavaScript spécifique à cette page --- #}
+{% block extra_scripts %}
+
+<script>
+    window.projetId = {{ projet_id }}; // Store projetId in a global variable
+
+    // gestion du bouton pour l'affichage des detail sdu projet
+    document.addEventListener('DOMContentLoaded', function() {
+    const backButton = document.getElementById('backButton');
+    backButton.addEventListener('click', function() {
+        window.location.href = `/${window.projetId}`;
+    });
+});
+
+</script>
+
+{# --- Load main whiteboard script AFTER minimap script --- #}
+<script type="module" src="{{ url_for('static', filename='js/whiteboard/main.js') }}"></script>
+
+{% endblock %}

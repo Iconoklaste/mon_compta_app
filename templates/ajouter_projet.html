@@ -1,0 +1,287 @@
+{% extends 'base.html' %}
+
+{% block page_title %}
+    NOUVEAU PROJET
+{% endblock %}
+
+{% block content %}
+    {# --- Formulaire Principal --- #}
+    <form method="POST" id="projetForm">
+        {{ form.hidden_tag() }}
+
+        {# Remplacement de form-group par mb-3 et ajout de form-label #}
+        <div class="mb-3">
+            <label for="nom" class="form-label">Nom du projet</label>
+            <input type="text" class="form-control" id="nom" name="nom" required>
+        </div>
+
+        {# Remplacement de form-group par mb-3 et ajout de form-label #}
+        <div class="mb-3">
+            <label for="client_id" class="form-label">Client</label>
+            {# Utilisation de form-select pour les <select> en BS5 #}
+            <select class="form-select" id="client_id" name="client_id" required>
+                <option value="" disabled selected>Sélectionnez un client</option> {# Option par défaut suggérée #}
+                {% for client in clients %}
+                    <option value="{{ client.id }}">{{ client.nom }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        {# Bouton pour ouvrir la modale (avec attributs BS5) #}
+        <div class="mb-3">
+            <button type="button" class="btn btn-secondary btn-sm" data-bs-toggle="modal" data-bs-target="#addClientModal">
+                <i class="fas fa-plus"></i> Ajouter un nouveau client
+            </button>
+        </div>
+
+        {# Remplacement de form-group par mb-3 et ajout de form-label #}
+        <div class="mb-3">
+            <label for="date_debut" class="form-label">Date de début</label>
+            <input type="date" class="form-control" id="date_debut" name="date_debut">
+        </div>
+
+        {# Remplacement de form-group par mb-3 et ajout de form-label #}
+        <div class="mb-3">
+            <label for="date_fin" class="form-label">Date de fin</label>
+            <input type="date" class="form-control" id="date_fin" name="date_fin">
+        </div>
+
+        {# Remplacement de form-group par mb-3 et ajout de form-label #}
+        <div class="mb-3">
+            <label for="statut" class="form-label">Statut</label>
+            {# Utilisation de form-select pour les <select> en BS5 #}
+            <select class="form-select" id="statut" name="statut">
+                {% for status in status_options %}
+                    <option value="{{ status }}" {% if status == 'En attente' %}selected{% endif %}>{{ status }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        {# Remplacement de form-group par mb-3 et ajout de form-label #}
+        <div class="mb-3">
+            <label for="prix_total" class="form-label">Prix total (€)</label> {# Précision unité suggérée #}
+            <input type="number" step="0.01" class="form-control" id="prix_total" name="prix_total" placeholder="0.00"> {# step et placeholder suggérés #}
+        </div>
+
+        <button type="submit" class="btn btn-primary">Ajouter le projet</button>
+    </form>
+
+    {# --- Modale d'ajout de client --- #}
+    <div class="modal fade" id="addClientModal" tabindex="-1" aria-labelledby="addClientModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addClientModalLabel">Ajouter un nouveau client</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    {# Formulaire DANS la modale, avec des ID uniques #}
+                    <form id="addClientForm">
+                        {# --- AJOUT DU CHAMP CSRF ICI --- #}
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        {# --- FIN DE L'AJOUT --- #}
+    
+                        {# Remplacement de form-group par mb-3 et ajout de form-label #}
+                        <div class="mb-3">
+                            <label for="nomModal" class="form-label">Nom du client</label>
+                            <input type="text" class="form-control" id="nomModal" name="nom" required>
+                            <div class="invalid-feedback" id="nomModalError"></div>
+                        </div>
+                        {# ... autres champs du formulaire ... #}
+                        <div class="mb-3">
+                            <label for="mailModal" class="form-label">Email</label>
+                            <input type="email" class="form-control" id="mailModal" name="mail" placeholder="nom@example.com"> {# placeholder suggéré #}
+                            <div class="invalid-feedback" id="mailModalError"></div>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fermer</button>
+                    <button type="button" class="btn btn-primary" id="saveClient">Enregistrer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+
+{# --- JavaScript spécifique à cette page --- #}
+{% block extra_scripts %}
+    <script>
+        // Attend que le DOM soit entièrement chargé (bonne pratique)
+        document.addEventListener('DOMContentLoaded', function() {
+
+            // Récupérer l'instance de la modale Bootstrap 5 une seule fois
+            const addClientModalElement = document.getElementById('addClientModal');
+            // Vérifier si l'élément existe avant de créer l'instance
+            if (!addClientModalElement) {
+                console.error("L'élément de la modale #addClientModal n'a pas été trouvé.");
+                return; // Arrêter si la modale n'est pas trouvée
+            }
+            const addClientModal = new bootstrap.Modal(addClientModalElement);
+
+            // Récupérer le bouton Enregistrer
+            const saveClientButton = document.getElementById('saveClient');
+            if (!saveClientButton) {
+                console.error("Le bouton #saveClient n'a pas été trouvé.");
+                return; // Arrêter si le bouton n'est pas trouvé
+            }
+
+            // Ajouter l'écouteur d'événement au bouton Enregistrer
+            saveClientButton.addEventListener('click', function() {
+                console.log('Bouton Enregistrer cliqué !'); // Log de débogage
+                const addClientForm = document.getElementById('addClientForm');
+                const formData = new FormData(addClientForm);
+
+                // Validation simple (côté client)
+                let isValid = true;
+                const nomInput = document.getElementById('nomModal');
+                const nom = nomInput.value.trim(); // Utiliser trim() pour enlever les espaces superflus
+                const nomErrorDiv = document.getElementById('nomModalError');
+
+                // Réinitialiser la validation précédente
+                nomInput.classList.remove('is-invalid');
+                nomErrorDiv.textContent = "";
+
+                if (!nom) {
+                    isValid = false;
+                    nomInput.classList.add('is-invalid');
+                    nomErrorDiv.textContent = "Le nom est obligatoire";
+                }
+
+                console.log('Validation passée ?', isValid); // Log de débogage
+
+                if (isValid) {
+                    // Désactiver le bouton pendant la requête pour éviter les doubles clics
+                    saveClientButton.disabled = true;
+                    saveClientButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Enregistrement...'; // Feedback visuel
+
+                    const data = {};
+                    formData.forEach((value, key) => {
+                    // Exclure le token CSRF du JSON envoyé (il sera dans l'en-tête)
+                    if (key !== 'csrf_token') {
+                        data[key] = value.trim();
+                    }
+                });
+
+                // Récupérer le token CSRF depuis le champ caché ajouté
+                const csrfTokenInput = addClientForm.querySelector('input[name="csrf_token"]');
+                const csrfToken = csrfTokenInput ? csrfTokenInput.value : null; // Récupérer la valeur
+
+                if (!csrfToken) {
+                    console.error("Token CSRF non trouvé dans le formulaire de la modale !");
+                    alert("Erreur de sécurité. Impossible d'ajouter le client.");
+                    saveClientButton.disabled = false;
+                    saveClientButton.textContent = 'Enregistrer';
+                    return; // Arrêter si pas de token
+                }
+
+                fetch('{{ url_for("clients.ajouter_client_ajax") }}', { // <-- Changer l'URL ici
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRFToken': csrfToken // Envoyer le token dans l'en-tête
+                    },
+                    body: JSON.stringify(data),
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            // Gérer les erreurs HTTP (ex: 400, 500)
+                            throw new Error(`Erreur HTTP ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        if (data.success) {
+                            const clientSelect = document.getElementById('client_id');
+                            const newOption = document.createElement('option');
+                            newOption.value = data.client_id;
+                            newOption.text = nom; // Utiliser la variable 'nom' validée
+                            clientSelect.add(newOption);
+                            clientSelect.value = data.client_id; // Sélectionner le nouveau client
+
+                            // Utilisation de l'API BS5 pour masquer la modale
+                            addClientModal.hide();
+
+                            addClientForm.reset(); // Réinitialiser le formulaire de la modale
+                            clearValidationErrors(); // Effacer les erreurs restantes
+                        } else {
+                            // Afficher les erreurs de validation renvoyées par le serveur
+                            displayValidationErrors(data.errors);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Erreur lors de l\'ajout du client:', error);
+                        // Afficher une alerte plus générique ou un message d'erreur dans la modale
+                        alert('Une erreur est survenue lors de l\'ajout du client. Veuillez réessayer.');
+                    })
+                    .finally(() => {
+                        // Réactiver le bouton et restaurer son texte, que la requête réussisse ou échoue
+                        saveClientButton.disabled = false;
+                        saveClientButton.textContent = 'Enregistrer';
+                    });
+                }
+            });
+
+            // Fonction pour effacer les erreurs de validation
+            function clearValidationErrors() {
+                document.querySelectorAll('#addClientForm .form-control').forEach(input => {
+                    input.classList.remove('is-invalid');
+                });
+                document.querySelectorAll('#addClientForm .invalid-feedback').forEach(div => {
+                    div.textContent = '';
+                });
+            }
+
+            // Fonction pour afficher les erreurs de validation (renvoyées par le serveur)
+            function displayValidationErrors(errors) {
+                clearValidationErrors(); // Effacer les anciennes erreurs d'abord
+                if (errors) {
+                    for (const field in errors) {
+                        // Construire l'ID de l'input et de la div d'erreur
+                        const inputField = document.getElementById(field + 'Modal');
+                        const errorDiv = document.getElementById(field + 'ModalError');
+
+                        if (inputField && errorDiv) {
+                            inputField.classList.add('is-invalid');
+                            // Joindre les messages d'erreur s'il y en a plusieurs pour un champ
+                            errorDiv.textContent = Array.isArray(errors[field]) ? errors[field].join(', ') : errors[field];
+                        } else {
+                            console.warn(`Champ ou div d'erreur non trouvé pour: ${field}`);
+                        }
+                    }
+                } else {
+                    // Gérer le cas où 'errors' n'est pas défini dans la réponse
+                    console.error("La réponse d'erreur ne contient pas de champ 'errors'.");
+                    alert('Une erreur de validation est survenue, mais les détails n\'ont pas pu être affichés.');
+                }
+            }
+
+            // Ajouter des écouteurs pour effacer l'erreur dès que l'utilisateur corrige
+            document.querySelectorAll('#addClientForm .form-control').forEach(input => {
+                input.addEventListener('input', () => {
+                    if (input.classList.contains('is-invalid')) {
+                        input.classList.remove('is-invalid');
+                        const errorDiv = document.getElementById(input.id + 'Error');
+                        if (errorDiv) {
+                            errorDiv.textContent = '';
+                        }
+                    }
+                });
+            });
+
+            // Utilisation de l'API événementielle native de BS5 pour nettoyer à la fermeture
+            addClientModalElement.addEventListener('hidden.bs.modal', function () {
+                console.log('Modale fermée, réinitialisation du formulaire.'); // Log de débogage
+                document.getElementById('addClientForm').reset();
+                clearValidationErrors();
+                // Réactiver le bouton Enregistrer au cas où il serait resté désactivé après une erreur
+                const saveBtn = document.getElementById('saveClient');
+                if (saveBtn) {
+                    saveBtn.disabled = false;
+                    saveBtn.textContent = 'Enregistrer';
+                }
+            });
+        });
+    </script>
+{% endblock %}

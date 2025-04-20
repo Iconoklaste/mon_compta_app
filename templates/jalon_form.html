@@ -1,0 +1,44 @@
+<!-- c:\wamp\www\mon_compta_app\templates\jalon_form.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <div class="card">
+                <div class="card-header">
+                    <h1 class="card-title">{{ title }}</h1>
+                </div>
+                <div class="card-body">
+                    <form method="POST">
+                        {{ form.hidden_tag() }}
+                        <div class="mb-3">
+                            {{ form.nom.label(class="form-label") }}
+                            {{ form.nom(class="form-control") }}
+                            {% if form.nom.errors %}
+                            <ul class="errors">
+                                {% for error in form.nom.errors %}
+                                <li class="text-danger">{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                            {% endif %}
+                        </div>
+                        <div class="mb-3">
+                            {{ form.date.label(class="form-label") }}
+                            {{ form.date(class="form-control") }}
+                            {% if form.date.errors %}
+                            <ul class="errors">
+                                {% for error in form.date.errors %}
+                                <li class="text-danger">{{ error }}</li>
+                                {% endfor %}
+                            </ul>
+                            {% endif %}
+                        </div>
+                        {{ form.submit(class="btn btn-primary") }}
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

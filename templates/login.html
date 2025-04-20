@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <section>
+        <h1>Login</h1>
+        <form method="POST">
+            <div class="form-group">
+                <label for="email">Email</label>
+                <input type="email" class="form-control" id="email" name="email" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" class="form-control" id="password" name="password" required>
+            </div>
+            <button type="submit" class="btn btn-primary">Login</button>
+        </form>
+    </section>
+{% endblock %}
+
+
+{% block extra_scripts %}
+    {# Appel optionnel au bloc parent si base.html avait des scripts ici #}
+    {# {{ super() }} #}
+
+    <script>
+        // Attend que le DOM soit chargé ET que notre script notifications.js soit prêt
+        document.addEventListener('DOMContentLoaded', () => {
+            // Vérifie que la fonction showFlashMessage est bien disponible
+            if (typeof window.showFlashMessage === 'function') {
+
+                const testMessages = [
+                    { message: "Message de test 1 (info)", category: "info" },
+                    { message: "Message de test 2 (success)", category: "success" },
+                    { message: "Message de test 3 (warning)", category: "warning" },
+                    { message: "Message de test 4 (error)", category: "error" },
+                    { message: "Message de test 5 (info)", category: "info" },
+                    { message: "Message de test 6 (success)", category: "success" },
+                    { message: "Message de test 7 (info)", category: "info" },
+                    { message: "Message de test 8 (success)", category: "success" }
+                ];
+
+                const delayBetweenMessages = 500; // 0.5 seconde en millisecondes
+
+                // Boucle pour créer les timeouts décalés
+                testMessages.forEach((msg, index) => {
+                    setTimeout(() => {
+                        window.showFlashMessage(msg.message, msg.category);
+                    }, delayBetweenMessages * index); // 0ms, 500ms, 1000ms, 1500ms...
+                });
+
+            } else {
+                console.error("La fonction window.showFlashMessage n'a pas été trouvée. Vérifiez que notifications.js est chargé avant ce script.");
+            }
+        });
+    </script>
+{% endblock %}

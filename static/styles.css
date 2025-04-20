@@ -1,0 +1,702 @@
+
+/* Palette de couleurs */
+:root {
+    --dark-blue: #2c3e50; /* Bleu foncé (principal) */
+    --light-dark-blue: #34495e; /* Bleu foncé plus clair (sidebar) */
+    --dark-red: #b00; /* Rouge foncé (accents) */
+    --light-red: #d93a3a; /* Rouge vif (concours) */
+    --light-red-80: rgba(217, 58, 58, 0.6);
+    --dark-green: #07857A; /* Vert foncé (emploi) */
+    --light-green: #21993b; /* Vert vif */
+    --gold: #dba400; /* Jaune */
+    --blue: #1a77d1; /* Bleu */
+    --light-gray: #e3e3e3; /* Gris clair (fonds) */
+    --very-light-gray: #f5f5f5; /* Gris très clair (fonds) */
+    --white: #FFFFFF; /* Blanc */
+
+    --navbar-height: 4rem;
+}
+
+/* Typographie */
+body {
+    font-family: 'Roboto', sans-serif;
+    color: var(--dark-blue); /* Texte en bleu foncé */
+    background-color: var(--very-light-gray); /* Fond en gris très clair */
+}
+
+h1, h2, h3, h4, h5, h6 {
+    font-family: 'Outfit', sans-serif; /* Police Outfit pour les titres */
+    font-weight: 700;
+    color: var(--dark-blue); /* Titres en bleu foncé */
+}
+
+/* Liens */
+a {
+    color: var(--dark-red); /* Liens en rouge foncé */
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* Boutons */
+
+.btn:hover {
+    text-decoration: none;
+}
+
+.btn-icon-only {
+    background-color: transparent; /* Transparent background by default */
+    border: none; /* Remove the border */
+
+}
+
+.btn-icon-only i {
+    color: red; /* Make the icon red */
+}
+
+.btn-icon-only:hover {
+    background-color: rgba(255, 0, 0, 0.1); /* Light red background on hover (10% opacity) */
+}
+
+.btn-icon-only:focus {
+    box-shadow: none; /* Remove the focus outline */
+}
+
+
+/* Cartes */
+.card {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    transition: all 0.3s ease;
+    background-color: var(--white); /* Fond des cartes en blanc */
+    position: relative; /* Needed for z-index to work */
+}
+
+.card:hover {
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
+    transform: scale(1.02); /* Scale up by 2% on hover */
+    z-index: 10; /* Bring to the foreground on hover */
+}
+
+.card .card-header.card-header-custom {
+    background-color: inherit; /* Inherit the background color from the parent (card) */
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+
+.card-header-custom {
+    border-top-left-radius: 10px !important; /* Or any value that matches your card's radius */
+    border-top-right-radius: 10px !important;
+    background-color: inherit; /* Inherit the background color from the parent (card) */
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+/* Ensure card headers are always two lines high */
+.two-line-header {
+    min-height: 3.5em; /* Adjust this value if needed, based on your font size and line height */
+    display: flex;
+    align-items: center; /* Vertically center the title */
+    padding: 10px; /* Add some padding */
+    position: relative; /* Needed for absolute positioning of the title */
+    overflow: hidden; /* Hide any overflow */
+}
+
+/* Style the title wrapper */
+.card-title-wrapper {
+    width: 100%;
+    height: 100%; /* Make the wrapper take up the full height */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: absolute; /* Position the wrapper absolutely */
+    top: 0;
+    left: 0;
+    padding: 0 10px; /* Add horizontal padding to the wrapper */
+}
+
+/* Style the title */
+.two-line-header .card-title {
+    margin: 0;
+    line-height: 1.2em; /* Adjust as needed */
+    max-height: 2.4em; /* 2 lines * line-height */
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* Number of lines to show */
+    -webkit-box-orient: vertical;
+    word-break: break-word;
+    text-align: left;
+    width: 100%; /* Ensure the title takes up the full width */
+}
+
+
+
+
+/* Informational Cards */
+.info-card {
+    border: none;
+    border-radius: 10px;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* Lighter shadow */
+    background-color: var(--white);
+    transition: box-shadow 0.3s ease; /* Only transition the shadow */
+}
+
+.info-card:hover {
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* Slightly darker shadow on hover */
+}
+.card-footer-custom {
+    display: flex;
+    justify-content: flex-end; /* Align items to the right */
+    align-items: center; /* Vertically center items */
+    padding: 0.75rem 1.25rem; /* Adjust padding as needed */
+    background-color: #f8f9fa; /* Match the default card footer background */
+    border-top: 1px solid rgba(0, 0, 0, 0.125); /* Match the default card footer border */
+  }
+
+/* Sidebar */
+/* Rendre la sidebar un conteneur flex vertical */
+.sidebar {
+    display: flex;
+    flex-direction: column;
+    height: 100vh; /* Assure que la sidebar prend toute la hauteur */
+    overflow: hidden; /* Empêche le scroll de la sidebar elle-même */
+    /* Garde tes autres styles existants pour .sidebar s'ils sont pertinents,
+       comme background-color, color, width, position, top, left, z-index */
+    background-color: var(--dark-blue);
+    color: var(--white);
+    width: 250px;
+    flex-shrink: 0;
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 100;
+}
+
+/* La navigation principale ne doit pas prendre tout l'espace */
+#sidebar-content {
+    flex-shrink: 0; /* Empêche la nav de rétrécir */
+    /* Garde ton padding existant */
+    padding: 0 0.5rem;
+    /* Retire flex-grow: 1; s'il était présent dans ton ancienne règle */
+}
+
+
+.sidebar ul {
+    list-style: none; /* Supprimer les puces */
+    padding: 0; /* Supprimer le padding par défaut */
+    margin-top: 1rem;
+    flex-grow: 1;
+}
+
+.sidebar li {
+    margin-bottom: 0.5rem; /* Augmenter l'espace entre les éléments */
+    border-radius: 5px; /* Add border-radius to the li */
+    transition: background-color 0.2s ease; 
+}
+
+.sidebar li:hover {
+    background-color: var(--light-red-80); /* Fond des liens de la sidebar en rouge vif au survol */
+    
+}
+
+.sidebar li.active {
+    background-color: var(--light-red); /* Light orange color for active item */
+}
+
+.sidebar a {
+    color: var(--white); /* Liens de la sidebar en blanc */
+    padding: 0.5rem 1rem;
+    display: block;
+    text-decoration: none; /* Remove underline */
+}
+
+.sidebar a:hover {
+    background-color: transparent; /* Remove background color on a hover */
+}
+.sidebar-brand {
+    color: var(--white);
+    font-weight: bold;
+    font-size: 1.5rem;
+    padding: 1rem;
+    display: block;
+    text-align: center;
+    line-height: 2rem;
+    margin-bottom: 1rem;
+}
+
+.sidebar-brand:hover {
+    background-color: transparent; /* Supprimer le hover */
+    padding-right: 1rem;
+}
+
+.sidebar-icon {
+    margin-right: 0.5rem;
+}
+
+/* Conteneur externe des messages flash */
+.sidebar-flash-outer-container {
+    flex-grow: 1; /* Prend tout l'espace vertical restant */
+    overflow: hidden; /* Cache tout ce qui dépasse */
+    margin-top: auto; /* Pousse ce conteneur vers le bas, après la nav principale */
+    /* --- MODIFICATION --- */
+    /* On veut que la zone scrollable remplisse ce conteneur, */
+    /* donc on utilise flex pour contrôler la zone scrollable à l'intérieur */
+    display: flex;
+    flex-direction: column;
+    /* Retire justify-content: flex-end; */
+    /* --- FIN MODIFICATION --- */
+    padding: 0.5rem 0.75rem; /* Garde le padding horizontal */
+    padding-top: 0; /* Optionnel: retire le padding haut si besoin */
+}
+
+/* Zone scrollable pour les messages flash */
+.sidebar-flash-scroll-area {
+    /* --- MODIFICATION --- */
+    /* Retire la hauteur max fixe */
+    /* max-height: 200px; */
+    /* Fait en sorte que cette zone remplisse son parent (.sidebar-flash-outer-container) */
+    flex-grow: 1;
+    /* --- FIN MODIFICATION --- */
+
+    overflow-y: auto; /* Active le scroll vertical si nécessaire */
+    display: flex;
+    flex-direction: column-reverse; /* Garde l'empilement inversé */
+    /* padding-top: 0.5rem; */ /* Ajuste le padding interne si besoin */
+}
+
+/* Style pour les messages flash dans la sidebar */
+.sidebar-flash-scroll-area .alert {
+    margin-bottom: 0.5rem; /* Espace entre les messages */
+    font-size: 0.85rem; /* Texte un peu plus petit dans la sidebar */
+    padding: 0.25rem 0.5rem; /* Padding interne réduit */
+        /* Assure que les messages ne rétrécissent pas dans le conteneur flex */
+        flex-shrink: 0;
+}
+
+.sidebar-flash-scroll-area .alert .btn-close {
+    padding: 0.5rem; /* Ajuste la zone cliquable du bouton */
+}
+
+/* L'animation de chute et rebond */
+@keyframes fallAndBounce {
+    0% {
+        opacity: 0;
+        transform: translateY(-300%); /* Commence bien au-dessus */
+    }
+    60% {
+        /* Descend un peu trop bas pour le rebond */
+        opacity: 1;
+        transform: translateY(10px);
+    }
+    80% {
+        /* Remonte un peu */
+        transform: translateY(-5px);
+    }
+    100% {
+        /* Position finale stable */
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Classe appliquée temporairement pour déclencher l'animation */
+.flash-message-entering {
+    /* Utilise l'animation définie ci-dessus */
+    animation: fallAndBounce 0.7s cubic-bezier(0.68, -0.55, 0.27, 1.55) forwards;
+    /* 'forwards' maintient l'état final de l'animation */
+}
+
+
+/* Ajustement pour cohabiter avec Bootstrap fade */
+/* Ralentir la transition de disparition pour les messages flash */
+.flash-message.fade {
+    /* On garde la transition de disparition mais on l'ajuste si besoin */
+    transition: opacity 0.5s ease-in-out; /* Durée ajustée (au lieu de 0.15s par défaut) */
+}
+.flash-message.fade:not(.show) {
+     opacity: 0; /* Assure qu'il est invisible s'il n'a que 'fade' */
+}
+
+
+/* Navigation du bas (Paramètres) */
+.sidebar-bottom-nav {
+    flex-shrink: 0; /* Empêche cette nav de rétrécir */
+    margin-top: 0.5rem; /* Petit espace au-dessus des paramètres */
+    border-top: 1px solid rgba(255, 255, 255, 0.1); /* Séparateur visuel (optionnel) */
+    padding-top: 0.5rem; /* Espace au-dessus du lien */
+    padding-bottom: 0.5rem; /* Espace en dessous du lien */
+}
+
+
+/* Navbar */
+.navbar {
+    background-color: var(--white);
+    color: var(--dark-blue);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    padding: 0.5rem 1rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    position: fixed;
+    top: 0;
+    left: 250px;
+    width: calc(100% - 250px);
+    z-index: 200;
+    flex-shrink: 0;
+    /*min-height: 4rem;*/
+    height: var(--navbar-height);
+    transition: left 0.3s ease, width 0.3s ease
+}
+
+.navbar-title-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+    gap: 0.25rem;
+}
+
+.navbar-title-container h1 {
+    margin: 0;
+    font-size: 1.5rem;
+    line-height: 1.5rem;
+}
+
+.navbar-title-container p {
+    margin: 0;
+    line-height: 1rem;
+    font-size: 0.9rem;
+}
+
+.navbar p {
+    font-size: 0.9rem;
+    margin-left: 0;
+    margin-bottom: 0;
+    color: var(--dark-blue);
+}
+
+#navbar-title {
+    color: var(--white);
+}
+
+.navbar-brand {
+    background-color: transparent;
+    color: var(--white);
+    padding: 0;
+}
+
+#navbarNav {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
+    height: 100%;
+}
+
+.navbar-nav {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    align-items: center;
+    gap: 1rem;
+    height: 100%;
+}
+
+.nav-item {
+    border-radius: 5px;
+    transition: background-color 0.3s ease;
+    padding: 0 1rem;
+    list-style: none;
+}
+
+.navbar-nav > li {
+    list-style: none; /* Removes the bullet point */
+}
+
+
+.navbar-nav > li.nav-item:not(.dropdown):hover {
+    background-color: transparent;
+}
+
+.navbar-nav .nav-item .btn:hover {
+    background-color: #0069d9;
+    border-color: #0062cc;
+}
+
+.navbar-nav .nav-item.dropdown:hover,
+.navbar-nav .nav-item.dropdown:focus-within {
+    background-color: var(--light-dark-blue);
+}
+
+.nav-link {
+    color: var(--dark-blue);
+    padding: 0.5rem 0;
+    display: block;
+    transition: color 0.3s ease;
+}
+
+.nav-link:hover,
+.nav-link:focus {
+    color: var(--white);
+}
+
+.nav-link.active {
+    background-color: var(--light-green);
+    color: var(--white);
+}
+
+#userDropdownMenu {
+    background-color: var(--white);
+    border: none;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    position: absolute;
+    top: 100%;
+    right: 0;
+    z-index: 1000;
+}
+
+.dropdown-item {
+    color: var(--dark-blue);
+}
+
+
+/* Tableaux */
+.table {
+    border-collapse: separate;
+    border-spacing: 0 10px;
+}
+
+.table thead th {
+    border-bottom: none;
+}
+
+.table tbody tr {
+    background-color: var(--white);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.table tbody tr:hover {
+    background-color: var(--light-gray); /* Fond des lignes du tableau plus clair au survol */
+}
+
+/* Compta Index */
+.card-body {
+    padding: 1.5rem;
+}
+
+.card-title {
+    margin-bottom: 1rem;
+    font-weight: bold;
+}
+
+.card-text {
+    font-size: 1.2rem;
+    color: var(--dark-gray); /* Texte des cartes en gris foncé */
+}
+
+.badge {
+    font-size: 1rem;
+    padding: 0.5rem 0.75rem;
+}
+
+.list-group-item {
+    border: none;
+    margin-bottom: 0.5rem;
+    border-radius: 0.25rem;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.list-group-item-danger {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.list-group-item-warning {
+    background-color: var(--light-red); /* Fond des alertes en rouge vif */
+    color: var(--white);
+}
+
+/* Formulaire */
+.form-control {
+    border-radius: 5px;
+    border: 1px solid #ced4da;
+    padding: 0.5rem 0.75rem;
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.form-control:focus {
+    border-color: var(--dark-blue);
+    box-shadow: 0 0 0 0.2rem rgba(30, 58, 80, 0.25);
+}
+
+/* Layout */
+.app-container {
+    display: flex; /* Utilisation de Flexbox pour le conteneur principal */
+    min-height: 100vh; /* Le conteneur prend toute la hauteur de la fenêtre */
+}
+
+/* Sidebar */
+.sidebar {
+    background-color: var(--dark-blue); /* Fond de la sidebar en bleu foncé plus clair */
+    color: var(--white); /* Texte de la sidebar en blanc */
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    width: 250px; /* Initial width of the sidebar */
+    flex-shrink: 0; /* Sidebar should not shrink */
+    position: fixed; /* Make the sidebar fixed */
+    top: 0; /* Align to the top */
+    left: 0; /* Align to the left */
+    height: 100vh; /* Make the sidebar full height */
+    z-index: 100; /* Ensure it's above other content */
+}
+
+
+.main-content {
+    flex-grow: 1; /* Main content takes up available space */
+    display: flex;
+    flex-direction: column;
+    margin-left: 250px; /* Add a left margin to the main content */
+    transition: margin-left 0.3s ease; /* Add a transition for smooth resizing */
+    overflow-x: hidden;
+}
+
+.content {
+    flex-grow: 1;
+    min-width: 0;
+    padding-top: 6rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    overflow-y: auto; /* Add a vertical scrollbar if content overflows */
+}
+
+
+
+/* Page Liste des projets */
+
+
+
+
+.custom-badge {
+    padding: 0rem 0.5rem 0.05rem;/* Remove top/bottom padding, keep horizontal padding */
+    border-radius: 1rem;
+    vertical-align: middle;
+    line-height: 1em;
+}
+
+
+/* Tabs */
+.tabs-container {
+    width: 100%;
+    margin-top: 20px;
+}
+
+.tab-menu {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 10px;
+}
+
+.tab-button {
+    background-color: var(--light-gray);
+    color: var(--dark-blue);
+    border: none;
+    padding: 10px 15px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.tab-button:hover {
+    background-color: #ddd;
+}
+
+.tab-button.active {
+    background-color: var(--blue);
+    color: var(--white);
+}
+
+.tab-content-container {
+    padding: 20px;
+    padding-left: 0;
+    padding-right: 0;
+    border-radius: 5px;
+}
+
+.tab-content {
+    display: none;
+}
+
+.tab-content.active {
+    display: block;
+}
+
+.phase-list .list-group-item {
+    border-radius: 0.5rem; /* Increased border radius */
+    margin-bottom: 1rem; /* Increased spacing between cards */
+    border: 1px solid #e0e0e0; /* Thin, light gray border */
+}
+
+
+
+/* Table */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 20px;
+}
+
+table th,
+table td {
+    border: 1px solid #ddd;
+    padding: 8px;
+    text-align: left;
+}
+
+table th {
+    background-color: #f0f0f0;
+}
+
+
+/* Action Buttons */
+.action-buttons {
+    margin-bottom: 20px;
+}
+
+/* style.css */
+.jalon-box {
+    border: 1px solid #ccc;
+    padding: 10px;
+    margin-bottom: 10px;
+    border-radius: 5px;
+}
+
+.jalon-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+.jalon-name {
+    flex-grow: 1;
+}
+
+.jalon-details {
+    display: flex;
+    align-items: center;
+}
+
+.jalon-date {
+    margin-right: 10px;
+}
+
+.jalon-date i {
+    margin-right: 5px;
+}
+.jalon-item{
+    list-style: none;
+}

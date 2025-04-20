@@ -1,0 +1,113 @@
+<!-- ajouter_organisation.html -->
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>Ajouter une organisation</h1>
+
+    <form method="POST" id="addOrganisationForm" enctype="multipart/form-data">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+            {{ form.designation.label(class="form-label") }}
+            {{ form.designation(class="form-control") }}
+            {% for error in form.designation.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+        </div>
+        <div class="form-group">
+            {{ form.siret.label(class="form-label") }}
+            {{ form.siret(class="form-control") }}
+            {% for error in form.siret.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+        </div>
+        <div class="form-group">
+            {{ form.exonere_tva.label(class="form-label") }}
+            {{ form.exonere_tva() }}
+        </div>
+        <div class="form-group" id="tva_field">
+            {{ form.tva_intracommunautaire.label(class="form-label") }}
+            {{ form.tva_intracommunautaire(class="form-control") }}
+            {% for error in form.tva_intracommunautaire.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+        </div>
+        <div class="form-group">
+            {{ form.forme_juridique.label(class="form-label") }}
+            {{ form.forme_juridique(class="form-control") }}
+            {% for error in form.forme_juridique.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+        </div>
+        <div class="form-group">
+            {{ form.adresse.label(class="form-label") }}
+            {{ form.adresse(class="form-control") }}
+            {% for error in form.adresse.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+        </div>
+        <div class="form-group">
+            {{ form.code_postal.label(class="form-label") }}
+            {{ form.code_postal(class="form-control") }}
+            {% for error in form.code_postal.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+        </div>
+        <div class="form-group">
+            {{ form.ville.label(class="form-label") }}
+            {{ form.ville(class="form-control") }}
+            {% for error in form.ville.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+        </div>
+        <div class="form-group">
+            {{ form.telephone.label(class="form-label") }}
+            {{ form.telephone(class="form-control") }}
+            {% for error in form.telephone.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+        </div>
+        <div class="form-group">
+            {{ form.mail_contact.label(class="form-label") }}
+            {{ form.mail_contact(class="form-control") }}
+            {% for error in form.mail_contact.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+        </div>
+        <div class="form-group">
+            {{ form.iban.label(class="form-label") }}
+            {{ form.iban(class="form-control") }}
+            {% for error in form.iban.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+        </div>
+        <div class="form-group">
+            {{ form.bic.label(class="form-label") }}
+            {{ form.bic(class="form-control") }}
+            {% for error in form.bic.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+        </div>
+        <div class="form-group">
+            {{ form.logo.label(class="form-label") }}
+            {{ form.logo(class="form-control-file") }}
+            {% for error in form.logo.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+        </div>
+        <button type="submit" class="btn btn-primary">Ajouter</button>
+    </form>
+    <script>
+        function toggleTvaField() {
+            var tvaField = document.getElementById("tva_field");
+            var exonereTvaCheckbox = document.getElementById("exonere_tva");
+
+            if (exonereTvaCheckbox.checked) {
+                tvaField.style.display = "none";
+            } else {
+                tvaField.style.display = "block";
+            }
+        }
+        // Call the function on page load to set the initial state
+        toggleTvaField();
+    </script>
+{% endblock %}

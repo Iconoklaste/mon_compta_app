@@ -1,0 +1,72 @@
+{# templates/_form_helpers.html #}
+{% macro render_field(field, label_visible=True, **kwargs) %}
+  {# Prend un champ WTForms et des arguments optionnels #}
+  <div class="mb-3"> {# Marge en bas standard pour BS5 #}
+    {% if label_visible and field.label %}
+      {# Affiche le label si demandé et s'il existe #}
+      {{ field.label(class="form-label") }}
+    {% endif %}
+
+    {# Ajoute la classe 'form-control' ou 'form-select' ou 'form-check-input' selon le type de champ #}
+    {% set field_class = kwargs.pop('class', '') %}
+    {% if field.type == 'BooleanField' %}
+        {# Cas spécifique pour les cases à cocher (souvent dans un form-check) #}
+        {% set field_class = field_class + ' form-check-input' %}
+    {% elif field.type == 'SelectField' %}
+        {% set field_class = field_class + ' form-select' %}
+    {% elif field.type != 'CSRFTokenField' and field.type != 'HiddenField' and field.type != 'SubmitField' %}
+        {# Pour la plupart des autres champs textuels, email, password, etc. #}
+        {% set field_class = field_class + ' form-control' %}
+    {% endif %}
+
+    {# Ajoute 'is-invalid' si le champ a des erreurs #}
+    {% if field.errors %}
+      {% set field_class = field_class + ' is-invalid' %}
+    {% endif %}
+
+    {# Rend le champ lui-même avec les classes calculées et les autres kwargs #}
+    {{ field(class=field_class, **kwargs) }}
+
+    {# Affiche les messages d'erreur sous le champ #}
+    {% if field.errors %}
+      <div class="invalid-feedback">
+        {% for error in field.errors %}
+          <span>{{ error }}</span><br>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+{% endmacro %}
+
+{# Tu peux ajouter d'autres macros ici si besoin, par exemple pour les switches, radio buttons, etc. #}
+
+{% macro render_boolean_field(field, **kwargs) %}
+  {# Macro spécifique pour un BooleanField simple (checkbox) #}
+  <div class="form-check mb-3">
+    {{ field(class='form-check-input' + (' is-invalid' if field.errors else ''), **kwargs) }}
+    {{ field.label(class='form-check-label') }}
+    {% if field.errors %}
+      <div class="invalid-feedback d-block"> {# d-block pour l'afficher correctement #}
+        {% for error in field.errors %}
+          <span>{{ error }}</span><br>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+{% endmacro %}
+
+{% macro render_switch_field(field, **kwargs) %}
+  {# Macro spécifique pour un BooleanField stylisé en switch BS5 #}
+   <div class="form-check form-switch mb-3">
+     {{ field(class='form-check-input' + (' is-invalid' if field.errors else ''), role='switch', **kwargs) }}
+     {{ field.label(class='form-check-label') }}
+     {% if field.errors %}
+       <div class="invalid-feedback d-block"> {# d-block pour l'afficher correctement #}
+         {% for error in field.errors %}
+           <span>{{ error }}</span><br>
+         {% endfor %}
+       </div>
+     {% endif %}
+   </div>
+{% endmacro %}
+

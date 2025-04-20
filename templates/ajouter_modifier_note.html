@@ -1,0 +1,156 @@
+<!-- c:\wamp\www\mon_compta_app\templates\notes\ajouter_modifier_note.html -->
+{% extends 'base.html' %}
+
+
+{# --- AJOUT : CSS de QuillJS --- #}
+{% block extra_head %}
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.0-rc.2/dist/quill.snow.css" rel="stylesheet" />
+    {# Tu peux choisir un autre thème comme 'bubble' si tu préfères : quill.bubble.css #}
+    <style>
+        /* Optionnel : Définir une hauteur pour l'éditeur */
+        #quill-editor {
+            min-height: 300px;
+            height: auto; /* ou une hauteur fixe si tu préfères */
+            border: 1px solid #ced4da; /* Correspondance style Bootstrap */
+            border-radius: 0.25rem; /* Correspondance style Bootstrap */
+        }
+        /* Ajuster le style de la barre d'outils si nécessaire */
+        .ql-toolbar.ql-snow {
+             border-top-left-radius: 0.25rem;
+             border-top-right-radius: 0.25rem;
+             border-bottom: 0; /* Éviter double bordure */
+        }
+         .ql-container.ql-snow {
+             border-bottom-left-radius: 0.25rem;
+             border-bottom-right-radius: 0.25rem;
+        }
+    </style>
+{% endblock %}
+
+
+{% block page_title %}
+    <h1>{{ title }}</h1>
+{% endblock %}
+
+{% block navbar_actions %}
+    <a href="{{ url_for('projets.projet_detail', projet_id=projet.id, _anchor='tab3-content') }}" class="btn btn-secondary">
+        <i class="fas fa-arrow-left"></i> Retour au projet
+    </a>
+{% endblock %}
+
+{% block content %}
+<div class="card">
+    <div class="card-body">
+        {# --- MODIFICATION : Utilisation de novalidate car Quill gère son propre contenu --- #}
+        <form method="POST" action="" id="note-form" novalidate>
+            {{ form.csrf_token }} {# Important pour la sécurité #}
+
+            <div class="mb-3">
+                {{ form.date.label(class="form-label") }}
+                {{ form.date(class="form-control" + (" is-invalid" if form.date.errors else "")) }}
+                {% if form.date.errors %}
+                    <div class="invalid-feedback">
+                        {{ form.date.errors[0] }}
+                    </div>
+                {% endif %}
+            </div>
+
+            {# --- MODIFICATION : Remplacement du TextArea par un Div pour Quill et un Input caché --- #}
+            <div class="mb-3">
+                {{ form.contenu.label(class="form-label") }}
+                {# Ce div sera la cible de Quill #}
+                <div id="quill-editor">
+                    {# Charger le contenu existant (pour la modification) en échappant le HTML #}
+                    {# Quill l'interprétera correctement à l'initialisation #}
+                    {% if form.contenu.data %}{{ form.contenu.data | safe }}{% endif %}
+                </div>
+                {# Champ caché pour stocker et envoyer le contenu HTML de Quill #}
+                <input type="hidden" name="contenu" id="contenu-input">
+                {# Afficher les erreurs du champ 'contenu' s'il y en a (ex: validation côté serveur) #}
+                 {% if form.contenu.errors %}
+                    <div class="invalid-feedback d-block"> {# d-block pour forcer l'affichage #}
+                        {{ form.contenu.errors[0] }}
+                    </div>
+                {% endif %}
+            </div>
+            {# --- FIN MODIFICATION --- #}
+
+            {{ form.submit(class="btn btn-primary") }}
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+{# --- AJOUT : JS de QuillJS --- #}
+<script src="https://cdn.jsdelivr.net/npm/quill@2.0.0-rc.2/dist/quill.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // --- Initialisation de QuillJS ---
+    const quill = new Quill('#quill-editor', {
+        theme: 'snow', // Thème 'snow' (avec barre d'outils) ou 'bubble' (popup)
+        modules: {
+            toolbar: [ // Configuration de la barre d'outils
+                [{ 'header': [1, 2, 3, false] }],
+                ['bold', 'italic', 'underline', 'strike'],        // toggled buttons
+                ['link', 'image', 'blockquote', 'code-block'], // Ajout image
+
+                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                [{ 'script': 'sub'}, { 'script': 'super' }],      // superscript/subscript
+                [{ 'indent': '-1'}, { 'indent': '+1' }],          // outdent/indent
+                [{ 'direction': 'rtl' }],                         // text direction
+
+                [{ 'color': [] }, { 'background': [] }],          // dropdown with defaults from theme
+                [{ 'font': [] }],
+                [{ 'align': [] }],
+
+                ['clean']                                         // remove formatting button
+            ],
+            // --- Gestion des images (par défaut en base64) ---
+            // Quill gère nativement le collage et le glisser-déposer d'images en les convertissant en base64.
+            // Pour un upload serveur (recommandé), il faut un module personnalisé.
+            // Voir : https://quilljs.com/guides/how-to-upload-images/
+        },
+        placeholder: 'Saisissez votre note ici...',
+    });
+
+    // --- Synchronisation du contenu Quill vers l'input caché avant soumission ---
+    const noteForm = document.getElementById('note-form');
+    const contenuInput = document.getElementById('contenu-input');
+
+    if (noteForm && contenuInput) {
+        noteForm.addEventListener('submit', function(event) {
+            // Récupérer le contenu HTML de Quill
+            const quillHtml = quill.root.innerHTML;
+
+            // Mettre à jour la valeur de l'input caché
+            contenuInput.value = quillHtml;
+
+            // Optionnel : Vérifier si le contenu est vide (uniquement <p><br></p>)
+            // Quill considère "<p><br></p>" comme vide.
+            if (quillHtml === '<p><br></p>') {
+                 contenuInput.value = ''; // Envoyer une chaîne vide si l'éditeur est vide
+                 // Tu pourrais aussi ajouter une validation JS ici si besoin
+                 // alert("Le contenu de la note ne peut pas être vide.");
+                 // event.preventDefault(); // Empêcher la soumission si vide
+            }
+
+            // Le formulaire sera soumis avec la valeur de contenuInput
+        });
+    } else {
+        console.error("Le formulaire ou l'input caché pour le contenu n'a pas été trouvé.");
+    }
+
+    // --- Charger le contenu initial dans Quill (pour la modification) ---
+    // Si le contenu vient du serveur (form.contenu.data), il est déjà dans le div#quill-editor.
+    // Quill le prendra en compte lors de son initialisation.
+    // Si tu avais besoin de le charger dynamiquement après coup :
+    // const initialContent = contenuInput.value; // Ou récupérer d'une autre source
+    // if (initialContent) {
+    //    quill.clipboard.dangerouslyPasteHTML(initialContent);
+    // }
+
+});
+</script>
+{% endblock %}

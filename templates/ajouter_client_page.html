@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block page_title %}
+    <h1>Ajouter un Nouveau Client</h1>
+{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    {# Affichage des messages Flash #}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        {% for category, message in messages %}
+          <div class="alert alert-{{ category if category else 'info' }} alert-dismissible fade show" role="alert">
+            {{ message }}
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+          </div>
+        {% endfor %}
+      {% endif %}
+    {% endwith %}
+
+    {# Formulaire standard pour ajouter un client #}
+    <form method="POST" action="{{ url_for('clients.ajouter_client_page') }}" novalidate> {# Modifié ici #}
+        {# Inclure le token CSRF (géré par form.hidden_tag() si tu utilises validate_on_submit) #}
+        {{ form.hidden_tag() }}
+
+        <div class="row g-3">
+            {# Nom (requis) #}
+            <div class="col-md-6 mb-3">
+                {{ form.nom.label(class="form-label") }}
+                {{ form.nom(class="form-control" + (" is-invalid" if form.nom.errors else ""), required="required") }}
+                {% if form.nom.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.nom.errors %}<span>{{ error }}</span><br>{% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            {# Email #}
+            <div class="col-md-6 mb-3">
+                {{ form.mail.label(class="form-label") }}
+                {{ form.mail(class="form-control" + (" is-invalid" if form.mail.errors else ""), placeholder="nom@example.com") }}
+                {% if form.mail.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.mail.errors %}<span>{{ error }}</span><br>{% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            {# Adresse #}
+            <div class="col-12 mb-3">
+                {{ form.adresse.label(class="form-label") }}
+                {{ form.adresse(class="form-control" + (" is-invalid" if form.adresse.errors else "")) }}
+                {% if form.adresse.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.adresse.errors %}<span>{{ error }}</span><br>{% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            {# Code Postal #}
+            <div class="col-md-4 mb-3">
+                {{ form.code_postal.label(class="form-label") }}
+                {{ form.code_postal(class="form-control" + (" is-invalid" if form.code_postal.errors else "")) }}
+                {% if form.code_postal.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.code_postal.errors %}<span>{{ error }}</span><br>{% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            {# Ville #}
+            <div class="col-md-8 mb-3">
+                {{ form.ville.label(class="form-label") }}
+                {{ form.ville(class="form-control" + (" is-invalid" if form.ville.errors else "")) }}
+                {% if form.ville.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.ville.errors %}<span>{{ error }}</span><br>{% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+            {# Téléphone #}
+            <div class="col-md-6 mb-3">
+                {{ form.telephone.label(class="form-label") }}
+                {{ form.telephone(class="form-control" + (" is-invalid" if form.telephone.errors else ""), placeholder="Ex: 0123456789") }}
+                {% if form.telephone.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.telephone.errors %}<span>{{ error }}</span><br>{% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+
+        </div> {# Fin .row #}
+
+        <div class="mt-4">
+            {# Bouton de soumission (si ton ClientForm a un champ submit) #}
+            {# {{ form.submit(class="btn btn-primary") }} #}
+            {# Ou un bouton standard si pas de champ submit dans le form #}
+            <button type="submit" class="btn btn-primary">Enregistrer le Client</button>
+            <a href="{{ url_for('clients.clients') }}" class="btn btn-secondary">Annuler</a>
+        </div>
+
+    </form>
+</div>
+{% endblock %}

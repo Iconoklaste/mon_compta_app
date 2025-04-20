@@ -1,0 +1,65 @@
+{# templates/compta/plan_comptable/list.html #}
+{% extends 'base.html' %}
+
+{% block page_title %}Plan Comptable{% endblock %}
+
+{% block content %}
+    <h1>Plan Comptable de votre Organisation</h1>
+
+    <div class="action-buttons mb-3">
+        <a href="{{ url_for('plan_comptable.ajouter_compte') }}" class="btn btn-primary">
+            <i class="fas fa-plus"></i> Ajouter un Compte
+        </a>
+    </div>
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+            <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                {{ message }}
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <table class="table table-striped table-hover">
+        <thead class="thead-light">
+            <tr>
+                <th>Numéro</th>
+                <th>Nom</th>
+                <th>Type/Classe</th>
+                <th>Description</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for compte in comptes %}
+            <tr>
+                <td>{{ compte.numero }}</td>
+                <td>{{ compte.nom }}</td>
+                <td>{{ compte.type }}</td>
+                <td>{{ compte.description if compte.description else '-' }}</td>
+                <td>
+                    <a href="{{ url_for('plan_comptable.modifier_compte', compte_id=compte.id) }}" class="btn btn-sm btn-outline-secondary" title="Modifier">
+                        <i class="fas fa-edit"></i>
+                    </a>
+                    {# Formulaire pour la suppression (sécurisé avec POST et CSRF) #}
+                    <form action="{{ url_for('plan_comptable.supprimer_compte', compte_id=compte.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer ce compte ?');">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                        <button type="submit" class="btn btn-sm btn-outline-danger" title="Supprimer">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" class="text-center">Aucun compte comptable défini pour le moment.</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

@@ -1,0 +1,182 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h1>Ajouter un Utilisateur</h1>
+
+    <form method="POST" id="userForm">
+        {{ form.hidden_tag() }}
+        <div class="form-group">
+            {{ form.nom.label(class="form-label") }}
+            {{ form.nom(class="form-control") }}
+            {% for error in form.nom.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+        </div>
+        <div class="form-group">
+            {{ form.prenom.label(class="form-label") }}
+            {{ form.prenom(class="form-control") }}
+            {% for error in form.prenom.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+        </div>
+        <div class="form-group">
+            {{ form.mail.label(class="form-label") }}
+            {{ form.mail(class="form-control") }}
+            {% for error in form.mail.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+        </div>
+        <div class="form-group">
+            {{ form.telephone.label(class="form-label") }}
+            {{ form.telephone(class="form-control") }}
+            {% for error in form.telephone.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+        </div>
+        <div class="form-group">
+            {{ form.password.label(class="form-label") }}
+            {{ form.password(class="form-control") }}
+            {% for error in form.password.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+        </div>
+        <div class="form-group">
+            {{ form.confirm_password.label(class="form-label") }}
+            {{ form.confirm_password(class="form-control") }}
+            {% for error in form.confirm_password.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+        </div>
+        <div class="form-group">
+            {{ form.organisation.label(class="form-label") }}
+            {{ form.organisation(class="form-control") }}
+            {% for error in form.organisation.errors %}
+                <span class="text-danger">{{ error }}</span>
+            {% endfor %}
+        </div>
+        <div class="form-group">
+            <button type="button" class="btn btn-secondary" data-toggle="modal" data-target="#addOrganisationModal">
+                Ajouter une nouvelle organisation
+            </button>
+        </div>
+        <button type="submit" class="btn btn-primary">Ajouter</button>
+    </form>
+
+    <!-- Modal for adding a new organization -->
+    <div class="modal fade" id="addOrganisationModal" tabindex="-1" role="dialog" aria-labelledby="addOrganisationModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addOrganisationModalLabel">Ajouter une nouvelle organisation</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="addOrganisationForm">
+                        <div class="form-group">
+                            <label for="newOrganisationDesignation">Nom de l'organisation</label>
+                            <input type="text" class="form-control" id="newOrganisationDesignation" name="newOrganisationDesignation" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="newOrganisationAdresse">Adresse</label>
+                            <input type="text" class="form-control" id="newOrganisationAdresse" name="newOrganisationAdresse">
+                        </div>
+                        <div class="form-group">
+                            <label for="newOrganisationCodePostal">Code postal</label>
+                            <input type="text" class="form-control" id="newOrganisationCodePostal" name="newOrganisationCodePostal" pattern="[0-9]{5}" title="Le code postal doit contenir 5 chiffres">
+                        </div>
+                        <div class="form-group">
+                            <label for="newOrganisationVille">Ville</label>
+                            <input type="text" class="form-control" id="newOrganisationVille" name="newOrganisationVille">
+                        </div>
+                        <div class="form-group">
+                            <label for="newOrganisationTelephone">Téléphone</label>
+                            <input type="text" class="form-control" id="newOrganisationTelephone" name="newOrganisationTelephone">
+                        </div>
+                        <div class="form-group">
+                            <label for="newOrganisationMailContact">Email de contact</label>
+                            <input type="email" class="form-control" id="newOrganisationMailContact" name="newOrganisationMailContact">
+                        </div>
+                        <div class="form-group">
+                            <label for="newOrganisationLogo">Logo</label>
+                            <input type="file" class="form-control-file" id="newOrganisationLogo" name="newOrganisationLogo" accept="image/*">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
+                    <button type="button" class="btn btn-primary" id="saveOrganisation">Enregistrer</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('saveOrganisation').addEventListener('click', function() {
+            const designation = document.getElementById('newOrganisationDesignation').value;
+            const adresse = document.getElementById('newOrganisationAdresse').value;
+            const code_postal = document.getElementById('newOrganisationCodePostal').value;
+            const ville = document.getElementById('newOrganisationVille').value;
+            const telephone = document.getElementById('newOrganisationTelephone').value;
+            const mail_contact = document.getElementById('newOrganisationMailContact').value;
+            const logoInput = document.getElementById('newOrganisationLogo');
+            const logo = logoInput.files[0]; // Get the file object
+
+            const formData = new FormData();
+            formData.append('designation', designation);
+            formData.append('adresse', adresse);
+            formData.append('code_postal', code_postal);
+            formData.append('ville', ville);
+            formData.append('telephone', telephone);
+            formData.append('mail_contact', mail_contact);
+            if (logo) {
+                formData.append('logo', logo);
+            }
+
+            if (designation) {
+                console.log("Request Body:", formData); // Log the request body
+
+                fetch('/organisations/ajouter_organisation', {
+                    method: 'POST',
+                    body: formData, // Send FormData
+                })
+                .then(response => {
+                    console.log("Response Status:", response.status); // Log the response status
+                    if (!response.ok) {
+                        return response.text().then(text => {
+                            throw new Error('Erreur réseau ou serveur: ' + text);
+                        });
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    console.log(data); // Affiche la réponse du serveur dans la console
+                    if (data.success) {
+                        const select = document.getElementById('organisation');
+                        const option = document.createElement('option');
+                        option.value = designation;
+                        option.text = designation;
+                        select.add(option);
+                        select.value = designation;
+                        $('#addOrganisationModal').modal('hide');
+                        // Clear the modal fields
+                        document.getElementById('newOrganisationDesignation').value = '';
+                        document.getElementById('newOrganisationAdresse').value = '';
+                        document.getElementById('newOrganisationCodePostal').value = '';
+                        document.getElementById('newOrganisationVille').value = '';
+                        document.getElementById('newOrganisationTelephone').value = '';
+                        document.getElementById('newOrganisationMailContact').value = '';
+                        document.getElementById('newOrganisationLogo').value = '';
+                    } else {
+                        alert('Erreur lors de l\'ajout de l\'organisation: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur:', error); // Affiche l'erreur dans la console
+                    alert('Erreur lors de l\'ajout de l\'organisation. Vérifiez la console pour plus de détails.');
+                });
+            }
+        });
+    </script>
+{% endblock %}

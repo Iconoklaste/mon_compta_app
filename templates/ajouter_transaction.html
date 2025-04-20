@@ -1,0 +1,226 @@
+{# templates/ajouter_transaction.html #}
+{% extends 'base.html' %}
+
+{% block page_title %}
+<span style="text-transform: uppercase;">{{projet.nom}}</span> | AJOUT D'UNE TRANSACTION
+{% endblock %}
+
+{% block content %}
+    {# Affichage des messages flash généraux #}
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+            {% for category, message in messages %}
+                {% if 'Veuillez corriger les erreurs' not in message and 'Erreur de validation' not in message %}
+                <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+                    {{ message }}
+                    {# --- CORRECTION BS5 : Bouton de fermeture --- #}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+                {% endif %}
+            {% endfor %}
+        {% endif %}
+    {% endwith %}
+
+    <form method="POST" action="{{ url_for('transactions.ajouter_transaction', projet_id=projet.id) }}" novalidate>
+        {{ form.hidden_tag() }}
+
+        {# --- CORRECTION BS5 : Remplacement de form-row par row g-3 --- #}
+        <div class="row g-3 mb-3"> {# Ajout mb-3 pour espacement après la ligne #}
+            {# --- CORRECTION BS5 : Remplacement de form-group par col-md-6 --- #}
+            <div class="col-md-6">
+                {{ form.date.label(class="form-label") }}
+                {{ form.date(class="form-control" + (" is-invalid" if form.date.errors else "")) }}
+                {% if form.date.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.date.errors %}<span>{{ error }}</span>{% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+            {# --- CORRECTION BS5 : Remplacement de form-group par col-md-6 et form-control par form-select --- #}
+            <div class="col-md-6">
+                {{ form.type.label(class="form-label") }}
+                {{ form.type(class="form-select" + (" is-invalid" if form.type.errors else "")) }} {# form-select ici #}
+                {% if form.type.errors %}
+                    <div class="invalid-feedback">
+                        {% for error in form.type.errors %}<span>{{ error }}</span>{% endfor %}
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+
+        {# --- CORRECTION BS5 : Remplacement de form-group par mb-3 --- #}
+        <div class="mb-3">
+            {{ form.montant.label(class="form-label") }}
+            {% if remaining_to_bill is not none %}
+             <small class="form-text text-muted">Montant restant à facturer pour ce projet : {{ "%.2f"|format(remaining_to_bill) }} €</small>
+            {% endif %}
+            {{ form.montant(class="form-control" + (" is-invalid" if form.montant.errors else ""), step="0.01", placeholder="0.00") }}
+            {% if form.montant.errors %}
+                <div class="invalid-feedback">
+                    {% for error in form.montant.errors %}<span>{{ error }}</span><br>{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        {# --- CORRECTION BS5 : Remplacement de form-group par mb-3 --- #}
+        <div class="mb-3">
+            {{ form.description.label(class="form-label") }}
+            {{ form.description(class="form-control" + (" is-invalid" if form.description.errors else ""), rows=3, placeholder="Détails de la transaction...") }}
+            {% if form.description.errors %}
+                <div class="invalid-feedback">
+                    {% for error in form.description.errors %}<span>{{ error }}</span>{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        {# --- CORRECTION BS5 : Remplacement de form-group par mb-3 --- #}
+        <div class="mb-3">
+            {{ form.mode_paiement.label(class="form-label") }}
+            {{ form.mode_paiement(class="form-control" + (" is-invalid" if form.mode_paiement.errors else ""), placeholder="Ex: Virement, Chèque n°123, Espèces...") }}
+            {% if form.mode_paiement.errors %}
+                <div class="invalid-feedback">
+                    {% for error in form.mode_paiement.errors %}<span>{{ error }}</span>{% endfor %}
+                </div>
+            {% endif %}
+        </div>
+
+        <hr>
+
+        {# --- Sélection/Création Exercice --- #}
+        <h5>Exercice Comptable</h5>
+
+        {# --- CORRECTION BS5 : Remplacement de form-group par mb-3 --- #}
+        <div class="mb-3" id="exercice-select-group">
+             {{ form.exercice_id.label(class="form-label") }}
+             {# --- CORRECTION BS5 : form-control -> form-select --- #}
+             {{ form.exercice_id(class="form-select" + (" is-invalid" if form.exercice_id.errors else ""), id="exercice_id_select") }} {# form-select ici #}
+             {% if form.exercice_id.errors %}
+                <div class="invalid-feedback">
+                    {% for error in form.exercice_id.errors %}<span>{{ error }}</span>{% endfor %}
+                </div>
+             {% endif %}
+             {% if form.exercice_id.choices|length > 1 or True %}
+             <button type="button" class="btn btn-outline-secondary btn-sm mt-2" id="show-new-exercice-form">
+                 <i class="fas fa-plus"></i> Créer un nouvel exercice
+             </button>
+             {% endif %}
+        </div>
+
+        {# Champs pour le nouvel exercice (initialement cachés) #}
+        <div id="new-exercice-fields" style="display: none; border: 1px solid #ddd; padding: 15px; margin-top: 10px; border-radius: 5px; background-color: #f9f9f9;">
+            <h6>Nouvel Exercice Comptable</h6>
+            {# --- CORRECTION BS5 : Remplacement de form-row par row g-3 --- #}
+            <div class="row g-3">
+                {# --- CORRECTION BS5 : Remplacement de form-group par col-md-6 --- #}
+                <div class="col-md-6">
+                    {{ form.date_debut_exercice.label(class="form-label") }}
+                    {{ form.date_debut_exercice(class="form-control" + (" is-invalid" if form.date_debut_exercice.errors else ""), id="date_debut_exercice_input") }}
+                     {% if form.date_debut_exercice.errors %}
+                        <div class="invalid-feedback">
+                            {% for error in form.date_debut_exercice.errors %}<span>{{ error }}</span>{% endfor %}
+                        </div>
+                     {% endif %}
+                </div>
+                {# --- CORRECTION BS5 : Remplacement de form-group par col-md-6 --- #}
+                <div class="col-md-6">
+                    {{ form.date_fin_exercice.label(class="form-label") }}
+                    {{ form.date_fin_exercice(class="form-control" + (" is-invalid" if form.date_fin_exercice.errors else ""), id="date_fin_exercice_input") }}
+                     {% if form.date_fin_exercice.errors %}
+                        <div class="invalid-feedback">
+                            {% for error in form.date_fin_exercice.errors %}<span>{{ error }}</span>{% endfor %}
+                        </div>
+                     {% endif %}
+                </div>
+            </div>
+             <button type="button" class="btn btn-outline-danger btn-sm mt-2" id="cancel-new-exercice">
+                 <i class="fas fa-times"></i> Annuler création
+             </button>
+        </div>
+        {# --- Fin Sélection/Création Exercice --- #}
+
+        <hr>
+
+        {# --- Sélection Compte Comptable --- #}
+        {# --- CORRECTION BS5 : Remplacement de form-group par mb-3 --- #}
+        <div class="mb-3">
+            {{ form.compte_id.label(class="form-label") }}
+            {# --- CORRECTION BS5 : form-control -> form-select --- #}
+            {{ form.compte_id(class="form-select" + (" is-invalid" if form.compte_id.errors else "")) }} {# form-select ici #}
+            {% if form.compte_id.errors %}
+                <div class="invalid-feedback">
+                    {% for error in form.compte_id.errors %}<span>{{ error }}</span>{% endfor %}
+                </div>
+            {% endif %}
+             <small class="form-text text-muted">Associer cette transaction à un compte spécifique (optionnel).</small>
+        </div>
+        {# --- Fin Sélection Compte Comptable --- #}
+
+        {{ form.submit(class="btn btn-primary") }}
+        <a href="{{ url_for('projets.projet_detail', projet_id=projet.id) }}" class="btn btn-secondary">Annuler</a>
+
+    </form>
+{% endblock %}
+
+
+{# --- JavaScript spécifique à cette page --- #}
+{% block extra_scripts %}
+    {# Le JavaScript existant est compatible #}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const showButton = document.getElementById('show-new-exercice-form');
+            const cancelButton = document.getElementById('cancel-new-exercice');
+            const newExerciceFieldsDiv = document.getElementById('new-exercice-fields');
+            const exerciceSelectGroup = document.getElementById('exercice-select-group');
+            const exerciceSelect = document.getElementById('exercice_id_select');
+            const dateDebutInput = document.getElementById('date_debut_exercice_input');
+            const dateFinInput = document.getElementById('date_fin_exercice_input');
+            const creerNouvelExerciceHidden = document.getElementById('creer_nouvel_exercice');
+
+            function showNewExercice() {
+                newExerciceFieldsDiv.style.display = 'block';
+                exerciceSelectGroup.style.display = 'none';
+                if (dateDebutInput) dateDebutInput.required = true;
+                if (dateFinInput) dateFinInput.required = true;
+                if(creerNouvelExerciceHidden) creerNouvelExerciceHidden.value = 'true';
+                if (exerciceSelect) exerciceSelect.disabled = true;
+            }
+
+            function hideNewExercice() {
+                newExerciceFieldsDiv.style.display = 'none';
+                exerciceSelectGroup.style.display = 'block';
+                if (dateDebutInput) {
+                     dateDebutInput.required = false;
+                     dateDebutInput.value = '';
+                     dateDebutInput.classList.remove('is-invalid');
+                }
+                if (dateFinInput) {
+                     dateFinInput.required = false;
+                     dateFinInput.value = '';
+                     dateFinInput.classList.remove('is-invalid');
+                }
+                if(creerNouvelExerciceHidden) creerNouvelExerciceHidden.value = 'false';
+                if (exerciceSelect) exerciceSelect.disabled = false;
+            }
+
+            if(showButton) showButton.addEventListener('click', showNewExercice);
+            if(cancelButton) cancelButton.addEventListener('click', hideNewExercice);
+
+            if (creerNouvelExerciceHidden && creerNouvelExerciceHidden.value === 'true') {
+                 showNewExercice();
+            } else {
+                 hideNewExercice();
+            }
+
+            if (exerciceSelect && exerciceSelect.classList.contains('is-invalid')) {
+                 exerciceSelectGroup.style.display = 'block';
+                 newExerciceFieldsDiv.style.display = 'none';
+                 if(creerNouvelExerciceHidden) creerNouvelExerciceHidden.value = 'false';
+                 if (exerciceSelect) exerciceSelect.disabled = false;
+            }
+            if ((dateDebutInput && dateDebutInput.classList.contains('is-invalid')) || (dateFinInput && dateFinInput.classList.contains('is-invalid'))) {
+                 showNewExercice();
+            }
+
+        });
+    </script>
+{% endblock %}

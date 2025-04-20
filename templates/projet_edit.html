@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+
+{% block page_title %}
+    <h1>Modifier le Projet : {{ projet.nom }}</h1>
+{% endblock %}
+
+{% block content %}
+    <form method="POST">
+        {{ form.hidden_tag() }}
+
+        {# Remplacement de form-group par mb-3 et ajout de form-label #}
+        <div class="mb-3">
+            {{ form.nom.label(class="form-label") }}
+            {{ form.nom(class="form-control") }}
+            {% if form.nom.errors %}
+                <ul class="errors list-unstyled"> {# list-unstyled pour enlever les puces #}
+                    {% for error in form.nom.errors %}
+                        <li class="text-danger small">{{ error }}</li> {# Ajout text-danger et small #}
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+
+        {# Remplacement de form-group par mb-3, ajout de form-label et form-select #}
+        <div class="mb-3">
+            {{ form.client_id.label(class="form-label") }}
+            {{ form.client_id(class="form-select") }} {# Utiliser form-select pour les <select> #}
+            {% if form.client_id.errors %}
+                <ul class="errors list-unstyled">
+                    {% for error in form.client_id.errors %}
+                        <li class="text-danger small">{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+
+        {# Remplacement de form-group par mb-3 et ajout de form-label #}
+        <div class="mb-3">
+            {{ form.date_debut.label(class="form-label") }}
+            {{ form.date_debut(class="form-control") }}
+            {% if form.date_debut.errors %}
+                <ul class="errors list-unstyled">
+                    {% for error in form.date_debut.errors %}
+                        <li class="text-danger small">{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+
+        {# Remplacement de form-group par mb-3 et ajout de form-label #}
+        <div class="mb-3">
+            {{ form.date_fin.label(class="form-label") }}
+            {{ form.date_fin(class="form-control") }}
+            {% if form.date_fin.errors %}
+                <ul class="errors list-unstyled">
+                    {% for error in form.date_fin.errors %}
+                        <li class="text-danger small">{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+
+        {# Remplacement de form-group par mb-3, ajout de form-label et form-select #}
+        <div class="mb-3">
+            {{ form.statut.label(class="form-label") }}
+            {{ form.statut(class="form-select") }} {# Utiliser form-select pour les <select> #}
+            {% if form.statut.errors %}
+                <ul class="errors list-unstyled">
+                    {% for error in form.statut.errors %}
+                        <li class="text-danger small">{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+
+        {# Remplacement de form-group par mb-3 et ajout de form-label #}
+        <div class="mb-3">
+            {{ form.prix_total.label(class="form-label") }}
+            {{ form.prix_total(class="form-control", step="0.01") }} {# Ajout de step pour les décimales #}
+            {% if form.prix_total.errors %}
+                <ul class="errors list-unstyled">
+                    {% for error in form.prix_total.errors %}
+                        <li class="text-danger small">{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+
+        {# Le bouton utilise déjà les bonnes classes BS5 #}
+        <button type="submit" class="btn btn-primary">Enregistrer les modifications</button>
+        <a href="{{ url_for('projets.projet_detail', projet_id=projet.id) }}" class="btn btn-secondary">Annuler</a> {# Ajout bouton Annuler suggéré #}
+
+    </form>
+{% endblock %}

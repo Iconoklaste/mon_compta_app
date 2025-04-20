@@ -1,0 +1,858 @@
+<!-- c:\wamp\www\mon_compta_app\templates\projet_detail.html -->
+{% extends 'base.html' %}
+
+
+{# --- Styles spécifiques --- #}
+{% block extra_head %}
+
+<link href="https://cdn.jsdelivr.net/npm/quill@2.0.0-rc.2/dist/quill.snow.css" rel="stylesheet" />
+<style>
+    /* Optionnel : Définir une hauteur pour l'éditeur */
+    #quill-editor {
+        min-height: 300px;
+        height: auto; /* ou une hauteur fixe si tu préfères */
+        border: 1px solid #ced4da; /* Correspondance style Bootstrap */
+        border-radius: 0.25rem; /* Correspondance style Bootstrap */
+    }
+    /* Ajuster le style de la barre d'outils si nécessaire */
+    .ql-toolbar.ql-snow {
+         border-top-left-radius: 0.25rem;
+         border-top-right-radius: 0.25rem;
+         border-bottom: 0; /* Éviter double bordure */
+    }
+     .ql-container.ql-snow {
+         border-bottom-left-radius: 0.25rem;
+         border-bottom-right-radius: 0.25rem;
+    }
+</style>
+<style>
+
+#gantt-chart {
+    /* 1. Largeur max toujours à 100% */
+    max-width: 100%;
+
+    /* 2. Supprimer la hauteur fixe */
+    /* height: 450px; */
+
+    /* 3. Définir une hauteur maximale (ex: 60% de la hauteur de la fenêtre) */
+    /*    Ajuste cette valeur selon tes préférences (ex: 600px, 70vh, etc.) */
+    /* max-height: 60vh; */
+
+    /* 4. Gérer les dépassements horizontal et vertical */
+    overflow-x: auto; /* Garde le scroll horizontal */
+    overflow-y: auto; /* Ajoute le scroll vertical SEULEMENT si max-height est dépassée */
+
+    /* 5. Autres propriétés */
+    position: relative;
+    box-sizing: border-box; /* C'est bien de garder ça */
+}
+
+
+        /* Assure que le SVG généré par Frappe Gantt peut s'étendre */
+        #gantt-chart .gantt-container > svg {
+        
+        display: block;
+    }
+
+    /* Styles pour le popup Gantt */
+    .gantt-popup {
+        background-color: #fff;
+        border: 1px solid #d12d2d;
+        padding: 10px;
+        border-radius: 4px;
+        box-shadow: 3px 3px 5px rgba(0,0,0,0.1);
+        font-size: 0.9em;
+        min-width: 150px;
+    }
+    /* Style pour les phases dans Gantt */
+    #gantt-chart .bar-wrapper.gantt-phase .bar {
+        fill: #28a745; /* Couleur verte pour les phases */
+    }
+     /* Style pour les jalons dans Gantt */
+    .gantt-milestone .bar {
+        fill: #ffc107; /* Jaune Bootstrap */
+        height: 10px !important;
+        transform: translateY(5px);
+    }
+    .gantt-milestone-completed .bar {
+         fill: #b93704; /* Gris Bootstrap */
+         height: 10px !important;
+         transform: translateY(5px);
+    }
+    #gantt-chart .gantt-container > svg { /* Adapte ce sélecteur si besoin */
+    /* Assure que le SVG peut devenir très large */
+    min-width: 100%; /* Ou une valeur fixe minimale si tu préfères, ex: 800px */
+    display: block; /* Évite des espaces indésirables sous le SVG */
+}
+
+</style>
+{% endblock %}
+
+
+{% block page_title %}
+<h1>{{ projet.nom }}</h1>
+{% endblock %}
+
+{% block navbar_actions %}
+<a href="{{ url_for('projets.modifier_projet', projet_id=projet.id) }}" class="btn btn-warning">
+    <i class="fas fa-edit"></i> Modifier
+</a>
+
+<form action="{{ url_for('projets.supprimer_projet', projet_id=projet.id) }}" method="POST" style="display: inline;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <button type="submit" class="btn btn-danger"
+        onclick="return confirm('Êtes-vous sûr de vouloir supprimer ce projet ? Cette action est irréversible.')">
+        <i class="fas fa-trash-alt"></i> Supprimer
+    </button>
+</form>
+
+{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-6">
+        <div class="info-card h-100">
+            <div class="card-body">
+                <h5 class="card-title">Informations Générales</h5>
+                <div class="row align-items-center">
+                    <div class="col-6">
+                        <div class="mb-0">
+                            <small class="text-muted">
+                                Date de Début:
+                            </small>
+                            <p class="mb-1"><i class="fa-regular fa-calendar"></i> {{ projet.date_debut.strftime('%d %B %Y') if projet.date_debut else 'Non définie' }}</p>
+                        </div>
+                        <div class="mb-0">
+                            <small class="text-muted">
+                                Date de Fin:
+                            </small>
+                            <p class="mb-0"><i class="fa-regular fa-calendar"></i> {{ projet.date_fin.strftime('%d %B %Y') if projet.date_fin else 'Non définie' }}</p>
+                        </div>
+                    </div>
+                    <div class="col-6">
+                        <small class="text-muted">Progression globale</small>
+                        <div class="progress">
+                            <div class="progress-bar" role="progressbar" style="width: {{ projet.progress }}%;" aria-valuenow="{{ projet.progress }}" aria-valuemin="0" aria-valuemax="100">{{ projet.progress }}%</div>
+                        </div>
+                    </div>
+                </div>
+                <hr>
+                <p>Client : {{ client.nom }}</p>
+                <p>Prix total : {{ projet.prix_total }}</p>
+                <p>Reste à facturer : {{ remaining_to_bill }}</p>
+            </div>
+        </div>
+    </div>
+
+    {# --- MODIFICATION : Section Équipe du Projet --- #}
+    <div class="col-md-3">
+        <div class="info-card h-100 d-flex flex-column"> {# Ajout de d-flex et flex-column pour que le contenu remplisse la hauteur #}
+            <div class="card-body flex-grow-1"> {# flex-grow-1 pour que cette partie prenne l'espace disponible #}
+                <h5 class="card-title">Équipe du Projet</h5>
+
+                {# Liste des membres existants #}
+                {% if membres_equipe %}
+                    <ul class="list-unstyled mb-3">
+                        {% for membre in membres_equipe %}
+                        <li class="mb-2 d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong title="{{ membre.email }}">{{ membre.nom }}</strong>
+                                {% if membre.role_projet %}
+                                    <small class="text-muted d-block">{{ membre.role_projet }}</small>
+                                {% endif %}
+                                {% if membre.user %}
+                                    <span class="badge bg-info text-dark" title="Lié à l'utilisateur {{ membre.user.nom_complet }}">
+                                        <i class="fas fa-user-check fa-xs"></i> Interne
+                                    </span>
+                                {% else %}
+                                     <span class="badge bg-secondary" title="Membre externe (non lié à un compte utilisateur)">
+                                        <i class="fas fa-user-slash fa-xs"></i> Externe
+                                    </span>
+                                {% endif %}
+                            </div>
+                            {# Formulaire pour supprimer le membre #}
+                            <form action="{{ url_for('projets.supprimer_membre_equipe', projet_id=projet.id, membre_id=membre.id) }}" method="POST" class="ms-2">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-danger btn-sm p-1" title="Retirer {{ membre.nom }} de l'équipe"
+                                        onclick="return confirm('Êtes-vous sûr de vouloir retirer {{ membre.nom }} de l\'équipe de ce projet ?')">
+                                    <i class="fas fa-user-minus fa-xs"></i>
+                                </button>
+                            </form>
+                        </li>
+                        {% endfor %}
+                    </ul>
+                {% else %}
+                    <p class="text-muted">Aucun membre dans l'équipe pour le moment.</p>
+                {% endif %}
+
+                {# Bouton pour ouvrir/fermer le formulaire d'ajout (optionnel, pour UI) #}
+                <button class="btn btn-primary btn-sm mb-2" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAjouterMembre" aria-expanded="false" aria-controls="collapseAjouterMembre">
+                    <i class="fas fa-plus"></i> Ajouter un membre
+                </button>
+
+                {# Formulaire d'ajout (dans un collapse pour ne pas prendre trop de place) #}
+                <div class="collapse" id="collapseAjouterMembre">
+                    <form action="{{ url_for('projets.ajouter_membre_equipe', projet_id=projet.id) }}" method="POST" class="mt-2">
+                        {{ membre_form.csrf_token() }} {# Important pour la sécurité #}
+
+                        <div class="mb-2">
+                            {{ membre_form.user_id.label(class="form-label form-label-sm") }}
+                            {{ membre_form.user_id(class="form-select form-select-sm") }}
+                            {% if membre_form.user_id.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ membre_form.user_id.errors[0] }}
+                                </div>
+                            {% endif %}
+                            <small class="form-text text-muted">Laisse vide pour ajouter un membre externe.</small>
+                        </div>
+
+                        <div class="mb-2">
+                            {{ membre_form.nom.label(class="form-label form-label-sm") }}
+                            {{ membre_form.nom(class="form-control form-control-sm", placeholder="Nom si externe ou différent") }}
+                             {% if membre_form.nom.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ membre_form.nom.errors[0] }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-2">
+                            {{ membre_form.email.label(class="form-label form-label-sm") }}
+                            {{ membre_form.email(class="form-control form-control-sm", placeholder="Email (obligatoire)") }}
+                             {% if membre_form.email.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ membre_form.email.errors[0] }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <div class="mb-2">
+                            {{ membre_form.role_projet.label(class="form-label form-label-sm") }}
+                            {{ membre_form.role_projet(class="form-control form-control-sm", placeholder="Ex: Développeur, Chef de projet...") }}
+                             {% if membre_form.role_projet.errors %}
+                                <div class="invalid-feedback d-block">
+                                    {{ membre_form.role_projet.errors[0] }}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        {{ membre_form.submit(class="btn btn-success btn-sm") }}
+                    </form>
+                </div> {# Fin collapse #}
+
+            </div> {# Fin card-body #}
+        </div> {# Fin info-card #}
+    </div>
+    {# --- FIN MODIFICATION : Section Équipe du Projet --- #}
+
+    <div class="col-md-3">
+        <div class="info-card h-100">
+            <div class="card-body">
+                <h5 class="card-title">Outils</h5>
+                <a href="{{ url_for('whiteboard.whiteboard_view', projet_id=projet.id) }}"
+                    class="btn btn-primary mb-2">
+                    <i class="fas fa-chalkboard"></i> Ouvrir le Tableau Blanc
+                </a>
+                <br>
+                <a href="{{ url_for('notes_reunion.ajouter_note', projet_id=projet.id) }}"
+                    class="btn btn-primary mb-2">
+                    <i class="fas fa-plus"></i> Ajouter une note de réunion
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="tabs-container">
+    <div class="tab-menu">
+        <button class="tab-button" data-tab="tab1-content active">Phases et Jalons</button>
+        <button class="tab-button" data-tab="tab2-content">Transactions</button>
+        <button class="tab-button" data-tab="tab3-content">Notes de Réunion</button>
+        <button class="tab-button" data-tab="tab4-content">Gantt Chart</button>
+    </div>
+
+    <div class="tab-content-container">
+        <div id="tab1-content active" class="tab-content">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="card-title m-0">Phases du projet</h5>
+                <a href="{{ url_for('projet_phases.ajouter_phase', projet_id=projet.id) }}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus"></i> Nouvelle une phase
+                </a>
+            </div>
+            {# --- DEBUT DE LA CONDITION --- #}
+            {% if projet.phases %}
+            <ul class="list-group phase-list">
+                {% for phase in projet.phases %}
+                <li class="list-group-item">
+                    {# --- Contenu existant pour afficher une phase --- #}
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="phase-header">
+                            <h6> Phase {{ loop.index }} : {{ phase.nom }}</h6>
+                            <p class="mb-0"><i class="fa-regular fa-calendar"></i>
+                                <small class="text-muted">
+                                    {{ phase.date_debut.strftime('%d %B %Y') if phase.date_debut else 'Non définie' }}
+                                    -
+                                    {{ phase.date_fin.strftime('%d %B %Y') if phase.date_fin else 'Non définie' }}
+                                </small>
+                                <span class="badge custom-badge
+                                    {% if phase.statut == 'En cours' %}bg-success
+                                    {% elif phase.statut == 'Terminé' %}bg-secondary
+                                    {% elif phase.statut == 'En attente' %}bg-warning text-dark
+                                    {% elif phase.statut == 'Annulé' %}bg-danger
+                                    {% else %}bg-info text-dark {% endif %}">
+                                    <small>{{ phase.statut }}</small>
+                                </span>
+                            </p>
+                        </div>
+                        <div class="phase-actions">
+                            <a href="{{ url_for('projet_phases.modifier_phase', projet_id=projet.id, phase_id=phase.id) }}"
+                                class="btn btn-secondary btn-sm">
+                                <i class="fas fa-edit"></i> Modifier</a>
+                            <form action="{{ url_for('projet_phases.supprimer_phase', projet_id=projet.id, phase_id=phase.id) }}"
+                                method="POST" style="display: inline;">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                <button type="submit" class="btn btn-danger btn-sm btn-icon-only"
+                                    onclick="return confirm('Êtes-vous sûr de vouloir supprimer cette phase ?')"><i class="far fa-trash-alt"></i></button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="milestones-container">
+                        {% for jalon in phase.jalons %}
+                        <div class="form-check">
+                            <input class="form-check-input milestone-checkbox" type="checkbox" value="" id="jalon-{{ jalon.id }}"
+                                data-jalon-id="{{ jalon.id }}" data-phase-id="{{ phase.id }}" data-projet-id="{{ projet.id }}"
+                                {% if jalon.atteint %}checked{% endif %}>
+                            <label class="form-check-label" for="jalon-{{ jalon.id }}">
+                                {{ jalon.nom }}
+                            </label>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <small class="text-muted">Progression</small>
+                    <div class="progress mb-3">
+                        <div class="progress-bar" role="progressbar" style="width: {{ phase.progress }}%;" aria-valuenow="{{ phase.progress }}"
+                            aria-valuemin="0" aria-valuemax="100">{{ phase.progress }}%</div>
+                    </div>
+                    {# --- Fin du contenu existant pour une phase --- #}
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            {# --- Message si aucune phase n'existe --- #}
+            <div class="text-center mt-4"> {# Ajout d'une marge pour l'espacement #}
+                <p class="lead">Aucune phase définie pour ce projet. :-(</p>
+                <a href="{{ url_for('projet_phases.ajouter_phase', projet_id=projet.id) }}" class="btn btn-primary btn-lg">Ajouter une phase</a>
+            </div>
+            {% endif %}
+            {# --- FIN DE LA CONDITION --- #}
+        </div>
+
+
+        <div id="tab2-content" class="tab-content">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="card-title m-0">Transactions</h5>
+                <a href="{{ url_for('transactions.ajouter_entree', projet_id=projet.id) }}" class="btn btn-success me-2"> {# me-2 pour marge à droite #}
+                    <i class="fas fa-plus-circle"></i> Ajouter Entrée/Facture
+                </a>
+                <a href="{{ url_for('transactions.ajouter_sortie', projet_id=projet.id) }}" class="btn btn-danger">
+                    <i class="fas fa-minus-circle"></i> Ajouter Dépense/Sortie
+                </a>
+            </div>
+            {# Utiliser une classe Bootstrap pour la table pour un meilleur style #}
+            <table class="table table-striped table-hover">
+                {# --- CORRECTION BS5 : thead-light -> table-light --- #}
+                <thead class="table-light"> {# Style pour l'en-tête #}
+                    <tr>
+                        <th>Date</th>
+                        <th>Type</th>
+                        <th>Compte Associé</th>
+                        {# --- CORRECTION BS5 : text-right -> text-end --- #}
+                        <th class="text-end">Montant</th> {# Utiliser text-right de Bootstrap #}
+                        <th>Description</th>
+                        <th>Statut de règlement</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for transaction in transactions %}
+                    <tr>
+                        <td>{{ transaction.date.strftime('%d/%m/%Y') }}</td>
+                        <td>{{ transaction.type }}</td>
+                        <td>
+                            {% if transaction.compte %}
+                                {{ transaction.compte.numero }} - {{ transaction.compte.nom }}
+                            {% else %}
+                                -
+                            {% endif %}
+                        </td>
+                        {# Formatage du montant pour la localisation et ajout du symbole € #}
+                        <td class="text-end">{{ "%.2f €"|format(transaction.montant) }}</td>
+                        <td>{{ transaction.description if transaction.description else '-' }}</td> {# Afficher '-' si vide #}
+                        <td>
+                            {# --- MODIFICATION ICI --- #}
+                            <form
+                                action="{{ url_for('transactions.modifier_reglement', transaction_id=transaction.id) }}"
+                                method="POST" class="d-inline"> {# d-inline pour éviter les sauts de ligne #}
+                                {# Ajout du jeton CSRF #}
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+                                {# --- CORRECTION BS5 : form-control -> form-select --- #}
+                                <select name="reglement" onchange="this.form.submit()" class="form-select form-select-sm" style="min-width: 120px;">
+                                    <option value="Non réglée" {% if transaction.reglement == "Non réglée" %}selected{% endif %}>Non réglée</option>
+                                    <option value="Réglée" {% if transaction.reglement == "Réglée" %}selected{% endif %}>Réglée</option>
+                                    <option value="Partiellement réglée" {% if transaction.reglement == "Partiellement réglée" %}selected{% endif %}>Partiellement réglée</option>
+                                </select>
+                                {# Pas besoin de bouton submit visible grâce à onchange #}
+                            </form>
+                        </td>
+                        <td>
+                            {# Conditionner l'affichage du lien facture (exemple: seulement pour les entrées) #}
+                            {% if transaction.type == 'Entrée' %}
+                            <a href="{{ url_for('generer_facture', transaction_id=transaction.id) }}"
+                                target="_blank" class="btn btn-outline-secondary btn-sm">
+                                <i class="fas fa-file-invoice"></i> Facture
+                            </a>
+                            {% else %}
+                            -
+                            {% endif %}
+                            {# Ajouter potentiellement un bouton Modifier/Supprimer transaction ici #}
+                        </td>
+                    </tr>
+                    {% else %} {# Gérer le cas où il n'y a pas de transactions #}
+                    <tr>
+                        <td colspan="7" class="text-center">Aucune transaction pour ce projet pour le moment.</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+
+
+        <div id="tab3-content" class="tab-content">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="card-title m-0">Notes de Réunion</h5>
+                <a href="{{ url_for('notes_reunion.ajouter_note', projet_id=projet.id) }}" class="btn btn-primary btn-sm">
+                    <i class="fas fa-plus"></i> Ajouter une note
+                </a>
+            </div>
+
+            {# --- MODIFICATION : Remplacer list-group par accordion --- #}
+            {% if projet.notes_reunion and projet.notes_reunion.count() > 0 %} {# Vérifier si la query dynamic a des résultats #}
+                {# Utilisation de l'Accordion Bootstrap pour un meilleur rendu et comportement (une seule note ouverte à la fois) #}
+                <div class="accordion" id="accordionNotesReunion">
+                    {# Trie les notes par date décroissante (plus récente en premier) #}
+                    {% for note in projet.notes_reunion | sort(attribute='date', reverse=True) %} {# Adapter si lazy='select' #}
+                    <div class="accordion-item mb-2"> {# Chaque note est un item de l'accordéon #}
+                        <h2 class="accordion-header" id="headingNote{{ note.id }}">
+                            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseNote{{ note.id }}" aria-expanded="false" aria-controls="collapseNote{{ note.id }}">
+                                {# Titre de la note dans le bouton de l'accordéon #}
+                                Note du {{ note.date.strftime('%d %B %Y') }}
+                                {# Optionnel: afficher un aperçu court ici si possible/souhaité #}
+                            </button>
+                        </h2>
+                        <div id="collapseNote{{ note.id }}" class="accordion-collapse collapse" aria-labelledby="headingNote{{ note.id }}" data-bs-parent="#accordionNotesReunion">
+                            <div class="accordion-body">
+                                {# Contenu de la note à l'intérieur du corps de l'accordéon #}
+
+                                {# Affichage de la date complète et des boutons d'action en haut du contenu #}
+                                <div class="d-flex w-100 justify-content-between align-items-center mb-2">
+                                    <small class="text-muted">Date complète : {{ note.date.strftime('%d %B %Y à %H:%M') }}</small>
+                                    <div> {# Groupe pour les boutons #}
+                                        <a href="{{ url_for('notes_reunion.modifier_note', projet_id=projet.id, note_id=note.id) }}" class="btn btn-secondary btn-sm me-1" title="Modifier la note">
+                                            <i class="fas fa-edit fa-xs"></i> Modifier
+                                        </a>
+                                        {# Formulaire pour la suppression #}
+                                        <form action="{{ url_for('notes_reunion.supprimer_note', projet_id=projet.id, note_id=note.id) }}" method="POST" style="display: inline;" onsubmit="return confirm('Êtes-vous sûr de vouloir supprimer cette note ?');">
+                                            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"> {# Si tu utilises CSRFProtect #}
+                                            <button type="submit" class="btn btn-danger btn-sm" title="Supprimer la note">
+                                                <i class="fas fa-trash-alt fa-xs"></i> Supprimer
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+
+                                {# Contenu de la note (HTML de Quill) #}
+                                <div class="note-content border-top pt-2"> {# Ajout d'une séparation visuelle #}
+                                    {{ note.contenu | safe }}
+                                </div>
+
+                                {# Informations de création/modification en bas #}
+                                <small class="text-muted d-block text-end mt-2">
+                                    Créé le: {{ note.created_at.strftime('%d/%m/%y %H:%M') if note.created_at else 'N/A' }} | Modifié le: {{ note.updated_at.strftime('%d/%m/%y %H:%M') if note.updated_at else 'N/A' }}
+                                </small>
+                            </div> {# Fin accordion-body #}
+                        </div> {# Fin accordion-collapse #}
+                    </div> {# Fin accordion-item #}
+                    {% endfor %}
+                </div> {# Fin accordion #}
+            {% else %}
+                <div class="text-center mt-4">
+                    <p class="lead">Aucune note de réunion pour ce projet pour le moment.</p>
+                    <a href="{{ url_for('notes_reunion.ajouter_note', projet_id=projet.id) }}" class="btn btn-primary">Ajouter la première note</a>
+                </div>
+            {% endif %}
+            {# --- FIN MODIFICATION --- #}
+        </div>
+
+
+
+        <!-- New Gantt Chart Tab Content -->
+        <div id="tab4-content" class="tab-content">
+            <div id="gantt-chart"></div>
+        </div>
+    </div>
+</div>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/frappe-gantt@1.0.0/dist/frappe-gantt.css">
+
+{% endblock %}
+
+
+{# --- JavaScript spécifique à cette page --- #}
+{% block extra_scripts %}
+
+{# Inclure les bibliothèques JS une seule fois #}
+<script src="https://cdn.jsdelivr.net/npm/frappe-gantt@1.0.0/dist/frappe-gantt.umd.js"></script> 
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+
+    // --- 1. Stocker les données initiales dans des variables JS ---
+    let currentPhasesData = {{ phases_data | default([]) | tojson | safe }};
+    let currentJalonsData = {{ jalons_data | default([]) | tojson | safe }};
+
+    // --- Gestion des onglets ---
+    const tabButtons = document.querySelectorAll('.tab-button');
+    const tabContents = document.querySelectorAll('.tab-content');
+    let ganttInstance = null; // Pour garder une référence à l'instance Gantt
+
+    function activateTab(button) {
+        const targetTabId = button.dataset.tab;
+        const targetTab = document.getElementById(targetTabId);
+
+        if (!targetTab || !button) return; // Vérifications ajoutées
+
+        // Désactiver tous les boutons et contenus
+        tabButtons.forEach(btn => btn.classList.remove('active'));
+        tabContents.forEach(content => content.classList.remove('active'));
+
+        // Activer le bouton et le contenu cliqués
+        button.classList.add('active');
+        targetTab.classList.add('active');
+
+        // Si l'onglet Gantt est activé, initialiser ou rafraîchir le graphique
+        if (targetTabId === 'tab4-content') {
+            ganttInstance = null; // Détruire l'ancienne instance
+            initializeGantt();
+        }
+    }
+
+    tabButtons.forEach(button => {
+        button.addEventListener('click', (event) => {
+            event.preventDefault();
+            activateTab(button);
+        });
+    });
+
+    // Activer le premier onglet (ou celui marqué comme 'active' dans le HTML)
+    const initialActiveButton = document.querySelector('.tab-button.active');
+    if (initialActiveButton) {
+        activateTab(initialActiveButton);
+    } else if (tabButtons.length > 0) {
+        // Fallback: active le premier bouton s'il existe
+        activateTab(tabButtons[0]);
+    }
+
+
+    // --- Initialisation du diagramme de Gantt (Version dynamique) ---
+    function initializeGantt() {
+        const ganttContainer = document.getElementById('gantt-chart');
+        // Ne pas réinitialiser si déjà fait ou si le conteneur n'est pas visible/trouvé
+        if (!ganttContainer || ganttInstance) {
+            return;
+        }
+        ganttContainer.innerHTML = ''; // Vider le conteneur avant de redessiner
+
+        const tasks = [];
+        try {
+            // Utiliser les données JSON passées par Flask
+            // Le | safe est CRUCIAL ici car les données sont déjà du JSON valide
+            const phases = currentPhasesData;
+            const jalons = currentJalonsData;
+
+
+            phases.forEach(phase => {
+                let startDateString = phase.date_debut; // 'YYYY-MM-DD' ou null
+                let endDateString = phase.date_fin;   // 'YYYY-MM-DD' ou null
+
+                // Gérer le cas où une date manque
+                if (!startDateString || !endDateString) {
+                     console.warn(`Phase '${phase.nom}' (ID: ${phase.id}) manque une date de début ou de fin ('${startDateString}' - '${endDateString}'). Elle ne sera pas ajoutée au Gantt.`);
+                     return; // Ne pas ajouter cette phase si une date manque
+                }
+                // ---------------------------------------------
+
+                // --- CORRECTION : Supprimer le 'if (startDate && endDate)' ---
+                // La vérification a déjà été faite, on peut ajouter la tâche directement
+                tasks.push({
+                    id: 'phase_' + phase.id,
+                    name: phase.nom || 'Phase sans nom',
+                    start: startDateString, // String 'YYYY-MM-DD'
+                    end: endDateString,     // String 'YYYY-MM-DD'
+                    progress: phase.progress || 0,
+                    custom_class: 'gantt-phase' // Décommenter si besoin
+                });
+                // ----------------------------------------------------------
+            });
+
+            // --- Réintégrer les jalons en utilisant les données JS ---
+            jalons.forEach(jalon => {
+                let dateEcheanceString = jalon.date_echeance;
+                 if (dateEcheanceString) {
+                     tasks.push({
+                        id: 'jalon_' + jalon.id,
+                        name: 'Jalon: ' + (jalon.nom || 'Jalon sans nom'),
+                        start: dateEcheanceString,
+                        end: dateEcheanceString,
+                        progress: jalon.atteint ? 100 : 0, // Utiliser l'état 'atteint' potentiellement mis à jour
+                        dependencies: jalon.phase_id ? ['phase_' + jalon.phase_id] : [],
+                        custom_class: jalon.atteint ? 'gantt-milestone-completed' : 'gantt-milestone' // Utiliser l'état 'atteint'
+                     });
+                 } else {
+                     console.warn(`Jalon '${jalon.nom}' (ID: ${jalon.id}) n'a pas de date valide. Non ajouté.`);
+                 }
+            });
+
+            // --- DEBUG: Afficher les tâches avant l'initialisation ---
+            console.log("Tasks being passed to Gantt:", JSON.stringify(tasks, null, 2));
+
+            if (tasks.length > 0) {
+                ganttInstance = new Gantt("#gantt-chart", tasks, {
+                    upper_header_height: 50,
+                    lower_header_height:50,
+                    //column_width: 65,
+                    date_format: 'DD-MM-YYYY',
+                    //view_mode_select: true,
+                    //view_modes: ['Day', 'Week', 'Month'],
+                    bar_height: 40,
+                    bar_corner_radius: 5,
+                    arrow_curve: 5,
+                    padding: 18,
+                    view_mode: 'Week',
+                    language: 'fr',
+/*                     view_modes: [
+                        {
+                            name: 'Day',
+                            step: '1d', // <-- Utiliser une chaîne de durée
+                            column_width: 30
+                        },
+                        {
+                            name: 'Week',
+                            step: '7d', // <-- Utiliser une chaîne de durée
+                            column_width: 60
+                        },
+                        {
+                            name: 'Month',
+                            step: '1m', // <-- Utiliser une chaîne de durée
+                            column_width: 90
+                        }
+                    ], */
+                    custom_popup_html: function(task) {
+                        // Le popup devrait fonctionner avec les strings aussi,
+                        // mais il faudra peut-être parser les dates ici si besoin d'un formatage spécifique
+                        // La lib interne les convertit probablement en task._start / task._end (objets Date)
+                        const startDate = task._start ? task._start.toLocaleDateString('fr-FR') : 'N/A';
+                        const endDate = task._end ? task._end.toLocaleDateString('fr-FR') : 'N/A';
+                        return `
+                            <div class="gantt-popup">
+                              <strong>${task.name}</strong><br/>
+                              ${startDate !== endDate ? `Du ${startDate} au ${endDate}` : `Le ${startDate}`}<br/>
+                              Progression: ${task.progress}%
+                            </div>
+                          `;
+                    }
+                });
+            } else {
+                 ganttContainer.innerHTML = "<p class='text-muted'>Aucune phase ou jalon avec dates valides pour afficher le diagramme.</p>";
+            }
+        } catch (e) {
+            console.error("Erreur lors de la préparation des données ou de l'initialisation de Frappe Gantt:", e);
+            ganttContainer.innerHTML = "<p class='text-danger'>Impossible de charger le diagramme de Gantt.</p>";
+        }
+    }
+
+
+    // --- Pré-remplissage formulaire membre équipe ---
+    try {
+        // Parse les données utilisateur (vérifier la source HTML si ça échoue)
+        // Assurez-vous que users_data_json est bien passé par Flask et est valide
+        const usersData = {{ users_data_json | default({}) | tojson | safe }}; // Ajout default('{}')
+
+        const addMemberForm = document.getElementById('collapseAjouterMembre');
+        if (addMemberForm) {
+            const userIdSelect = addMemberForm.querySelector('#user_id');
+            const nomInput = addMemberForm.querySelector('#nom');
+            const emailInput = addMemberForm.querySelector('#email');
+
+            // Vérifier si les éléments existent avant d'ajouter l'écouteur
+            if (userIdSelect && nomInput && emailInput) {
+                userIdSelect.addEventListener('change', function() {
+                    const selectedUserId = this.value;
+
+                    if (selectedUserId && usersData[selectedUserId]) {
+                        const userData = usersData[selectedUserId];
+                        nomInput.value = userData.nom || ''; // Utiliser '' si undefined
+                        emailInput.value = userData.email || ''; // Utiliser '' si undefined
+                        // nomInput.readOnly = true; // Décommenter si besoin
+                        // emailInput.readOnly = true;
+                    } else {
+                        nomInput.value = '';
+                        emailInput.value = '';
+                        // nomInput.readOnly = false; // Décommenter si besoin
+                        // emailInput.readOnly = false;
+                    }
+                });
+            } else {
+                console.warn("Un ou plusieurs champs (user_id, nom, email) non trouvés dans le formulaire d'ajout de membre.");
+            }
+        } else {
+             console.warn("Conteneur du formulaire d'ajout de membre (#collapseAjouterMembre) non trouvé.");
+        }
+    } catch (e) {
+        // L'erreur se produit ici si JSON.parse échoue
+        console.error("Erreur lors de l'initialisation du pré-remplissage (vérifier users_data_json):", e);
+    }
+
+
+    // --- Gestion des cases à cocher des jalons ---
+    const milestoneCheckboxes = document.querySelectorAll('.milestone-checkbox');
+    // Sélection plus spécifique de la barre de progression globale
+    const overallProgressBar = document.querySelector('.info-card .progress-bar');
+
+    milestoneCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function () {
+            const jalonId = this.dataset.jalonId;
+            const isCompleted = this.checked;
+            const phaseId = this.dataset.phaseId;
+            const projetId = this.dataset.projetId;
+            const phaseItem = this.closest('.list-group-item');
+            const progressBar = phaseItem ? phaseItem.querySelector('.progress-bar') : null; // Vérifier si phaseItem existe
+            const label = this.nextElementSibling;
+
+            // Mettre à jour le style du label immédiatement
+            if (label) { // Vérifier si label existe
+                if (isCompleted) {
+                    label.classList.add('text-decoration-line-through', 'text-muted');
+                } else {
+                    label.classList.remove('text-decoration-line-through', 'text-muted');
+                }
+            }
+
+            fetch(`/projets/${projetId}/phases/${phaseId}/jalons/${jalonId}/modifier_statut`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ completed: isCompleted })
+            })
+            .then(response => {
+                if (!response.ok) { throw new Error(`HTTP error! status: ${response.status}`); }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    // Mettre à jour la barre de progression de la phase si elle existe
+                    if (progressBar && phaseItem) {
+                        const completedMilestones = phaseItem.querySelectorAll('.milestone-checkbox:checked').length;
+                        const totalMilestones = phaseItem.querySelectorAll('.milestone-checkbox').length;
+                        const progressPercentage = totalMilestones > 0 ? (completedMilestones / totalMilestones) * 100 : 0;
+
+                        progressBar.style.width = `${progressPercentage}%`;
+                        progressBar.setAttribute('aria-valuenow', progressPercentage);
+                        progressBar.textContent = `${progressPercentage.toFixed(0)}%`;
+                    }
+
+                    // Recalculer et mettre à jour la progression globale du projet
+                    recalculateOverallProgress();
+
+                    // Mettre à jour le Gantt si visible et initialisé
+                    // --- Mise à jour Gantt (si visible) ---
+                    // Cette partie devient moins cruciale car la réinitialisation au changement d'onglet
+                    // utilisera les données JS mises à jour. Mais on peut la garder pour la réactivité immédiate.
+                    if (ganttInstance) { // Vérifier si l'instance existe (onglet Gantt actif)
+                         const taskToUpdate = ganttInstance.tasks.find(t => t.id === 'jalon_' + jalonId);
+                         if (taskToUpdate) {
+                             taskToUpdate.progress = isCompleted ? 100 : 0;
+                             taskToUpdate.custom_class = isCompleted ? 'gantt-milestone-completed' : 'gantt-milestone';
+                             // Utiliser refresh() pour redessiner avec les données internes mises à jour
+                             ganttInstance.refresh(ganttInstance.tasks);
+                             console.log("Gantt refreshed live for jalon:", jalonId);
+                         }
+                         // Mettre aussi à jour la barre de progression de la phase dans le Gantt
+                         const phaseTaskToUpdate = ganttInstance.tasks.find(t => t.id === 'phase_' + phaseId);
+                         if (phaseTaskToUpdate && phaseIndex !== -1) {
+                             phaseTaskToUpdate.progress = currentPhasesData[phaseIndex].progress;
+                             // Pas besoin de refresh ici si on l'a fait pour le jalon
+                         }
+                    }
+
+                } else {
+                    console.error('Erreur retournée par le serveur:', data.error || 'Erreur inconnue');
+                    // Revert checkbox and label style
+                    this.checked = !isCompleted;
+                    if (label) {
+                         if (isCompleted) { label.classList.remove('text-decoration-line-through', 'text-muted'); }
+                         else { label.classList.add('text-decoration-line-through', 'text-muted'); }
+                    }
+                    alert("Erreur lors de la mise à jour du jalon.");
+                }
+            })
+            .catch(error => {
+                console.error('Erreur réseau ou serveur:', error);
+                 // Revert checkbox and label style
+                this.checked = !isCompleted;
+                if (label) {
+                     if (isCompleted) { label.classList.remove('text-decoration-line-through', 'text-muted'); }
+                     else { label.classList.add('text-decoration-line-through', 'text-muted'); }
+                }
+                alert("Impossible de contacter le serveur pour mettre à jour le jalon.");
+            });
+        });
+    });
+
+    // --- Fonction pour recalculer la progression globale ---
+    function recalculateOverallProgress() {
+        // Utiliser le sélecteur plus précis pour la barre globale
+        const overallProgressBar = document.querySelector('.info-card .progress-bar');
+        if (!overallProgressBar) return; // Quitter si la barre n'est pas trouvée
+
+        const phaseProgressBars = document.querySelectorAll('.phase-list .list-group-item .progress-bar');
+        let totalProgress = 0;
+        let validPhaseCount = 0;
+
+        phaseProgressBars.forEach(phaseProgressBar => {
+            const phaseProgress = parseFloat(phaseProgressBar.getAttribute('aria-valuenow'));
+            if (!isNaN(phaseProgress)) {
+                totalProgress += phaseProgress;
+                validPhaseCount++;
+            }
+        });
+
+        const overallProgress = validPhaseCount > 0 ? totalProgress / validPhaseCount : 0;
+
+        overallProgressBar.style.width = `${overallProgress.toFixed(0)}%`;
+        overallProgressBar.setAttribute('aria-valuenow', overallProgress.toFixed(0));
+        overallProgressBar.textContent = `${overallProgress.toFixed(0)}%`;
+    }
+
+    // --- Initialisation des tooltips Bootstrap (si tu en utilises) ---
+    var tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'))
+    var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
+      return new bootstrap.Tooltip(tooltipTriggerEl)
+    })
+
+}); // Fin de DOMContentLoaded
+</script>
+
+{% endblock %}

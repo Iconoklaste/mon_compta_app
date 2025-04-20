@@ -1,0 +1,86 @@
+{% extends 'base.html' %}
+
+{% block page_title %}
+<div id="navbar-title" class="navbar-title-container">
+    <h1>Projets</h1>
+</div>
+{% endblock %}
+
+{% block navbar_actions %}
+<a href="{{ url_for('projets.ajouter_projet') }}" class="btn btn-primary">
+    <i class="fas fa-plus"></i> Ajouter un projet
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    {% if projets %}
+    <div class="row">
+        {% for projet in projets %}
+        <div class="col-md-4 mb-4">
+            <div class="card h-100">
+                <div class="card-header rounded-top card-header-custom two-line-header">
+                    <div class="card-title-wrapper">
+                        <h5 class="card-title mb-0">{{ projet.nom }}</h5>
+                    </div>
+                </div>
+                
+                
+                <div class="card-body">
+                    <p class="card-text">
+                        <small class="text-muted">Client:</small>
+                        {% if projet.client %}
+                        <small>{{ projet.client.nom }}</small>  {# Access the 'nom' attribute of the Client object #}
+                        {% else %}
+                        <span class="text-muted">Non défini</span>
+                        {% endif %}
+                    </p>
+                    
+                    <p class="card-text">
+                        {# --- CORRECTION BS5 --- #}
+                        <span class="badge custom-badge {# badge-sm supprimé #}
+                            {% if projet.statut == 'En cours' %}bg-success
+                            {% elif projet.statut == 'Terminé' %}bg-secondary
+                            {% elif projet.statut == 'En attente' %}bg-warning text-dark {# Ajout text-dark #}
+                            {% elif projet.statut == 'Annulé' %}bg-danger
+                            {% else %}bg-info text-dark {# Ajout text-dark #} {% endif %}">
+                            <small>{{ projet.statut }}</small> {# La balise small gère la taille #}
+                        </span>
+                    </p>
+                    <p class="card-text">
+                        <small class="text-muted">
+                            <i class="fa-regular fa-calendar"></i> Fin:
+                        </small>
+                        {% if projet.date_fin %}
+                        <small>{{ projet.date_fin.strftime('%d %b %Y') }}</small>
+                        {% else %}
+                        <span class="text-muted">Non définie</span>
+                        {% endif %}
+                    </p>
+
+                    <p class="card-text">
+                        <small class="text-muted">Montant total:</small>
+                        {% if projet.prix_total %}
+                        <small class="text-muted">{{ projet.prix_total|int }} €</small>
+                        {% else %}
+                        <span class="text-muted">Non défini</span>
+                        {% endif %}
+                    </p>
+                </div>
+                <div class="card-footer-custom">
+                    <a href="{{ url_for('projets.projet_detail', projet_id=projet.id) }}" class="btn btn-secondary btn-sm">
+                        <i class="fas fa-eye"></i> Détails
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="text-center">
+        <p class="lead">Vous n'avez pas encore de projet :-(</p>
+        <a href="{{ url_for('projets.ajouter_projet') }}" class="btn btn-primary btn-lg">Ajouter un projet</a>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

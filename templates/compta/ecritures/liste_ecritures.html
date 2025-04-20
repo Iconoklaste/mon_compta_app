@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block page_title %}
+<div id="navbar-title" class="navbar-title-container">
+    <h1>Journal des Ecritures</h1>
+</div>
+{% endblock %}
+
+{% block content %}
+    <div class="mb-3"> {# Ajoute une marge en bas #}
+        <a href="{{ url_for('compta.index') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-arrow-left me-1"></i> Retour au Tableau de Bord Compta
+        </a>
+    </div>
+
+    {% if ecritures %}
+    <div class="table-responsive">
+        <table class="table table-striped table-hover table-bordered">
+            <thead class="table-light">
+                <tr>
+                    <th scope="col">Date</th>
+                    <th scope="col">Libellé Écriture</th>
+                    <th scope="col">Réf. Origine</th>
+                    <th scope="col">Lignes (Compte - Libellé Ligne)</th>
+                    <th scope="col" class="text-end">Débit (€)</th>
+                    <th scope="col" class="text-end">Crédit (€)</th>
+                    <th scope="col" class="text-center">Équilibrée?</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for ecriture in ecritures %}
+                {# Afficher les informations générales de l'écriture sur la première ligne #}
+                <tr class="table-group-divider"> {# Ajoute une ligne de séparation plus épaisse #}
+                    <td rowspan="{{ ecriture.lignes | length if (ecriture.lignes | length) > 0 else 1 }}" class="align-middle">
+                        {{ ecriture.date_ecriture.strftime('%d/%m/%Y') }}
+                    </td>
+                    <td rowspan="{{ ecriture.lignes | length if (ecriture.lignes | length) > 0 else 1 }}" class="align-middle">
+                        {{ ecriture.libelle }}
+                    </td>
+                    <td rowspan="{{ ecriture.lignes | length if (ecriture.lignes | length) > 0 else 1 }}" class="align-middle">
+                        <small>{{ ecriture.reference_origine }}</small>
+                    </td>
+
+                    {# Afficher la première ligne d'écriture #}
+                    {% set premiere_ligne = ecriture.lignes[0] if ecriture.lignes else None %}
+                    {% if premiere_ligne %}
+                        <td>
+                            <span class="badge bg-secondary me-1">{{ premiere_ligne.compte.numero }}</span>
+                            {{ premiere_ligne.compte.nom }}
+                            {% if premiere_ligne.libelle %}<br><small class="text-muted fst-italic">{{ premiere_ligne.libelle }}</small>{% endif %}
+                        </td>
+                        <td class="text-end">
+                            {% if premiere_ligne.montant_debit > 0 %}{{ "%.2f"|format(premiere_ligne.montant_debit) }}{% endif %}
+                        </td>
+                        <td class="text-end">
+                            {% if premiere_ligne.montant_credit > 0 %}{{ "%.2f"|format(premiere_ligne.montant_credit) }}{% endif %}
+                        </td>
+                    {% else %}
+                        <td colspan="3" class="text-center text-danger">Aucune ligne pour cette écriture !</td>
+                    {% endif %}
+
+                    {# Afficher le statut d'équilibre sur la première ligne #}
+                    <td rowspan="{{ ecriture.lignes | length if (ecriture.lignes | length) > 0 else 1 }}" class="text-center align-middle">
+                        {% if ecriture.est_equilibree %}
+                            <span class="badge bg-success">Oui</span>
+                        {% else %}
+                            <span class="badge bg-danger">Non</span>
+                            <br><small class="text-danger">D: {{ "%.2f"|format(ecriture.total_debit) }}<br>C: {{ "%.2f"|format(ecriture.total_credit) }}</small>
+                        {% endif %}
+                    </td>
+                </tr>
+
+                {# Afficher les lignes suivantes (s'il y en a plus d'une) #}
+                {% for ligne in ecriture.lignes[1:] %} {# Boucle à partir de la deuxième ligne #}
+                <tr>
+                    <td>
+                        <span class="badge bg-secondary me-1">{{ ligne.compte.numero }}</span>
+                        {{ ligne.compte.nom }}
+                        {% if ligne.libelle %}<br><small class="text-muted fst-italic">{{ ligne.libelle }}</small>{% endif %}
+                    </td>
+                    <td class="text-end">
+                        {% if ligne.montant_debit > 0 %}{{ "%.2f"|format(ligne.montant_debit) }}{% endif %}
+                    </td>
+                    <td class="text-end">
+                        {% if ligne.montant_credit > 0 %}{{ "%.2f"|format(ligne.montant_credit) }}{% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+
+                {% endfor %} {# Fin de la boucle sur les écritures #}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div class="alert alert-info" role="alert">
+        Aucune écriture comptable n'a été trouvée pour cette organisation.
+    </div>
+    {% endif %}
+
+    {# Optionnel: Ajouter un lien vers une page d'ajout manuel d'écriture si besoin #}
+    {# <a href="{{ url_for('ecritures.ajouter_ecriture_manuelle') }}" class="btn btn-primary mt-3">Ajouter une écriture manuelle</a> #}
+
+
+{% endblock %}

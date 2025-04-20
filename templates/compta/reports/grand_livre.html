@@ -1,0 +1,98 @@
+{% extends 'base.html' %}
+
+{% block page_title %}
+<div id="navbar-title" class="navbar-title-container">
+    <h1>Grand Livre - {{ grand_livre.organisation_nom }}</h1>
+</div>
+{% endblock %}
+
+{% block content %}
+
+    <div class="mb-3"> {# Ajoute une marge en bas #}
+        <a href="{{ url_for('compta.index') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-arrow-left me-1"></i> Retour au Tableau de Bord Compta
+        </a>
+    </div>
+    <p><strong>Période du :</strong> {{ grand_livre.date_debut }} <strong>au</strong> {{ grand_livre.date_fin }}</p>
+
+    {% if not grand_livre.comptes_detail %}
+        <div class="alert alert-info" role="alert">
+            Aucun mouvement comptable trouvé pour cette période.
+        </div>
+    {% else %}
+        {% for compte_detail in grand_livre.comptes_detail %}
+        <div class="card mb-4">
+            <div class="card-header bg-light">
+                <h5 class="mb-0">Compte {{ compte_detail.numero }} - {{ compte_detail.nom }}</h5>
+            </div>
+            <div class="card-body">
+                <div class="row mb-2">
+                    <div class="col-md-6">
+                        <strong>Solde Initial au {{ grand_livre.date_debut }}:</strong>
+                        <span class="fw-bold {% if compte_detail.solde_initial < 0 %}text-danger{% elif compte_detail.solde_initial > 0 %}text-success{% endif %}">
+                            {{ "%.2f"|format(compte_detail.solde_initial) }} €
+                        </span>
+                        <small class="text-muted">
+                            {% if compte_detail.solde_initial < 0 %}(Créditeur){% elif compte_detail.solde_initial > 0 %}(Débiteur){% else %}(Nul){% endif %}
+                        </small>
+                    </div>
+                </div>
+
+                <table class="table table-sm table-striped table-hover table-bordered">
+                    <thead class="table-secondary">
+                        <tr>
+                            <th scope="col" style="width: 10%;">Date</th>
+                            <th scope="col" style="width: 8%;">Journal</th>
+                            <th scope="col" style="width: 25%;">Libellé Écriture</th>
+                            <th scope="col" style="width: 15%;">Réf. Origine</th>
+                            <th scope="col" class="text-end" style="width: 12%;">Débit (€)</th>
+                            <th scope="col" class="text-end" style="width: 12%;">Crédit (€)</th>
+                            <th scope="col" class="text-end" style="width: 18%;">Solde Progressif (€)</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for mouvement in compte_detail.mouvements %}
+                        <tr>
+                            <td>{{ mouvement.date }}</td>
+                            <td>{{ mouvement.journal }}</td>
+                            <td>{{ mouvement.libelle_ecriture }}
+                                {% if mouvement.libelle_ligne %}<br><small class="text-muted"><em>{{ mouvement.libelle_ligne }}</em></small>{% endif %}
+                            </td>
+                            <td>{{ mouvement.reference_origine }}</td>
+                            <td class="text-end">{{ "%.2f"|format(mouvement.debit) if mouvement.debit > 0 else '' }}</td>
+                            <td class="text-end">{{ "%.2f"|format(mouvement.credit) if mouvement.credit > 0 else '' }}</td>
+                            <td class="text-end {% if mouvement.solde_apres_ligne < 0 %}text-danger{% elif mouvement.solde_apres_ligne > 0 %}text-success{% endif %}">
+                                {{ "%.2f"|format(mouvement.solde_apres_ligne) }}
+                            </td>
+                        </tr>
+                        {% else %}
+                        <tr>
+                            <td colspan="7" class="text-center fst-italic">Aucun mouvement sur la période.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                    <tfoot class="table-light fw-bold">
+                        <tr>
+                            <td colspan="4" class="text-end">Total Mouvements Période :</td>
+                            <td class="text-end">{{ "%.2f"|format(compte_detail.total_debit_periode) }}</td>
+                            <td class="text-end">{{ "%.2f"|format(compte_detail.total_credit_periode) }}</td>
+                            <td></td> {# Colonne Solde Progressif vide dans le footer #}
+                        </tr>
+                        <tr>
+                            <td colspan="6" class="text-end">Solde Final au {{ grand_livre.date_fin }} :</td>
+                            <td class="text-end {% if compte_detail.solde_final < 0 %}text-danger{% elif compte_detail.solde_final > 0 %}text-success{% endif %}">
+                                {{ "%.2f"|format(compte_detail.solde_final) }}
+                                <small class="text-muted">
+                                    {% if compte_detail.solde_final < 0 %}(Créditeur){% elif compte_detail.solde_final > 0 %}(Débiteur){% else %}(Nul){% endif %}
+                                </small>
+                            </td>
+                        </tr>
+                    </tfoot>
+                </table>
+            </div>
+        </div>
+        {% endfor %}
+    {% endif %}
+
+
+{% endblock %}
