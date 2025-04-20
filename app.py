@@ -2,6 +2,7 @@
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, redirect, url_for, send_file, make_response, jsonify, session, abort, flash
 from flask_wtf.csrf import CSRFProtect
+# from flask_talisman import Talisman <- TODO
 from controllers.users_controller import login_required, users_bp
 from controllers.db_manager import init_db
 from controllers.projets_controller import projets_bp  # Import the blueprint
@@ -23,7 +24,7 @@ from models.users import User
 from models.exercices import ExerciceComptable
 from models.projets import Projet
 from models.clients import Client
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 import os
 from flask_migrate import Migrate  # Import Migrate
 
@@ -44,10 +45,14 @@ if not database_uri:
     raise ValueError("No DATABASE_URL set for Flask application")
     # Option 2: Use a default for local dev (less safe, use with caution)
     # print("WARNING: DATABASE_URL not set, using default local DB.")
-    # database_uri = 'mysql://tjacquemot:mouss002@localhost/mon_compta_app?charset=utf8mb4' # Keep this commented out or remove
 
+app.config['DEBUG'] = os.environ.get('FLASK_DEBUG') == '1'
 app.config['SQLALCHEMY_DATABASE_URI'] = database_uri
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.config['SESSION_COOKIE_SECURE'] = True
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=4)
 
 # Get the secret key from an environment variable too!
 secret_key = os.environ.get('SECRET_KEY')
@@ -145,6 +150,9 @@ if __name__ == '__main__':
         # --- Création User (si besoin) ---
         if not User.query.first() and default_organisation:
 
+            default_mon = os.environ.get('DEFAULT_ADMIN_NOM')
+            default_prenom = os.environ.get('DEFAULT_ADMIN_PRENOM')
+            default_mail = os.environ.get('DEFAULT_ADMIN_MAIL')
             default_password = os.environ.get('DEFAULT_ADMIN_PASSWORD')
             if not default_password:
                 raise ValueError("La variable d'environnement DEFAULT_ADMIN_PASSWORD doit être définie pour créer l'utilisateur initial.")
@@ -283,4 +291,4 @@ if __name__ == '__main__':
                 # Revenir à print
                 print(f"ERREUR: Impossible de créer le projet par défaut car l'{' ou '.join(missing)} manque.")
 
-    app.run(debug=True)
+    app.run()
