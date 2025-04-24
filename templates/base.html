@@ -21,7 +21,7 @@
 
     {% block extra_head %}
     {# Ce bloc est conservé pour les CSS/JS spécifiques à certaines pages,
-       MAIS il ne doit PLUS contenir de liens vers Bootstrap 5 #}
+       MAIS il ne doit plus contenir de liens vers Bootstrap 5 #}
     {% endblock %}
 </head>
 <body class="{% if not session['user_id'] %}landing-page{% endif %}{% block body_class %}{% endblock %}">
