@@ -1,0 +1,8 @@
+RewriteEngine On
+# Rediriger vers HTTPS si la connexion n'est pas sécurisée
+# Prend en compte les proxys/load balancers (X-Forwarded-Proto)
+RewriteCond %{HTTP:X-Forwarded-Proto} !https
+RewriteCond %{HTTPS} off
+# Vous pouvez utiliser %{HTTPS} !on ou %{HTTPS} off, les deux fonctionnent
+# RewriteCond %{HTTPS} !on
+RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301,NE]
