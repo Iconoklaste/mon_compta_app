@@ -1,8 +1,8 @@
-"""Update note reunon time utcs
+"""Initial migration based on current models
 
-Revision ID: de35f57b309b
-Revises: 9bbf0bfe8132
-Create Date: 2025-04-19 23:21:22.411132
+Revision ID: 7d1e2b5a8335
+Revises: 
+Create Date: 2025-04-26 15:47:35.158812
 
 """
 from alembic import op
@@ -10,8 +10,8 @@ import sqlalchemy as sa
 
 
 # revision identifiers, used by Alembic.
-revision = 'de35f57b309b'
-down_revision = '9bbf0bfe8132'
+revision = '7d1e2b5a8335'
+down_revision = None
 branch_labels = None
 depends_on = None
 
