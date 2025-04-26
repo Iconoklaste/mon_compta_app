@@ -1,6 +1,8 @@
 # c:\wamp\www\mon_compta_app\app.py
 from dotenv import load_dotenv
 from flask import Flask, render_template, request, redirect, url_for, send_file, make_response, jsonify, session, abort, flash
+from flask_sqlalchemy import SQLAlchemy
+from dotenv import load_dotenv # Importe load_dotenv
 from flask_wtf.csrf import CSRFProtect
 # from flask_talisman import Talisman <- TODO
 from controllers.users_controller import login_required, users_bp
@@ -32,7 +34,7 @@ from werkzeug.utils import secure_filename
 
 from utils.plan_comptable_initial_setup import generate_default_plan_comptable
 
-load_dotenv()
+load_dotenv(override=True)
 
 app = Flask(__name__)
 
@@ -40,6 +42,7 @@ app = Flask(__name__)
 # Provide a default value ONLY for local development if absolutely necessary,
 # but it's better to always require the environment variable.
 database_uri = os.environ.get('DATABASE_URL')
+print(f"DEBUG: DATABASE_URL lue = {database_uri}")
 if not database_uri:
     # Option 1: Raise an error if the variable is not set (safer for production)
     raise ValueError("No DATABASE_URL set for Flask application")
