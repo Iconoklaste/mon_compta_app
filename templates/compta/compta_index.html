@@ -5,27 +5,19 @@
     <h1>Comptabilité</h1>
 {% endblock %}
 
-{% block content %}
-    <!-- Quick Access -->
-    <div class="row">
-        <div class="col-md-12">
-            <div class="info-card">
-                <div class="card-body">
-                    <h5 class="card-title">Accès Rapide</h5>
-                    <a href="{{ url_for('clients.clients') }}" class="btn btn-primary">Clients</a>
+{% block navbar_actions %}
+                    <!-- <a href="{{ url_for('clients.clients') }}" class="btn btn-primary">Clients</a> -->
                     <a href="{{ url_for('plan_comptable.lister_comptes') }}" class="btn btn-primary">Plan comptable</a>
                     <a href="{{ url_for('ecritures.lister_ecritures') }}" class="btn btn-primary">Ecritures</a>
                     <a href="{{ url_for('compta.afficher_bilan') }}" class="btn btn-primary">Bilan Comptable</a>
                     <a href="{{ url_for('compta.afficher_compte_resultat') }}" class="btn btn-primary">Compte de Résultat</a>
                     <a href="{{ url_for('compta.afficher_grand_livre') }}" class="btn btn-primary">Grand livre</a>
                     <a href="{{ url_for('compta.afficher_flux_tresorerie') }}" class="btn btn-primary">Flux de Trésorerie</a>
-                    <a href="{{ url_for('projets.projets') }}" class="btn btn-primary">Projets</a>
+                    <!-- <a href="{{ url_for('projets.projets') }}" class="btn btn-primary">Projets</a> -->
                     <a href="#" class="btn btn-success">Nouvelle Transaction</a>
-                </div>
-            </div>
-        </div>
-    </div>
+{% endblock %}
 
+{% block content %}
     <!-- Financial Summary -->
     <div class="row mt-4">
         <div class="col-md-3">

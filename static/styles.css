@@ -15,6 +15,8 @@
     --white: #FFFFFF; /* Blanc */
 
     --navbar-height: 4rem;
+    --icon-bg: #e7f1ff;
+    --primary-color: #0d6efd;
 }
 
 /* Typographie */
@@ -79,6 +81,12 @@ a:hover {
     box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
     transform: scale(1.02); /* Scale up by 2% on hover */
     z-index: 10; /* Bring to the foreground on hover */
+}
+
+/* Nouvelle classe pour les cartes qui NE DOIVENT PAS s'agrandir au survol */
+.card.no-hover-transform:hover {
+    transform: none; /* Annule l'effet 'transform: scale(1.02)' */
+    /* Note: l'effet box-shadow et z-index s'appliquera toujours */
 }
 
 .card .card-header.card-header-custom {
@@ -573,6 +581,9 @@ a:hover {
     overflow-y: auto; /* Add a vertical scrollbar if content overflows */
 }
 
+.content.low-padding-top {
+    padding-top: 2rem;
+}
 
 
 /* Page Liste des projets */

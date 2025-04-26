@@ -1,5 +1,6 @@
 alembic==1.15.1
 asgiref==3.8.1
+bandit==1.8.3
 blinker==1.9.0
 boolean.py==5.0
 CacheControl==0.14.2
@@ -12,6 +13,7 @@ colorama==0.4.6
 cryptography==44.0.2
 cyclonedx-python-lib==9.1.0
 defusedxml==0.7.1
+deptry==0.23.0
 Django==4.2.20
 dnspython==2.7.0
 email_validator==2.2.0
@@ -44,6 +46,7 @@ numpy==2.0.2
 packageurl-python==0.16.0
 packaging==24.2
 pandas==2.2.3
+pbr==6.1.1
 pillow==11.1.0
 pip-api==0.0.34
 pip-requirements-parser==32.0.1
@@ -59,18 +62,22 @@ pytest==8.3.5
 python-dateutil==2.9.0.post0
 python-dotenv==1.1.0
 pytz==2025.2
+PyYAML==6.0.2
 reportlab==4.3.1
 requests==2.32.3
+requirements-parser==0.11.0
 rich==14.0.0
 six==1.17.0
 smmap==5.0.2
 sortedcontainers==2.4.0
 SQLAlchemy==2.0.40
 sqlparse==0.5.3
+stevedore==5.4.1
 toml==0.10.2
 tomli==2.2.1
 truffleHog==2.2.1
 truffleHogRegexes==0.0.7
+types-setuptools==78.1.0.20250329
 typing_extensions==4.13.2
 tzdata==2025.2
 urllib3==2.4.0

@@ -1,14 +1,16 @@
 {# templates/ajouter_organisation_demo.html #}
 {% extends "base.html" %} {# Adapte si ton layout de base a un autre nom #}
 
+{% set apply_low_padding = true %}
+
 {% block title %}Créer un compte - Étape 2{% endblock %}
 
 {% block content %}
 <div class="container mt-5">
     <div class="row justify-content-center">
         <div class="col-md-8 col-lg-7">
-            <div class="card shadow-sm">
-                 <div class="card-header bg-primary text-white">
+            <div class="card no-hover-transform shadow-sm">
+                 <div class="card-header">
                     <h3 class="mb-0">Création de compte - Votre organisation (2/2)</h3>
                 </div>
                 <div class="card-body">

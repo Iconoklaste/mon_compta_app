@@ -24,22 +24,113 @@ body.landing-page .main-content {
     display: flex;
     justify-content: space-around;
     align-items: center;
-    padding: 20px;
+    padding-top: 5vh;
+    /*padding: 20px;*/
     flex-grow: 1;
 }
 
 .landing-page-left {
-    flex: 1;
+    flex: 1 1 55%; /* Prend plus de place, permet de rétrécir/agrandir */
+    padding-right: 10px; /* Espace entre les colonnes */
+    min-width: 300px; /* Largeur minimale avant empilement */
+    margin: 2vh 2vh 0;
+
+    display: flex;          /* 1. Rendre .landing-page-left un conteneur flex */
+    flex-direction: column; /* 2. Empiler ses enfants verticalement */
+    align-items: center;  
+}
+
+.landing-page-left h1 {
+    font-size: 2.8rem; /* Taille de police importante */
+    font-weight: bold;
+    line-height: 1.3;
+    margin-bottom: 20px;
+    color: #333; /* Un peu plus sombre */
+    text-align: center;
+    max-width: 80%; /* Limite la largeur à 80% du conteneur parent */
+}
+
+.landing-page-left .intro-text {
+    font-size: 1.1rem;
+    color: var(--text-muted);
+    margin-bottom: 5vh;
+    max-width: 50%;
+    text-align: center;
+    
+}
+
+.btn-decouvrir {
+    background-color: var(--light-green);
+    border-color: var(--dark-blue);
+    color: var(--white);
+    width: 60%;
     padding: 20px;
-    max-width: 60%;
+    font-size: 1rem;
+    font-weight: 500;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px; /* Espace entre l'icône et le texte */
+    transition: background-color 0.3s ease;
+}
+.btn-decouvrir:hover {
+    background-color: darken(var(--dark-blue), 10%);
+    border-color: darken(var(--primary-color), 10%);
+    color: var(--dark-green);
 }
 
 .landing-page-right {
-    flex: 0 0 auto; /* Allow the width to be determined by content */
+    flex: 1 1 35%; /* Prend moins de place */
+    min-width: 300px; /* Largeur minimale avant empilement */
+    display: flex;
+    justify-content: center; /* Centre la carte de connexion */
     padding: 20px;
-    display: flex; /* Use flexbox for centering */
-    justify-content: center; /* Center horizontally */
     align-items: center; /* Center vertically */
+}
+
+
+
+
+.features-section {
+    display: flex;
+    justify-content: space-between;
+    gap: 20px; /* Espace entre les fonctionnalités */
+    flex-wrap: wrap; /* Passage à la ligne si nécessaire */
+}
+
+.feature-item {
+    text-align: center;
+    flex: 1; /* Occupe l'espace disponible */
+    min-width: 150px; /* Largeur minimale */
+}
+
+.feature-icon-wrapper {
+    background-color: var(--icon-bg);
+    border-radius: 8px; /* Bords légèrement arrondis */
+    width: 60px;
+    height: 60px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 15px;
+}
+
+.feature-icon-wrapper i {
+    font-size: 1.8rem; /* Taille de l'icône */
+    color: var(--primary-color);
+}
+
+.feature-item h3 {
+    font-size: 1.1rem;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.feature-item p {
+    font-size: 0.9rem;
+    color: var(--text-muted);
+    line-height: 1.5;
 }
 
 .login-card {
@@ -96,17 +187,80 @@ body.landing-page .main-content {
 .login-card form .form-group {
     width: 100%;
     margin-bottom: 0; /* Remove default margin from form-group */
+    position: relative; /* Pour positionner les icônes */
+}
+
+.login-card form .form-group label + .input-icon {
+    top: calc(50% + 13px); /* Ajustement pour l'icône quand il y a un label */
+}
+
+.login-card form .form-group .input-icon{
+    position: absolute;
+    left: 12px;
+    top: calc(50% + 10px); /* Ajustement vertical pour aligner avec le champ */
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    font-size: 1rem; /* Taille de l'icône dans le champ */
+    pointer-events: none; /* Empêche l'icône de bloquer le clic sur l'input */
+}
+
+.login-card form .form-group label{
+    display: block;
+    font-weight: 500;
+    margin-bottom: 5px;
+    font-size: 0.9rem;
+}
+
+.login-card form .form-group .password-toggle-icon {
+    position: absolute;
+    right: 12px;
+    top: calc(50% + 13px); /* Ajustement vertical */
+    transform: translateY(-50%);
+    color: var(--text-muted);
+    cursor: pointer;
+     z-index: 10; /* Pour être cliquable */
+     pointer-events: auto; /* Permet le clic */
 }
 
 .login-card form .form-control {
     width: 100%;
+    padding-left: 40px; /* Espace pour l'icône */
+    height: 45px; /* Hauteur standard */
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
 }
+.login-card form .form-control:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 0.2rem rgba(var(--primary-color), 0.25);
+}
+
 .login-card-button {
     width: 100%;
 }
 
 .login-card button.btn-primary {
     width: 100%; /* Make the button take up the full width */
+}
+
+.login-card .btn-connexion {
+    background-color: var(--dark-blue);
+    border-color: var(--dark-blue);
+    color: var(--white);
+    width: 100%;
+    padding: 12px;
+    font-size: 1rem;
+    font-weight: 500;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px; /* Espace entre l'icône et le texte */
+    transition: background-color 0.3s ease;
+}
+.login-card .btn-connexion:hover {
+    background-color: darken(var(--dark-blue), 10%);
+    border-color: darken(var(--primary-color), 10%);
+    color: var(--dark-red);
 }
 
 
@@ -129,6 +283,13 @@ body.landing-page .main-content {
     height: 100px;
     margin-right: 10px;
 }
+
+.footer-logo {
+    width: 50px;
+    height: 50px;
+    margin-right: 10px;
+}
+
 
 .landing-title {
     font-size: 1.5em; /* Smaller than h1 */
@@ -168,7 +329,7 @@ body.landing-page .main-content {
 }
 
 .landing-footer {
-    background-color: #343a40;
+    background-color: var(--dark-blue);
     color: white;
     padding: 10px 20px;
     display: flex;

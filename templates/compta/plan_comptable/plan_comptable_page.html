@@ -10,9 +10,10 @@
 
 
 {% block content %}
+
 <div class="container-fluid mt-0">
 
-    {# Affichage des messages Flash #}
+<!--     {# Affichage des messages Flash #}
     {% with messages = get_flashed_messages(with_categories=true) %}
       {% if messages %}
         {% for category, message in messages %}
@@ -22,10 +23,12 @@
           </div>
         {% endfor %}
       {% endif %}
-    {% endwith %}
+    {% endwith %} -->
 
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h4 class="mb-3">Résumé des classes</h4>
+        <a href="{{ url_for('compta.index') }}" class="btn btn-outline-secondary btn-sm">
+            <i class="fas fa-arrow-left me-1"></i> Retour au Tableau de Bord Compta
+        </a>
         <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addCompteModal">
             <i class="bi bi-plus-circle"></i> Ajouter un compte
         </button>

@@ -142,16 +142,20 @@
             </header>
             {% endif %}
 
-            <div class="content default-content-padding">
+            {% set apply_low_padding = apply_low_padding | default(false) %}
+
+            <div class="content default-content-padding {% if apply_low_padding %} low-padding-top{% endif %}">
                 <div class="container-fluid">
                     {% block content %}
                     {% endblock %}
                 </div>
             </div>
+
             {% if not session['user_id'] %}
             <footer class="landing-footer">
                 <div class="footer-links">
-                    &copy; 2024 LOOVA
+                    <img src="{{ url_for('static', filename='asset/logo-nv.png') }}" alt="STUDIO NOBLE-VAL Logo" class="footer-logo">
+                    &copy; 2024 Studio Noble-Val
                 </div>
                     <div class="footer-copyright">
                         <a href="#">Conditions d'utilisation</a>

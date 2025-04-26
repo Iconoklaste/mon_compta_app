@@ -40,7 +40,7 @@ def index():
                 session['user_id'] = user.id
                 logger.info(f"Connexion réussie pour l'utilisateur ID: {user.id}") # Log succès
                 flash('Connexion réussie!', 'success')
-                return redirect(url_for('projets.projets'))
+                return redirect(url_for('users.index'))
             else:
                 logger.warning(f"Mot de passe incorrect pour l'utilisateur : {email_fourni}") # Log échec mdp
                 flash('Email ou mot de passe incorrect.', 'danger')

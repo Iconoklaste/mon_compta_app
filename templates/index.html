@@ -1,5 +1,6 @@
 {% extends 'base.html' %}
 
+
 {% block content %}
     {% if session['user_id'] %}
         <div class="row">
@@ -23,66 +24,93 @@
             </div>
         </div>
     {% else %}
-    <div class="landing-page-content">
-        <div class="landing-page-left">
+        {# Landing Page pour utilisateur non connecté (selon la maquette) #}
+        <div class="landing-page-content">
+
             <div class="landing-page-header">
-                <img src="{{ url_for('static', filename='asset/logo-nv.png') }}" alt="LOOVA Logo" class="landing-logo">
+                <img src="{{ url_for('static', filename='asset/logo-loova.png') }}" alt="LOOVA Logo" class="landing-logo">
                 <span class="landing-title">LOOVA</span>
             </div>
-            <div class="landing-page-intro">
-                <h1>Gérez votre activité<br>et vos finances en toute<br>simplicité</h1>
-                <p>Une plateforme intégrée pour la gestion de projets, la comptabilité et la collaboration entre professionnels.</p>
-                <p>Découvrez comment LOOVA peut vous aider à simplifier votre quotidien.</p>
-                <a href="{{ url_for('users.ajouter_user_demo') }}" class="btn btn-secondary">
-                    Créer un compte de démonstration
+
+            <div class="landing-page-left">
+                <h1>Gérez vos projets et vos finances en toute simplicité</h1>
+                <p class="intro-text">Une plateforme intégrée pour la gestion de projets, la comptabilité et la collaboration entre professionnels.</p>
+
+                <div class="features-section">
+                    <div class="feature-item">
+                        <div class="feature-icon-wrapper">
+                            <i class="fas fa-users"></i> {# Icône placeholder: gestion de projets #}
+                        </div>
+                        <h3>Gestion de projets intuitive</h3>
+                        <p>Pilotez vos projets et votre équipe en toute simplicité</p>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon-wrapper">
+                           <i class="fas fa-chart-line"></i> {# Icône placeholder: compta simplifiée #}
+                        </div>
+                        <h3>Comptabilité simplifiée</h3>
+                        <p>Suivez vos finances sans prise de tête</p>
+                    </div>
+                    <div class="feature-item">
+                        <div class="feature-icon-wrapper">
+                            <i class="fas fa-clock"></i> {# Icône placeholder: gain de temps #}
+                        </div>
+                        <h3>Gain de temps</h3>
+                        <p>Automatisez vos tâches administratives</p>
+                    </div>
+                </div>
+
+                <a href="{{ url_for('users.ajouter_user_demo') }}" class="btn-decouvrir mt-4 btn btn-success btn-lg mb-5">
+                    Créer un compte de démonstration <i class="fas fa-arrow-right fa-lg ms-2"></i>
                 </a>
+
             </div>
-            <div class="landing-page-features">
-                <div class="feature">
-                    <i class="fas fa-tasks"></i>
-                    <h3>Gestion de Projets</h3>
-                    <p>Suivez l'avancement de vos projets en temps réel.</p>
-                </div>
-                <div class="feature">
-                    <i class="fas fa-money-bill-wave"></i>
-                    <h3>Comptabilité Simplifiée</h3>
-                    <p>Gérez vos finances facilement et efficacement.</p>
-                </div>
-                <div class="feature">
-                    <i class="fas fa-user-group"></i>
-                    <h3>CRM Intégré</h3>
-                    <p>Centralisez les informations de vos clients.</p>
-                </div>
-            </div>
-        </div>
-        <div class="landing-page-right">
-            <section class="card login-card">
-                <div class="login-card-title">
-                    <h2 class="card-title">Connexions</h2>
-                </div>
-                <div class="login-card-form">
+
+            <div class="landing-page-right">
+                <section class="login-card">
+                    <h2>Connexion</h2>
+                    {# Assurez-vous que 'forms' est passé au template si vous utilisez Flask-WTF #}
+                    {# Si vous n'utilisez pas Flask-WTF, retirez {{ forms.hidden_tag() }} et gérez le CSRF autrement #}
                     <form method="POST" action="{{ url_for('users.index') }}">
-                        {{ forms.hidden_tag() }}
-                        {# Remplacement de form-group par mb-3 #}
-                        <div class="mb-3">
-                            <label for="email" class="form-label">Email</label> {# Ajout optionnel de form-label #}
-                            <input type="email" class="form-control" id="email" name="email" required>
+                        {% if forms %}{{ forms.hidden_tag() }}{% endif %} {# Vérifie si forms existe #}
+
+                        <div class="form-group">
+                            <label for="email">Email</label>
+                            <i class="fas fa-envelope input-icon"></i>
+                            <input type="email" class="form-control" id="email" name="email" placeholder="votre.email@exemple.fr" required>
                         </div>
-                        {# Remplacement de form-group par mb-3 #}
-                        <div class="mb-3">
-                            <label for="password" class="form-label">Mot de passe</label> {# Ajout optionnel de form-label #}
-                            <input type="password" class="form-control" id="password" name="password" required>
+
+                        <div class="form-group">
+                            <label for="password">Mot de passe</label>
+                             <i class="fas fa-lock input-icon"></i>
+                            <input type="password" class="form-control" id="password" name="password" placeholder="Votre mot de passe" required>
+                            <i class="fas fa-eye password-toggle-icon" id="togglePassword"></i> {# Icône pour voir/cacher mdp #}
                         </div>
-                        <div class="login-card-button">
-                            <button type="submit" class="btn btn-primary">Se connecter</button>
-                        </div>
+
+                        <button type="submit" class="btn btn-connexion mt-4">
+                            <i class="fas fa-check-circle"></i> Connexion
+                        </button>
                     </form>
-                </div>
-            </section>
+                </section>
+            </div>
         </div>
-    </div>
     {% endif %}
 {% endblock %}
 
+{% block extra_scripts %}
+    {# Script pour l'icône oeil du mot de passe #}
+    <script>
+        const togglePassword = document.querySelector('#togglePassword');
+        const password = document.querySelector('#password');
 
-
+        if (togglePassword && password) {
+            togglePassword.addEventListener('click', function (e) {
+                // toggle the type attribute
+                const type = password.getAttribute('type') === 'password' ? 'text' : 'password';
+                password.setAttribute('type', type);
+                // toggle the eye slash icon
+                this.classList.toggle('fa-eye-slash');
+            });
+        }
+    </script>
+{% endblock %}
