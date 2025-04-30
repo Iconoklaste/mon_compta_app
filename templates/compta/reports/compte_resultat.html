@@ -1,118 +1,287 @@
 {% extends 'base.html' %}
 
 {% block page_title %}
-<div id="navbar-title" class="navbar-title-container">
-    <h1>Compte de resultat - {{ compte_resultat.organisation_nom }}</h1>
+<div id="navbar-title" class="navbar-title-container d-flex align-items-center">
+    {# Ajout d'une icône générique pour la compta/résultat #}
+    <i class="fas fa-calculator fa-fw me-2 text-primary"></i>
+    <h1 class="mb-0 h3">Compte de résultat - {{ compte_resultat.organisation_nom }}</h1>
 </div>
 {% endblock %}
 
 {% block content %}
 
-    <div class="mb-3"> {# Ajoute une marge en bas #}
+    <div class="d-flex justify-content-between align-items-center mb-4"> {# Utilise flex pour aligner bouton et période #}
         <a href="{{ url_for('compta.index') }}" class="btn btn-outline-secondary btn-sm">
             <i class="fas fa-arrow-left me-1"></i> Retour au Tableau de Bord Compta
         </a>
+        <p class="mb-0 text-muted">
+            <strong>Période du :</strong> {{ compte_resultat.date_debut }} <strong>au</strong> {{ compte_resultat.date_fin }}
+        </p>
     </div>
-    <p><strong>Période du :</strong> {{ compte_resultat.date_debut }} <strong>au</strong> {{ compte_resultat.date_fin }}</p>
 
-    <div class="row">
+    <!-- Section des Indicateurs Clés (KPIs) -->
+    <div class="row mb-4 text-center g-3"> {# g-3 ajoute un espace entre les colonnes #}
+        <div class="col-md-4">
+            <div class="card border-success shadow-sm h-100"> {# h-100 pour même hauteur #}
+                <div class="card-body d-flex flex-column justify-content-center">
+                    <h6 class="card-subtitle mb-2 text-muted text-uppercase small">Total Produits</h6>
+                    <p class="card-text fs-4 fw-bold text-success mb-0">
+                         <i class="fas fa-arrow-up-right-dots me-1 opacity-75"></i>
+                        {{ "%.2f"|format(compte_resultat.produits.total) }} €
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card border-danger shadow-sm h-100">
+                <div class="card-body d-flex flex-column justify-content-center">
+                    <h6 class="card-subtitle mb-2 text-muted text-uppercase small">Total Charges</h6>
+                    <p class="card-text fs-4 fw-bold text-danger mb-0">
+                        <i class="fas fa-arrow-down-right-dots me-1 opacity-75"></i>
+                        {{ "%.2f"|format(compte_resultat.charges.total) }} €
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card {% if compte_resultat.resultat_net >= 0 %}border-primary{% else %}border-warning{% endif %} shadow-sm h-100">
+                 {# Changement: Bordure primaire pour bénéfice, warning pour perte (moins agressif que danger) #}
+                <div class="card-body d-flex flex-column justify-content-center">
+                    <h6 class="card-subtitle mb-2 text-muted text-uppercase small">Résultat Net</h6>
+                    <p class="card-text fs-4 fw-bold {% if compte_resultat.resultat_net >= 0 %}text-primary{% else %}text-warning{% endif %} mb-0">
+                         <i class="fas {% if compte_resultat.resultat_net >= 0 %}fa-chart-line{% else %}fa-chart-line-down{% endif %} me-1 opacity-75"></i>
+                        {{ "%.2f"|format(compte_resultat.resultat_net) }} €
+                    </p>
+                     <small class="text-muted">({{ compte_resultat.type_resultat }})</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <!-- Section Détaillée Produits / Charges -->
+    <div class="row g-4"> {# g-4 pour plus d'espace entre les colonnes #}
         <!-- Colonne Produits -->
-        <div class="col-md-6">
-            <div class="card mb-4">
-                <div class="card-header bg-primary text-white">
-                    <h5 class="mb-0">Produits (Classe 7)</h5>
+        <div class="col-lg-6"> {# Change md en lg pour laisser plus de place si KPIs présents #}
+            <div class="card shadow-sm mb-4 h-100"> {# h-100 pour potentiellement aligner les hauteurs #}
+                 {# En-tête plus engageante - succès léger #}
+                <div class="card-header bg-success-subtle text-success-emphasis d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-sack-dollar me-2"></i>Produits (Classe 7)</h5>
+                    <span class="badge bg-success-subtle border border-success-subtle text-success-emphasis rounded-pill fs-6">{{ "%.2f"|format(compte_resultat.produits.total) }} €</span>
                 </div>
-                <div class="card-body">
-                    <table class="table table-sm table-hover">
-                        <thead>
-                            <tr>
-                                <th>Numéro</th>
-                                <th>Compte</th>
-                                <th class="text-end">Solde Période (€)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for compte in compte_resultat.produits.details %}
-                            <tr>
-                                <td>{{ compte.numero }}</td>
-                                <td>{{ compte.nom }}</td>
-                                <!-- Solde période (Crédits - Débits), normalement positif -->
-                                <td class="text-end">{{ "%.2f"|format(compte.solde_periode) }}</td>
-                            </tr>
-                            {% else %}
-                            <tr>
-                                <td colspan="3" class="text-center">Aucun produit enregistré sur la période.</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                        <tfoot>
-                            <tr class="table-light fw-bold">
-                                <td colspan="2">Total Produits</td>
-                                <td class="text-end">{{ "%.2f"|format(compte_resultat.produits.total) }}</td>
-                            </tr>
-                        </tfoot>
-                    </table>
+                <div class="card-body p-0"> {# p-0 pour que le tableau touche les bords #}
+                    <div class="table-responsive"> {# Assure la responsivité sur mobile #}
+                        <table class="table table-sm table-hover mb-0"> {# mb-0 car padding géré par card-body si on en remet #}
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-3">Numéro</th> {# Ajout padding start #}
+                                    <th>Compte</th>
+                                    <th class="text-end pe-3">Solde Période (€)</th> {# Ajout padding end #}
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for compte in compte_resultat.produits.details %}
+                                <tr>
+                                    <td class="ps-3">{{ compte.numero }}</td>
+                                    <td>{{ compte.nom }}</td>
+                                    <td class="text-end pe-3">{{ "%.2f"|format(compte.solde_periode) }}</td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="3" class="text-center fst-italic p-3">Aucun produit enregistré.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                            <tfoot>
+                                <tr class="table-light fw-bold border-top">
+                                    <td colspan="2" class="ps-3">Total Produits</td>
+                                    <td class="text-end pe-3">{{ "%.2f"|format(compte_resultat.produits.total) }}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
                 </div>
+                {# Optionnel: Ajouter un petit graphique pie ici si pertinent #}
+                {# <div class="card-footer bg-transparent text-center"> #}
+                {#     <small class="text-muted">Visualisation des principaux produits (à venir)</small> #}
+                {#     <canvas id="produitsPieChart" height="100"></canvas> #}
+                {# </div> #}
             </div>
         </div>
 
         <!-- Colonne Charges -->
-        <div class="col-md-6">
-            <div class="card mb-4">
-                <div class="card-header bg-danger text-white">
-                    <h5 class="mb-0">Charges (Classe 6)</h5>
+        <div class="col-lg-6"> {# Change md en lg #}
+            <div class="card shadow-sm mb-4 h-100">
+                 {# En-tête plus engageante - danger léger #}
+                <div class="card-header bg-danger-subtle text-danger-emphasis d-flex justify-content-between align-items-center">
+                    <h5 class="mb-0"><i class="fas fa-receipt me-2"></i>Charges (Classe 6)</h5>
+                    <span class="badge bg-danger-subtle border border-danger-subtle text-danger-emphasis rounded-pill fs-6">{{ "%.2f"|format(compte_resultat.charges.total) }} €</span>
                 </div>
-                <div class="card-body">
-                    <table class="table table-sm table-hover">
-                        <thead>
-                            <tr>
-                                <th>Numéro</th>
-                                <th>Compte</th>
-                                <th class="text-end">Solde Période (€)</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for compte in compte_resultat.charges.details %}
-                            <tr>
-                                <td>{{ compte.numero }}</td>
-                                <td>{{ compte.nom }}</td>
-                                <!-- Solde période (Débits - Crédits), normalement positif -->
-                                <td class="text-end">{{ "%.2f"|format(compte.solde_periode) }}</td>
-                            </tr>
-                            {% else %}
-                            <tr>
-                                <td colspan="3" class="text-center">Aucune charge enregistrée sur la période.</td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                        <tfoot>
-                            <tr class="table-light fw-bold">
-                                <td colspan="2">Total Charges</td>
-                                <td class="text-end">{{ "%.2f"|format(compte_resultat.charges.total) }}</td>
-                            </tr>
-                        </tfoot>
-                    </table>
+                 <div class="card-body p-0">
+                    <div class="table-responsive">
+                        <table class="table table-sm table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th class="ps-3">Numéro</th>
+                                    <th>Compte</th>
+                                    <th class="text-end pe-3">Solde Période (€)</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for compte in compte_resultat.charges.details %}
+                                <tr>
+                                    <td class="ps-3">{{ compte.numero }}</td>
+                                    <td>{{ compte.nom }}</td>
+                                    <td class="text-end pe-3">{{ "%.2f"|format(compte.solde_periode) }}</td>
+                                </tr>
+                                {% else %}
+                                <tr>
+                                    <td colspan="3" class="text-center fst-italic p-3">Aucune charge enregistrée.</td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                             <tfoot>
+                                <tr class="table-light fw-bold border-top">
+                                    <td colspan="2" class="ps-3">Total Charges</td>
+                                    <td class="text-end pe-3">{{ "%.2f"|format(compte_resultat.charges.total) }}</td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+                 {# Optionnel: Ajouter un petit graphique pie ici si pertinent #}
+                {# <div class="card-footer bg-transparent text-center"> #}
+                {#     <small class="text-muted">Visualisation des principales charges (à venir)</small> #}
+                {#     <canvas id="chargesPieChart" height="100"></canvas> #}
+                {# </div> #}
+            </div>
+        </div>
+    </div> <!-- Fin .row Produits/Charges -->
+
+    <!-- Résultat Net Détaillé et/ou Visualisation -->
+    <div class="row justify-content-center mt-4">
+        <div class="col-lg-6 mb-4"> {# Résultat mis à gauche si graphique #}
+            <div class="card text-center {% if compte_resultat.resultat_net >= 0 %}border-success-subtle{% else %}border-danger-subtle{% endif %} shadow">
+                <div class="card-header {% if compte_resultat.resultat_net >= 0 %}bg-success text-white{% else %}bg-danger text-white{% endif %}">
+                    <h5 class="mb-0">
+                        <i class="fas fa-flag-checkered me-2"></i>Résultat Net de la période
+                    </h5>
+                </div>
+                <div class="card-body p-4">
+                    <h3 class="card-title display-5 {% if compte_resultat.resultat_net >= 0 %}text-success{% else %}text-danger{% endif %}">
+                        {# Ajout d'une icône tendance #}
+                        <i class="fas {% if compte_resultat.resultat_net >= 0 %}fa-arrow-trend-up{% else %}fa-arrow-trend-down{% endif %} me-2"></i>
+                        {{ "%.2f"|format(compte_resultat.resultat_net) }} €
+                    </h3>
+                    <p class="card-text fs-5 text-muted">({{ compte_resultat.type_resultat }})</p>
+                </div>
+                 <div class="card-footer text-body-secondary {% if compte_resultat.resultat_net >= 0 %}bg-success-subtle{% else %}bg-danger-subtle{% endif %}">
+                    Calculé : Total Produits - Total Charges
                 </div>
             </div>
         </div>
-    </div> <!-- Fin .row -->
-
-    <!-- Résultat Net -->
-    <div class="row justify-content-center mt-3">
-        <div class="col-md-6">
-            <div class="card text-center {% if compte_resultat.resultat_net >= 0 %}border-success{% else %}border-danger{% endif %}">
-                <div class="card-header {% if compte_resultat.resultat_net >= 0 %}bg-success text-white{% else %}bg-danger text-white{% endif %}">
-                    <h5 class="mb-0">Résultat Net de la période</h5>
+        {# Emplacement pour un graphique comparatif - nécessite JS (ex: Chart.js) #}
+        <div class="col-lg-6 mb-4">
+            <div class="card shadow-sm h-100">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="fas fa-chart-bar me-2"></i>Visualisation</h5>
                 </div>
-                <div class="card-body">
-                    <h3 class="card-title {% if compte_resultat.resultat_net >= 0 %}text-success{% else %}text-danger{% endif %}">
-                        {{ "%.2f"|format(compte_resultat.resultat_net) }} €
-                    </h3>
-                    <p class="card-text">({{ compte_resultat.type_resultat }})</p>
+                <div class="card-body d-flex justify-content-center align-items-center">
+                    {# Le canvas où le graphique sera dessiné par JavaScript #}
+                    <canvas id="produitsChargesChart" style="max-height: 300px;"></canvas>
+                </div>
+                 <div class="card-footer text-body-secondary text-center">
+                    <small>Comparaison Produits vs Charges (Nécessite Javascript)</small>
                 </div>
             </div>
         </div>
     </div>
+
+{# --- Début Section Javascript pour les graphiques (Exemple avec Chart.js) --- #}
+{# Assurez-vous que Chart.js est chargé (soit dans base.html, soit ici) #}
+{# <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> #}
+
+<script>
+    // Attendre que le DOM soit chargé pour manipuler le canvas
+    document.addEventListener('DOMContentLoaded', function () {
+
+        // 1. Vérifier si l'élément canvas existe
+        const canvasElement = document.getElementById('produitsChargesChart');
+        if (canvasElement) {
+            const ctx = canvasElement.getContext('2d');
+
+            // 2. Récupérer les données (passées via Jinja et sécurisées avec |tojson)
+            const totalProduits = {{ compte_resultat.produits.total|tojson }};
+            const totalCharges = {{ compte_resultat.charges.total|tojson }};
+            const resultatNet = {{ compte_resultat.resultat_net|tojson }}; // On pourrait l'ajouter
+
+            // 3. Configurer et créer le graphique (exemple: Barres)
+            const produitsChargesChart = new Chart(ctx, {
+                type: 'bar', // Types possibles: 'bar', 'pie', 'doughnut', 'line', etc.
+                data: {
+                    labels: ['Total Produits', 'Total Charges'],
+                    datasets: [{
+                        label: 'Montant (€)',
+                        data: [totalProduits, totalCharges],
+                        backgroundColor: [
+                            'rgba(25, 135, 84, 0.6)',  // Vert semi-transparent (succès Bootstrap)
+                            'rgba(220, 53, 69, 0.6)'   // Rouge semi-transparent (danger Bootstrap)
+                        ],
+                        borderColor: [
+                            'rgba(25, 135, 84, 1)',
+                            'rgba(220, 53, 69, 1)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true, // S'adapte à la taille du conteneur
+                    maintainAspectRatio: false, // Permet de définir la hauteur via CSS ou style
+                    scales: {
+                        y: {
+                            beginAtZero: true, // Axe Y commence à 0
+                            ticks: {
+                                // Formatage des ticks de l'axe Y en euros
+                                callback: function(value, index, values) {
+                                    return value.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false // On peut cacher la légende si c'est évident
+                        },
+                        tooltip: {
+                             callbacks: {
+                                label: function(context) {
+                                    let label = context.dataset.label || '';
+                                    if (label) {
+                                        label += ': ';
+                                    }
+                                    if (context.parsed.y !== null) {
+                                         label += context.parsed.y.toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
+                                    }
+                                    return label;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+
+            // Vous pourriez ajouter ici le code pour d'autres graphiques (ex: Pie charts)
+            // const produitsPieCtx = document.getElementById('produitsPieChart')?.getContext('2d');
+            // const chargesPieCtx = document.getElementById('chargesPieChart')?.getContext('2d');
+            // ... (Logique similaire pour récupérer les détails et créer les pie charts) ...
+
+        } else {
+            console.warn("L'élément Canvas 'produitsChargesChart' n'a pas été trouvé.");
+        }
+
+    }); // Fin de l'écouteur DOMContentLoaded
+</script>
+{# --- Fin Section Javascript --- #}
 
 
 {% endblock %}

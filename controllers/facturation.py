@@ -3,6 +3,7 @@ from reportlab.pdfgen import canvas
 from reportlab.lib.utils import ImageReader
 from reportlab.lib import colors
 from io import BytesIO
+from decimal import Decimal
 
 from controllers.db_manager import db
 
@@ -75,13 +76,14 @@ def generate_facturation_pdf(transaction):
     p.setFont("Helvetica", 9)
 
     # Utilisation des informations du client
-    client_name = client.nom
-    client_tel = client.telephone
-    client_address = f"{client.adresse}, {client.code_postal} {client.ville}"
+    client_nom = client.nom if client and client.nom else "Client inconnu"
+    client_adresse = client.adresse if client and client.adresse else "Adresse inconnue"
+    # Ensure client_tel is a string, even if None or client is None
+    client_tel = client.telephone if client and client.telephone else ""
 
-    p.drawRightString(width - 50, height - 165, client_name)
+    p.drawRightString(width - 50, height - 165, client_nom)
     p.drawRightString(width - 50, height - 180, client_tel)
-    p.drawRightString(width - 50, height - 195, client_address)
+    p.drawRightString(width - 50, height - 195, client_adresse)
 
     # ======================
     #   TABLEAU D'ARTICLES
@@ -149,7 +151,7 @@ def generate_facturation_pdf(transaction):
     #   RÉCAPITULATIF
     # ======================
     # Exemples de calcul
-    tva_rate = 0.20  # 20% de TVA, par exemple
+    tva_rate = Decimal('0.20')  # TODO : Solution pour adapter la TVA
     if organisation.exonere_tva:
         tva_amount = 0
         total_ttc = sous_total

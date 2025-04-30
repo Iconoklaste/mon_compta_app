@@ -34,27 +34,34 @@
             </button>
         </div>
 
-        {# Remplacement de form-group par mb-3 et ajout de form-label #}
-        <div class="mb-3">
-            <label for="date_debut" class="form-label">Date de début</label>
-            <input type="date" class="form-control" id="date_debut" name="date_debut">
+        {# Utilisation de la grille Bootstrap pour mettre les dates sur une ligne #}
+        <div class="row g-3 mb-3"> {# Ajout de mb-3 ici pour l'espacement global sous la ligne #}
+            <div class="col-md-6">
+                {# Remplacement de form-group par mb-3 et ajout de form-label #}
+                {# mb-3 est retiré ici car géré par la row ou conservé si besoin d'espace vertical interne #}
+                <label for="date_debut" class="form-label">Date de début</label>
+                <input type="date" class="form-control" id="date_debut" name="date_debut">
+            </div>
+            <div class="col-md-6">
+                {# Remplacement de form-group par mb-3 et ajout de form-label #}
+                {# mb-3 est retiré ici #}
+                <label for="date_fin" class="form-label">Date de fin</label>
+                <input type="date" class="form-control" id="date_fin" name="date_fin">
+            </div>
         </div>
 
         {# Remplacement de form-group par mb-3 et ajout de form-label #}
         <div class="mb-3">
-            <label for="date_fin" class="form-label">Date de fin</label>
-            <input type="date" class="form-control" id="date_fin" name="date_fin">
-        </div>
-
-        {# Remplacement de form-group par mb-3 et ajout de form-label #}
-        <div class="mb-3">
-            <label for="statut" class="form-label">Statut</label>
-            {# Utilisation de form-select pour les <select> en BS5 #}
-            <select class="form-select" id="statut" name="statut">
-                {% for status in status_options %}
-                    <option value="{{ status }}" {% if status == 'En attente' %}selected{% endif %}>{{ status }}</option>
-                {% endfor %}
-            </select>
+            {# Utilisation directe du rendu WTForms pour le champ statut #}
+            {{ form.statut.label(class="form-label") }}
+            {{ form.statut(class="form-select") }} {# WTForms génère le <select> et les <option> avec les bons 'value' et libellés #}
+            {% if form.statut.errors %}
+                <div class="invalid-feedback d-block">
+                    {% for error in form.statut.errors %}
+                        <span>{{ error }}</span><br>
+                    {% endfor %}
+                </div>
+            {% endif %}
         </div>
 
         {# Remplacement de form-group par mb-3 et ajout de form-label #}
@@ -281,6 +288,23 @@
                     saveBtn.disabled = false;
                     saveBtn.textContent = 'Enregistrer';
                 }
+            });
+            // Ouvrir le sélecteur de date au clic sur le champ ---
+            const dateInputs = document.querySelectorAll('input[type="date"]');
+            dateInputs.forEach(input => {
+                // Ajouter un style pour indiquer que tout le champ est cliquable
+                input.style.cursor = 'pointer';
+
+                input.addEventListener('click', function(event) {
+                    // Essayer d'ouvrir le sélecteur de date natif
+                    if (typeof this.showPicker === 'function') {
+                        try {
+                            this.showPicker();
+                        } catch (error) {
+                            console.error("Impossible d'ouvrir le sélecteur de date :", error);
+                        }
+                    }
+                });
             });
         });
     </script>

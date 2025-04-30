@@ -192,10 +192,12 @@ def ajouter_projet():
             flash("Erreur CSRF", 'danger')
             return redirect(url_for('projets.ajouter_projet'))
 
-        organisation = Organisation.query.first()
+        organisation = user.organisation # Use the user's organisation
         if not organisation:
-            flash("Aucune organisation trouvée.", 'danger')
-            return redirect(url_for('projets.ajouter_projet'))
+            # This case should ideally not happen if user setup is correct, but good to check
+            flash("Impossible de déterminer l'organisation de l'utilisateur.", 'danger')
+            return redirect(url_for('projets.projets')) # Or another appropriate page
+
 
         client = Client.query.get(form.client_id.data)
         if not client:

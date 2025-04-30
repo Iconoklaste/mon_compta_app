@@ -266,9 +266,9 @@ export function loadData(canvas, projetId) {
             } else {
                 console.log('No whiteboard data found for this project.');
                 // Initialiser un canvas vide ou afficher un message
-                // S'assurer que l'état initial est sauvegardé même pour un canvas vide
-                saveCanvasState(canvas);
-                redoStack = []; // Réinitialiser redo pour un nouveau canvas
+                // Appeler loadCanvas avec null pour initialiser un canvas vide
+                // et laisser loadCanvas gérer l'initialisation des piles undo/redo.
+                loadCanvas(canvas, null);
             }
         })
         .catch((error) => {
