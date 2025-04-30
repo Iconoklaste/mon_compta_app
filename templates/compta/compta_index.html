@@ -18,176 +18,455 @@
 {% endblock %}
 
 {% block content %}
-    <!-- Financial Summary -->
-    <div class="row mt-4">
-        <div class="col-md-3">
-            <div class="info-card">
-                <div class="card-body">
-                    <h5 class="card-title">Solde Général</h5>
-                    <p class="card-text">
-                        <span id="overall-balance">{{ overall_balance }}</span> €
-                    </p>
+<div class="container-fluid">
+    <div class="row">
+            <!-- Financial Summary Cards (Style du Mockup) -->
+            <div class="row g-4 mb-4">
+                 <div class="col-lg-3 col-md-6"> <!-- Adaptez col-md-* si nécessaire pour 2 colonnes sur tablette -->
+                    <div class="card shadow-sm border-light h-100">
+                        <div class="card-body text-center">
+                            <h5 class="card-title text-muted mb-3">Solde Général</h5>
+                            <p class="card-text display-5 fw-bold mb-0">
+                                <span id="overall-balance">{{ overall_balance | round(0) if overall_balance is not none else '0' }}</span> €
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="card shadow-sm border-light h-100">
+                        <div class="card-body text-center">
+                            <h5 class="card-title text-muted mb-3">Factures en Attente</h5>
+                            <p class="card-text display-5 fw-bold mb-0">
+                                <span id="pending-invoices">{{ pending_invoices | round(0) if pending_invoices is not none else '0' }}</span> €
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="card shadow-sm border-light h-100">
+                        <div class="card-body text-center">
+                            <h5 class="card-title text-muted mb-3">Paiements Reçus</h5>
+                            <p class="card-text display-5 fw-bold mb-0">
+                                <span id="received-payments">{{ received_payments | round(0) if received_payments is not none else '0' }}</span> €
+                            </p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <div class="card shadow-sm border-light h-100">
+                        <div class="card-body text-center">
+                            <h5 class="card-title text-muted mb-3">Reste à Facturer</h5>
+                            <p class="card-text display-5 fw-bold mb-0">
+                                <span id="remaining-to-bill">{{ remaining_to_bill_projects | round(0) if remaining_to_bill_projects is not none else '0' }}</span> €
+                            </p>
+                        </div>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="col-md-3">
-            <div class="info-card">
-                <div class="card-body">
-                    <h5 class="card-title">Factures en Attente</h5>
-                    <p class="card-text">
-                        <span id="pending-invoices">{{ pending_invoices }}</span> €
-                    </p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="info-card">
-                <div class="card-body">
-                    <h5 class="card-title">Paiements Reçus</h5>
-                    <p class="card-text">
-                        <span id="received-payments">{{ received_payments }}</span> €
-                    </p>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-3">
-            <div class="info-card">
-                <div class="card-body">
-                    <h5 class="card-title">Reste à facturer</h5>
-                    <p class="card-text">
-                        <span id="received-payments">{{ remaining_to_bill_projects }}</span> €
-                    </p>
-                </div>
-            </div>
-        </div>
-    </div>
 
-    <!-- Revenue/Expense Graph (Placeholder) -->
-    <div class="row mt-4">
-        <div class="col-md-12">
-            <div class="info-card">
-                <div class="card-body">
-                    <h5 class="card-title">Revenus et Dépenses</h5>
-                    <canvas id="revenue-expense-chart"></canvas>
-                    <p class="text-muted">Graphique des revenus et dépenses par mois.</p>
+            <!-- Quick Action Cards (Style du Mockup) -->
+            <div class="row g-4 mb-4">
+                <div class="col-lg-3 col-md-6">
+                     <a href="#" class="text-decoration-none">
+                        <div class="card quick-action-card h-100">
+                            <div class="card-body d-flex align-items-center">
+                                <div class="icon-placeholder me-3">
+                                     <i class="fas fa-file-invoice fa-2x text-primary"></i> <!-- Placeholder Icon -->
+                                </div>
+                                <span>Émettre une<br>facture client</span>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                 <div class="col-lg-3 col-md-6">
+                    <a href="#" class="text-decoration-none">
+                        <div class="card quick-action-card h-100">
+                            <div class="card-body d-flex align-items-center">
+                                 <div class="icon-placeholder me-3">
+                                    <i class="fas fa-receipt fa-2x text-warning"></i> <!-- Placeholder Icon -->
+                                 </div>
+                                <span>Enregistrer<br>une dépense</span>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <a href="#" class="text-decoration-none">
+                        <div class="card quick-action-card h-100">
+                            <div class="card-body d-flex align-items-center">
+                                <div class="icon-placeholder me-3">
+                                    <i class="fas fa-exchange-alt fa-2x text-info"></i> <!-- Placeholder Icon -->
+                                </div>
+                                <span>Effectuer<br>un virement</span>
+                            </div>
+                        </div>
+                    </a>
+                </div>
+                <div class="col-lg-3 col-md-6">
+                    <a href="{{ url_for('ecritures.lister_ecritures') }}" class="text-decoration-none">
+                        <div class="card quick-action-card h-100">
+                             <div class="card-body d-flex align-items-center">
+                                <div class="icon-placeholder me-3">
+                                     <i class="fas fa-list-alt fa-2x text-secondary"></i> <!-- Placeholder Icon -->
+                                </div>
+                                <span>Consulter<br>les écritures</span>
+                            </div>
+                        </div>
+                    </a>
                 </div>
             </div>
-        </div>
-    </div>
 
-    <!-- Recent Transactions -->
-    <div class="row mt-4">
-        <div class="col-md-12">
-            <div class="info-card">
-                <div class="card-body">
-                    <h5 class="card-title">Transactions Récentes</h5>
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Date</th>
-                                <th>Type</th>
-                                <th>Montant</th>
-                                <th>Client</th>
-                                <th>Statut</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {% for transaction in recent_transactions %}
-                            <tr>
-                                <td>{{ transaction.date }}</td>
-                                <td>{{ transaction.type }}</td>
-                                <td>{{ transaction.amount }} €</td>
-                                <td>{{ transaction.client.nom if transaction.client else 'N/A' }}</td>
-                                <td>
-                                    {% if transaction.status == 'payé' %}
-                                        <span class="badge badge-success">Payé</span>
-                                    {% elif transaction.status == 'en attente' %}
-                                        <span class="badge badge-warning">En Attente</span>
-                                    {% elif transaction.status == 'en retard' %}
-                                        <span class="badge badge-danger">En Retard</span>
-                                    {% else %}
-                                        <span class="badge badge-secondary">{{ transaction.status }}</span>
-                                    {% endif %}
-                                </td>
-                            </tr>
-                            {% endfor %}
-                        </tbody>
-                    </table>
+            <!-- Main Content Area (Transactions, Graph, Alerts - Style du Mockup) -->
+            <div class="row g-4">
+                <!-- Left Column: Recent Transactions -->
+                <div class="col-lg-7">
+                    <div class="card shadow-sm border-light h-100">
+                        <div class="card-header bg-transparent border-bottom-0 pt-3 pb-0">
+                            <h5 class="card-title mb-0">Transactions Récentes</h5>
+                        </div>
+                        <div class="card-body pt-2">
+                            <div class="table-responsive">
+                                <table class="table table-hover table-borderless recent-transactions-table">
+                                    <thead>
+                                        <tr class="text-muted small">
+                                            <th class="fw-normal">Date</th>
+                                            <th class="fw-normal">Type</th>
+                                            <th class="fw-normal text-end">Montant</th>
+                                            <th class="fw-normal">Tiers</th> <!-- Nom plus générique -->
+                                            <th class="fw-normal">Règlement</th> <!-- Utilisation de "Règlement" -->
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {% for transaction in recent_transactions %}
+                                        <tr>
+                                            <td>{{ transaction.date.strftime('%d/%m/%Y') if transaction.date else 'N/A' }}</td>
+                                            <td>{{ transaction.type | capitalize }}</td>
+                                            <td class="text-end {% if transaction.montant > 0 %}text-success{% elif transaction.montant < 0 %}text-danger{% endif %}">
+                                                {# Utilisation de transaction.montant #}
+                                                {{ '+' if transaction.montant > 0 else '' }}{{ transaction.montant | float | round(2) }} € {# Conversion en float pour round #}
+                                            </td>
+                                            <td>
+                                                {# === À ADAPTER SELON VOTRE LOGIQUE CLIENT/FOURNISSEUR === #}
+                                                {% if transaction.compte and transaction.compte.tiers %} {# Exemple: si CompteComptable a une relation 'tiers' #}
+                                                    {{ transaction.compte.tiers.nom }}
+                                                {% elif transaction.projet and transaction.projet.client %} {# Exemple: si Projet a une relation 'client' #}
+                                                    {{ transaction.projet.client.nom }}
+                                                {% else %}
+                                                    N/A {# Ou afficher transaction.compte.libelle ? #}
+                                                {% endif %}
+                                                {# ======================================================== #}
+                                            </td>
+                                            <td>
+                                                {# Utilisation de transaction.reglement et adaptation des conditions #}
+                                                {# Option 1: Si les valeurs de 'reglement' sont exactes ('Payé', 'En Retard', etc.) #}
+                                                {% if transaction.reglement == 'Payé' %}
+                                                    <span class="status-paid">Payé</span>
+                                                {% elif transaction.reglement == 'En Attente' %}
+                                                     <span class="status-pending">En Attente</span>
+                                                {% elif transaction.reglement == 'En Retard' %}
+                                                     <span class="status-overdue">En Retard</span>
+                                                {% elif transaction.reglement == 'OK' %} {# Si 'OK' est une valeur possible #}
+                                                     <span class="status-ok">OK</span>
+                                                {% elif transaction.reglement == 'Non réglée' %}
+                                                     <span class="status-pending">Non réglée</span> {# Ou une autre classe CSS #}
+                                                {% else %}
+                                                    <span class="status-other">{{ transaction.reglement | capitalize }}</span>
+                                                {% endif %}
+        
+                                                {# Option 2: Si vous calculez un 'status_display' dans la vue Flask #}
+                                                {# {% if transaction.status_display == 'payé' %}
+                                                    <span class="status-paid">Payé</span>
+                                                {% elif transaction.status_display == 'en_attente' %}
+                                                     <span class="status-pending">En Attente</span>
+                                                ... etc ...
+                                                {% endif %} #}
+                                            </td>
+                                        </tr>
+                                        {% else %}
+                                        <tr>
+                                            <td colspan="5" class="text-center text-muted pt-4">Aucune transaction récente.</td>
+                                        </tr>
+                                        {% endfor %}
+                                    </tbody>
+                                </table>
+                            </div>
+                             <div class="text-end mt-2">
+                                <a href="{{ url_for('ecritures.lister_ecritures') }}" class="btn btn-sm btn-outline-primary">Voir tout</a>
+                             </div>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
-    </div>
 
-    
+                <!-- Right Column: Graph & Alerts -->
+                <div class="col-lg-5 d-flex flex-column">
+                    <!-- Revenue/Expense Graph -->
+                    <div class="card shadow-sm border-light mb-4">
+                        <div class="card-header bg-transparent border-bottom-0 pt-3 pb-0">
+                            <h5 class="card-title mb-0">Revenus et Dépenses</h5>
+                        </div>
+                        <div class="card-body">
+                            <canvas id="revenue-expense-chart" style="min-height: 250px; max-height: 300px;"></canvas>
+                             <p class="text-muted small text-center mt-2">Comparaison mensuelle des revenus et dépenses</p>
+                        </div>
+                    </div>
 
-    <!-- Alerts and Reminders -->
-    <div class="row mt-4">
-        <div class="col-md-12">
-            <div class="info-card">
-                <div class="card-body">
-                    <h5 class="card-title">Alertes et Rappels</h5>
-                    <ul class="list-group">
-                        {% if overdue_invoices %}
-                            {% for invoice in overdue_invoices %}
-                                <li class="list-group-item list-group-item-danger">Facture #{{ invoice.id }} en retard de {{ invoice.days_overdue }} jours (Client: {{ invoice.client.nom }})</li>
-                            {% endfor %}
-                        {% else %}
-                            <li class="list-group-item">Aucune facture en retard.</li>
-                        {% endif %}
-                        {% if negative_balance_clients %}
-                            {% for client in negative_balance_clients %}
-                                <li class="list-group-item list-group-item-warning">Client {{ client.nom }} a un solde négatif de {{ client.balance }} €.</li>
-                            {% endfor %}
-                        {% else %}
-                            <li class="list-group-item">Aucun client avec un solde négatif.</li>
-                        {% endif %}
-                        <li class="list-group-item">Aucune nouvelle notification.</li>
-                    </ul>
+                    <!-- Alerts and Reminders -->
+                    <div class="card shadow-sm border-light flex-grow-1">
+                        <div class="card-header bg-transparent border-bottom-0 pt-3 pb-0">
+                            <h5 class="card-title mb-0">Alertes et Rappels</h5>
+                        </div>
+                        <div class="card-body pt-2">
+                            <ul class="list-unstyled alerts-list">
+                                {% set has_alerts = False %}
+
+                                {% if overdue_invoices %}
+                                     {% for invoice in overdue_invoices %}
+                                         {% set has_alerts = True %}
+                                         <li class="mb-2 alert-item alert-danger">
+                                             <span class="alert-icon"></span>
+                                             Facture #{{ invoice.id }} en retard de {{ invoice.days_overdue }} jours (Client: {{ invoice.client.nom }})
+                                         </li>
+                                     {% endfor %}
+                                {% endif %}
+
+                                {% if negative_balance_clients %}
+                                     {% for client in negative_balance_clients %}
+                                        {% set has_alerts = True %}
+                                        <li class="mb-2 alert-item alert-warning">
+                                             <span class="alert-icon"></span>
+                                            Client {{ client.nom }} a un solde négatif de {{ client.balance | round(2) }} €
+                                        </li>
+                                     {% endfor %}
+                                {% endif %}
+
+                                {% if not has_alerts %}
+                                     <li class="mb-2 alert-item alert-info">
+                                        <span class="alert-icon"></span>
+                                        Aucune nouvelle notification.
+                                     </li>
+                                {% else %}
+                                     <li class="mb-2 alert-item alert-info">
+                                        <span class="alert-icon"></span>
+                                        Aucune nouvelle notification supplémentaire.
+                                     </li>
+                                {% endif %}
+                            </ul>
+                        </div>
+                    </div>
                 </div>
-            </div>
-        </div>
-    </div>
+            </div> <!-- Fin row Main Content -->
 
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        // Sample data for the chart (replace with dynamic data from the backend)
+
+    </div> <!-- Fin row Sidebar/Main -->
+</div> <!-- Fin container-fluid -->
+
+<!-- Chart.js Script (Identique à la version précédente) -->
+<!-- !! Assurez-vous de passer les données dynamiquement depuis Flask !! -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const labels = {{ chart_labels | tojson | safe }}; // Exemple: ['Jan', 'Fev', ...] depuis Flask
+        const revenuesData = {{ chart_revenues | tojson | safe }}; // Exemple: [1000, 1200, ...] depuis Flask
+        const expensesData = {{ chart_expenses | tojson | safe }}; // Exemple: [500, 600, ...] depuis Flask
+
         const revenueExpenseData = {
-            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            labels: labels,
             datasets: [
                 {
                     label: 'Revenus',
-                    data: [1000, 1200, 1500, 1300, 1600, 1800, 2000, 1900, 2100, 2300, 2500, 2700],
-                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    borderWidth: 1
+                    data: revenuesData,
+                    borderColor: 'rgb(54, 162, 235)',
+                    backgroundColor: 'rgba(54, 162, 235, 0.1)',
+                    tension: 0.2,
+                    pointRadius: 4,
+                    pointBackgroundColor: 'rgb(54, 162, 235)',
+                    fill: true,
                 },
                 {
                     label: 'Dépenses',
-                    data: [500, 600, 700, 800, 900, 1000, 1100, 1200, 1300, 1400, 1500, 1600],
-                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
-                    borderColor: 'rgba(255, 99, 132, 1)',
-                    borderWidth: 1
+                    data: expensesData,
+                    borderColor: 'rgb(255, 99, 132)',
+                    backgroundColor: 'rgba(255, 99, 132, 0.1)',
+                    tension: 0.2,
+                    pointRadius: 4,
+                    pointBackgroundColor: 'rgb(255, 99, 132)',
+                    fill: true,
                 }
             ]
         };
-
-        // Chart configuration
-        const config = {
-            type: 'line',
+        const config = { /* ... configuration du graphique comme avant ... */
+             type: 'line',
             data: revenueExpenseData,
             options: {
+                responsive: true,
+                maintainAspectRatio: false,
                 scales: {
-                    y: {
-                        beginAtZero: true
-                    }
-                }
+                    y: { beginAtZero: true, grid: { drawBorder: false, }, },
+                    x: { grid: { display: false, } }
+                },
+                plugins: {
+                    legend: { position: 'bottom', align: 'start', labels: { usePointStyle: true, boxWidth: 8 } }
+                },
+                interaction: { intersect: false, mode: 'index', },
             }
         };
 
-        // Create the chart
-        const revenueExpenseChart = new Chart(
-            document.getElementById('revenue-expense-chart'),
-            config
-        );
-    </script>
+        const ctx = document.getElementById('revenue-expense-chart');
+        if (ctx) {
+            let existingChart = Chart.getChart(ctx);
+            if (existingChart) { existingChart.destroy(); }
+            const revenueExpenseChart = new Chart(ctx, config);
+        } else {
+            console.error("Canvas 'revenue-expense-chart' not found.");
+        }
+    });
+</script>
+{% endblock %}
+
+{% block extra_css %}
+<!-- Lien vers un fichier CSS personnalisé -->
+<link rel="stylesheet" href="{{ url_for('static', filename='css/dashboard.css') }}">
+<style>
+    /* Styles spécifiques pour ce tableau de bord (à déplacer dans dashboard.css) */
+
+    /* --- Sidebar --- */
+    /* Styles basiques repris du premier exemple - À AJUSTER SELON VOTRE base.html */
+    .sidebar {
+        position: fixed;
+        top: 0;
+        /* Adaptez si vous avez une navbar fixe en haut (ex: top: 56px;) */
+        bottom: 0;
+        left: 0;
+        z-index: 100;
+        padding: 48px 0 0; /* Hauteur de la navbar si fixe */
+        box-shadow: inset -1px 0 0 rgba(0, 0, 0, .05);
+        background-color: #fff; /* Fond blanc pour la sidebar */
+    }
+     @media (max-width: 767.98px) {
+      .sidebar {
+        /* Comportement sur mobile - peut-être cachée par défaut */
+         position: static; /* Ou utiliser offcanvas de Bootstrap */
+         height: auto;
+         padding-top: 1rem;
+         box-shadow: none;
+      }
+      main { margin-left: 0 !important; } /* Pas de décalage sur mobile si sidebar n'est pas fixe */
+    }
+    .sidebar-sticky { /* Inutile si position: fixed */ }
+
+    .sidebar .nav-link {
+        font-weight: 500;
+        color: #555;
+        padding: 0.75rem 1rem; /* Espacement liens */
+    }
+     .sidebar .nav-link i.fa-fw { /* Icônes */
+        color: #888;
+        margin-right: 8px;
+        width: 1.2em; /* Alignement icônes */
+    }
+    .sidebar .nav-link.active,
+    .sidebar .nav-link:hover {
+        color: #0d6efd; /* Couleur primaire Bootstrap */
+        background-color: rgba(13, 110, 253, 0.05); /* Léger fond au survol/actif */
+    }
+    .sidebar .nav-link.active i.fa-fw,
+    .sidebar .nav-link:hover i.fa-fw {
+        color: #0d6efd;
+    }
+    .sidebar-heading {
+        font-size: .75rem;
+        color: #999;
+    }
+
+    /* --- Contenu Principal (Styles du Mockup) --- */
+    main {
+         background-color: #f8f9fa; /* Fond gris clair pour la zone de contenu */
+    }
+    .card {
+        border-radius: 0.75rem; /* Coins arrondis comme mockup */
+        border: none;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05); /* Ombre légère */
+    }
+    .card-header.bg-transparent {
+         background-color: transparent !important;
+    }
+     .quick-action-card {
+        transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+        background-color: #fff;
+    }
+    .quick-action-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.08);
+    }
+    .quick-action-card .icon-placeholder {
+        /* Style pour le conteneur d'icône si nécessaire (ex: fond coloré léger) */
+         background-color: rgba(13, 110, 253, 0.1); /* Exemple fond léger bleu */
+         padding: 12px;
+         border-radius: 50%;
+         width: 50px;
+         height: 50px;
+         display: inline-flex;
+         align-items: center;
+         justify-content: center;
+    }
+     /* Couleurs spécifiques pour les icônes des cartes action */
+    .quick-action-card .icon-placeholder .text-primary { color: #0d6efd !important; }
+    .quick-action-card:nth-child(2) .icon-placeholder { background-color: rgba(255, 193, 7, 0.1); } /* Jaune pour dépense */
+    .quick-action-card .icon-placeholder .text-warning { color: #ffc107 !important; }
+    .quick-action-card:nth-child(3) .icon-placeholder { background-color: rgba(13, 202, 240, 0.1); } /* Cyan pour virement */
+    .quick-action-card .icon-placeholder .text-info { color: #0dcaf0 !important; }
+    .quick-action-card:nth-child(4) .icon-placeholder { background-color: rgba(108, 117, 125, 0.1); } /* Gris pour consulter */
+    .quick-action-card .icon-placeholder .text-secondary { color: #6c757d !important; }
+
+
+    /* Style table transactions */
+    .recent-transactions-table th {
+         border-top: none;
+         font-weight: 500; /* Un peu plus gras que fw-normal */
+    }
+    .recent-transactions-table td {
+        vertical-align: middle;
+        padding-top: 1rem;
+        padding-bottom: 1rem;
+        border-top: 1px solid #eee; /* Ligne de séparation légère */
+    }
+     .recent-transactions-table tbody tr:first-child td {
+         border-top: none; /* Pas de bordure sur la première ligne */
+     }
+
+    /* Styles pour les statuts (couleurs du mockup) */
+    .status-paid { color: #198754; font-weight: 500; } /* Vert */
+    .status-pending { color: #ffc107; font-weight: 500; } /* Jaune */
+    .status-overdue { color: #dc3545; font-weight: 500; } /* Rouge */
+    .status-ok { color: #0dcaf0; font-weight: 500; } /* Cyan */
+    .status-other { color: #6c757d; font-weight: 500; } /* Gris */
+
+    /* Style liste alertes */
+    .alerts-list .alert-item {
+        display: flex;
+        align-items: center;
+        font-size: 0.9rem;
+        padding-left: 1.5rem; /* Espace pour l'icône/puce */
+        position: relative;
+    }
+    .alerts-list .alert-icon {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        position: absolute;
+        left: 0;
+        top: 50%;
+        transform: translateY(-50%);
+    }
+    .alerts-list .alert-danger .alert-icon { background-color: #dc3545; } /* Rouge */
+    .alerts-list .alert-warning .alert-icon { background-color: #ffc107; } /* Jaune */
+    .alerts-list .alert-info .alert-icon { background-color: #6c757d; } /* Gris (pour 'aucune notif') */
+
+</style>
+{% endblock %}
+
+{% block extra_js %}
+    <!-- Si vous utilisez Font Awesome via CDN JS, ajoutez-le ici -->
+    <!-- <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"></script> -->
 {% endblock %}

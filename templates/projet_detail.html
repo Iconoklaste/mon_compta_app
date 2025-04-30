@@ -6,126 +6,8 @@
 {% block extra_head %}
 
 <link href="https://cdn.jsdelivr.net/npm/quill@2.0.0-rc.2/dist/quill.snow.css" rel="stylesheet" />
-<style>
-    /* Optionnel : Définir une hauteur pour l'éditeur */
-    #quill-editor {
-        min-height: 300px;
-        height: auto; /* ou une hauteur fixe si tu préfères */
-        border: 1px solid #ced4da; /* Correspondance style Bootstrap */
-        border-radius: 0.25rem; /* Correspondance style Bootstrap */
-    }
-    /* Ajuster le style de la barre d'outils si nécessaire */
-    .ql-toolbar.ql-snow {
-         border-top-left-radius: 0.25rem;
-         border-top-right-radius: 0.25rem;
-         border-bottom: 0; /* Éviter double bordure */
-    }
-     .ql-container.ql-snow {
-         border-bottom-left-radius: 0.25rem;
-         border-bottom-right-radius: 0.25rem;
-    }
+<link rel="stylesheet" href="{{ url_for('static', filename='css/detail-projet.css') }}">
 
-#gantt-chart {
-    /* 1. Largeur max toujours à 100% */
-    max-width: 100%;
-
-    /* 2. Supprimer la hauteur fixe */
-    /* height: 450px; */
-
-    /* 3. Définir une hauteur maximale (ex: 60% de la hauteur de la fenêtre) */
-    /*    Ajuste cette valeur selon tes préférences (ex: 600px, 70vh, etc.) */
-    /* max-height: 60vh; */
-
-    /* 4. Gérer les dépassements horizontal et vertical */
-    overflow-x: auto; /* Garde le scroll horizontal */
-    overflow-y: auto; /* Ajoute le scroll vertical SEULEMENT si max-height est dépassée */
-
-    /* 5. Autres propriétés */
-    position: relative;
-    box-sizing: border-box; /* C'est bien de garder ça */
-}
-
-
-        /* Assure que le SVG généré par Frappe Gantt peut s'étendre */
-        #gantt-chart .gantt-container > svg {
-        
-        display: block;
-    }
-
-    /* Styles pour le popup Gantt */
-    .gantt-popup {
-        background-color: #fff;
-        border: 1px solid #d12d2d;
-        padding: 10px;
-        border-radius: 4px;
-        box-shadow: 3px 3px 5px rgba(0,0,0,0.1);
-        font-size: 0.9em;
-        min-width: 150px;
-    }
-    /* Style pour les phases dans Gantt */
-    #gantt-chart .bar-wrapper.gantt-phase .bar {
-        fill: #28a745; /* Couleur verte pour les phases */
-    }
-     /* Style pour les jalons dans Gantt */
-    .gantt-milestone .bar {
-        fill: #ffc107; /* Jaune Bootstrap */
-        height: 10px !important;
-        transform: translateY(5px);
-    }
-    .gantt-milestone-completed .bar {
-         fill: #b93704; /* Gris Bootstrap */
-         height: 10px !important;
-         transform: translateY(5px);
-    }
-    #gantt-chart .gantt-container > svg { /* Adapte ce sélecteur si besoin */
-    /* Assure que le SVG peut devenir très large */
-    min-width: 100%; /* Ou une valeur fixe minimale si tu préfères, ex: 800px */
-    display: block; /* Évite des espaces indésirables sous le SVG */
-}
-
-        /* Styles pour l'avatar des membres */
-        .member-avatar {
-            width: 36px;           /* Taille du cercle */
-            height: 36px;
-            border-radius: 50%;    /* Pour le rendre circulaire */
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;          /* Couleur du texte (initiales) */
-            font-weight: bold;
-            font-size: 0.9em;      /* Taille des initiales */
-            margin-right: 12px;    /* Espace entre l'avatar et le nom */
-            flex-shrink: 0;        /* Empêche l'avatar de rétrécir */
-            text-transform: uppercase; /* Met les initiales en majuscules */
-        }
-
-        /* Couleurs spécifiques */
-        .avatar-internal {
-            background-color: #0d6efd; /* Bleu Bootstrap standard */
-        }
-
-        .avatar-external {
-            background-color: #198754; /* Vert Bootstrap standard */
-        }
-
-        /* Ajustement pour les boutons d'action */
-        .member-actions .btn {
-            /* Optionnel: forcer une taille si btn-sm ne suffit pas */
-             /* width: 30px; */
-             /* height: 30px; */
-             display: inline-flex; /* Aide à centrer l'icône */
-             align-items: center;
-             justify-content: center;
-             padding: 0.25rem 0.5rem; /* Ajuster le padding si nécessaire */
-        }
-        .member-actions .btn i {
-             font-size: 0.8em; /* Ajuster la taille de l'icône si fa-xs ne suffit pas */
-        }
-        /* Ajouter un petit espace entre les boutons dans le groupe */
-
-
-
-</style>
 {% endblock %}
 
 
@@ -149,11 +31,11 @@
 {% endblock %}
 
 {% block content %}
-<div class="row mb-4">
+<div id="project-info-card" class="row mb-4">
     <div class="col-md-6">
         <div class="info-card h-100">
+            <div class="rounded-top card-header-custom two-line-header"><h5 class="card-title mb-0">Informations Générales</h5></div>
             <div class="card-body">
-                <h5 class="card-title">Informations Générales</h5>
                 <div class="row align-items-center">
                     <div class="col-6">
                         <div class="mb-0">
@@ -184,12 +66,17 @@
         </div>
     </div>
 
-    {# --- MODIFICATION : Section Équipe du Projet --- #}
+    {# ---  Section Équipe du Projet --- #}
     <div class="col-md-3">
-        <div class="info-card h-100 d-flex flex-column"> {# Ajout de d-flex et flex-column pour que le contenu remplisse la hauteur #}
+        <div class="info-card h-100"> {# Ajout de d-flex et flex-column pour que le contenu remplisse la hauteur #}
+           <div class="rounded-top card-header-custom two-line-header d-flex justify-content-between align-items-center">
+                <h5 class="card-title mb-0">Équipe du Projet</h5>
+                {# --- DÉPLACEMENT ET MODIFICATION DU BOUTON --- #}
+                <button class="btn btn-primary btn-sm" type="button" data-bs-toggle="modal" data-bs-target="#addMemberModal" title="Ajouter un membre">
+                    <i class="fas fa-user-plus"></i> {# Icône plus spécifique #}
+                </button>
+            </div> 
             <div class="card-body flex-grow-1"> {# flex-grow-1 pour que cette partie prenne l'espace disponible #}
-                <h5 class="card-title">Équipe du Projet</h5>
-
                 {# Liste des membres existants #}
                 {% if membres_equipe %}
                     <ul class="list-unstyled mb-3">
@@ -250,14 +137,10 @@
                 {% else %}
                     <p class="text-muted">Aucun membre dans l'équipe pour le moment.</p>
                 {% endif %}
-
-                {# Bouton pour ouvrir/fermer le formulaire d'ajout (optionnel, pour UI) #}
-                <button class="btn btn-primary btn-sm mb-2" type="button" data-bs-toggle="modal" data-bs-target="#addMemberModal">
-                    <i class="fas fa-plus"></i> Ajouter un membre
-                </button>
             </div> {# Fin card-body #}
         </div> {# Fin info-card #}
     </div>
+
     {# --- Modale pour ajouter un membre --- #}
     <div class="modal fade" id="addMemberModal" tabindex="-1" aria-labelledby="addMemberModalLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -388,8 +271,8 @@
 
     <div class="col-md-3">
         <div class="info-card h-100">
+            <div class="rounded-top card-header-custom two-line-header"><h5 class="card-title mb-0">Outils</h5></div>
             <div class="card-body">
-                <h5 class="card-title">Outils</h5>
                 <a href="{{ url_for('whiteboard.whiteboard_view', projet_id=projet.id) }}"
                     class="btn btn-primary mb-2">
                     <i class="fas fa-chalkboard"></i> Ouvrir le Tableau Blanc

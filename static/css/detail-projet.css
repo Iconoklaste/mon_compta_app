@@ -1,0 +1,133 @@
+        /* --- MODIFICATION : Limiter hauteur carte, header fixe, body scrollable --- */
+        #project-info-card .info-card {
+            max-height: 30vh; /* Hauteur maximale pour la carte entière */
+            display: flex; /* Utiliser flexbox */
+            flex-direction: column; /* Empiler header et body */
+            /* overflow-y: auto; <-- Supprimé de la carte entière */
+        }
+        #project-info-card .info-card .rounded-top.card-header-custom.two-line-header {
+            flex-shrink: 0; /* Empêche le header de rétrécir */
+        }
+        #project-info-card .info-card .card-body {
+            flex-grow: 1; /* Permet au corps de prendre l'espace vertical restant */
+            overflow-y: auto; /* Ajoute le scroll vertical SEULEMENT au corps */
+            min-height: 0; /* Crucial pour permettre au corps de rétrécir et scroller */
+        }
+
+
+    /* Optionnel : Définir une hauteur pour l'éditeur */
+    #quill-editor {
+        min-height: 300px;
+        height: auto; /* ou une hauteur fixe si tu préfères */
+        border: 1px solid #ced4da; /* Correspondance style Bootstrap */
+        border-radius: 0.25rem; /* Correspondance style Bootstrap */
+    }
+    /* Ajuster le style de la barre d'outils si nécessaire */
+    .ql-toolbar.ql-snow {
+         border-top-left-radius: 0.25rem;
+         border-top-right-radius: 0.25rem;
+         border-bottom: 0; /* Éviter double bordure */
+    }
+     .ql-container.ql-snow {
+         border-bottom-left-radius: 0.25rem;
+         border-bottom-right-radius: 0.25rem;
+    }
+
+#gantt-chart {
+    /* 1. Largeur max toujours à 100% */
+    max-width: 100%;
+
+    /* 2. Supprimer la hauteur fixe */
+    /* height: 450px; */
+
+    /* 3. Définir une hauteur maximale (ex: 60% de la hauteur de la fenêtre) */
+    /*    Ajuste cette valeur selon tes préférences (ex: 600px, 70vh, etc.) */
+    /* max-height: 60vh; */
+
+    /* 4. Gérer les dépassements horizontal et vertical */
+    overflow-x: auto; /* Garde le scroll horizontal */
+    overflow-y: auto; /* Ajoute le scroll vertical SEULEMENT si max-height est dépassée */
+
+    /* 5. Autres propriétés */
+    position: relative;
+    box-sizing: border-box; /* C'est bien de garder ça */
+}
+
+
+        /* Assure que le SVG généré par Frappe Gantt peut s'étendre */
+        #gantt-chart .gantt-container > svg {
+        
+        display: block;
+    }
+
+    /* Styles pour le popup Gantt */
+    .gantt-popup {
+        background-color: #fff;
+        border: 1px solid #d12d2d;
+        padding: 10px;
+        border-radius: 4px;
+        box-shadow: 3px 3px 5px rgba(0,0,0,0.1);
+        font-size: 0.9em;
+        min-width: 150px;
+    }
+    /* Style pour les phases dans Gantt */
+    #gantt-chart .bar-wrapper.gantt-phase .bar {
+        fill: #28a745; /* Couleur verte pour les phases */
+    }
+     /* Style pour les jalons dans Gantt */
+    .gantt-milestone .bar {
+        fill: #ffc107; /* Jaune Bootstrap */
+        height: 10px !important;
+        transform: translateY(5px);
+    }
+    .gantt-milestone-completed .bar {
+         fill: #b93704; /* Gris Bootstrap */
+         height: 10px !important;
+         transform: translateY(5px);
+    }
+    #gantt-chart .gantt-container > svg { /* Adapte ce sélecteur si besoin */
+    /* Assure que le SVG peut devenir très large */
+    min-width: 100%; /* Ou une valeur fixe minimale si tu préfères, ex: 800px */
+    display: block; /* Évite des espaces indésirables sous le SVG */
+}
+
+        /* Styles pour l'avatar des membres */
+        .member-avatar {
+            width: 36px;           /* Taille du cercle */
+            height: 36px;
+            border-radius: 50%;    /* Pour le rendre circulaire */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;          /* Couleur du texte (initiales) */
+            font-weight: bold;
+            font-size: 0.9em;      /* Taille des initiales */
+            margin-right: 12px;    /* Espace entre l'avatar et le nom */
+            flex-shrink: 0;        /* Empêche l'avatar de rétrécir */
+            text-transform: uppercase; /* Met les initiales en majuscules */
+        }
+
+        /* Couleurs spécifiques */
+        .avatar-internal {
+            background-color: #0d6efd; /* Bleu Bootstrap standard */
+        }
+
+        .avatar-external {
+            background-color: #198754; /* Vert Bootstrap standard */
+        }
+
+        /* Ajustement pour les boutons d'action */
+        .member-actions .btn {
+            /* Optionnel: forcer une taille si btn-sm ne suffit pas */
+             /* width: 30px; */
+             /* height: 30px; */
+             display: inline-flex; /* Aide à centrer l'icône */
+             align-items: center;
+             justify-content: center;
+             padding: 0.25rem 0.5rem; /* Ajuster le padding si nécessaire */
+        }
+        .member-actions .btn i {
+             font-size: 0.8em; /* Ajuster la taille de l'icône si fa-xs ne suffit pas */
+        }
+        /* Ajouter un petit espace entre les boutons dans le groupe */
+

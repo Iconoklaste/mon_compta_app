@@ -1,0 +1,193 @@
+<!-- c:\wamp\www\mon_compta_app\templates\compta\compta_index.html -->
+{% extends 'base.html' %}
+
+{% block page_title %}
+    <h1>Comptabilité</h1>
+{% endblock %}
+
+{% block navbar_actions %}
+                    <!-- <a href="{{ url_for('clients.clients') }}" class="btn btn-primary">Clients</a> -->
+                    <a href="{{ url_for('plan_comptable.lister_comptes') }}" class="btn btn-primary">Plan comptable</a>
+                    <a href="{{ url_for('ecritures.lister_ecritures') }}" class="btn btn-primary">Ecritures</a>
+                    <a href="{{ url_for('compta.afficher_bilan') }}" class="btn btn-primary">Bilan Comptable</a>
+                    <a href="{{ url_for('compta.afficher_compte_resultat') }}" class="btn btn-primary">Compte de Résultat</a>
+                    <a href="{{ url_for('compta.afficher_grand_livre') }}" class="btn btn-primary">Grand livre</a>
+                    <a href="{{ url_for('compta.afficher_flux_tresorerie') }}" class="btn btn-primary">Flux de Trésorerie</a>
+                    <!-- <a href="{{ url_for('projets.projets') }}" class="btn btn-primary">Projets</a> -->
+                    <a href="#" class="btn btn-success">Nouvelle Transaction</a>
+{% endblock %}
+
+{% block content %}
+    <!-- Financial Summary -->
+    <div class="row mt-4">
+        <div class="col-md-3">
+            <div class="info-card">
+                <div class="card-body">
+                    <h5 class="card-title">Solde Général</h5>
+                    <p class="card-text">
+                        <span id="overall-balance">{{ overall_balance }}</span> €
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="info-card">
+                <div class="card-body">
+                    <h5 class="card-title">Factures en Attente</h5>
+                    <p class="card-text">
+                        <span id="pending-invoices">{{ pending_invoices }}</span> €
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="info-card">
+                <div class="card-body">
+                    <h5 class="card-title">Paiements Reçus</h5>
+                    <p class="card-text">
+                        <span id="received-payments">{{ received_payments }}</span> €
+                    </p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="info-card">
+                <div class="card-body">
+                    <h5 class="card-title">Reste à facturer</h5>
+                    <p class="card-text">
+                        <span id="received-payments">{{ remaining_to_bill_projects }}</span> €
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Revenue/Expense Graph (Placeholder) -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="info-card">
+                <div class="card-body">
+                    <h5 class="card-title">Revenus et Dépenses</h5>
+                    <canvas id="revenue-expense-chart"></canvas>
+                    <p class="text-muted">Graphique des revenus et dépenses par mois.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Transactions -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="info-card">
+                <div class="card-body">
+                    <h5 class="card-title">Transactions Récentes</h5>
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Type</th>
+                                <th>Montant</th>
+                                <th>Client</th>
+                                <th>Statut</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for transaction in recent_transactions %}
+                            <tr>
+                                <td>{{ transaction.date }}</td>
+                                <td>{{ transaction.type }}</td>
+                                <td>{{ transaction.amount }} €</td>
+                                <td>{{ transaction.client.nom if transaction.client else 'N/A' }}</td>
+                                <td>
+                                    {% if transaction.status == 'payé' %}
+                                        <span class="badge badge-success">Payé</span>
+                                    {% elif transaction.status == 'en attente' %}
+                                        <span class="badge badge-warning">En Attente</span>
+                                    {% elif transaction.status == 'en retard' %}
+                                        <span class="badge badge-danger">En Retard</span>
+                                    {% else %}
+                                        <span class="badge badge-secondary">{{ transaction.status }}</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+
+    <!-- Alerts and Reminders -->
+    <div class="row mt-4">
+        <div class="col-md-12">
+            <div class="info-card">
+                <div class="card-body">
+                    <h5 class="card-title">Alertes et Rappels</h5>
+                    <ul class="list-group">
+                        {% if overdue_invoices %}
+                            {% for invoice in overdue_invoices %}
+                                <li class="list-group-item list-group-item-danger">Facture #{{ invoice.id }} en retard de {{ invoice.days_overdue }} jours (Client: {{ invoice.client.nom }})</li>
+                            {% endfor %}
+                        {% else %}
+                            <li class="list-group-item">Aucune facture en retard.</li>
+                        {% endif %}
+                        {% if negative_balance_clients %}
+                            {% for client in negative_balance_clients %}
+                                <li class="list-group-item list-group-item-warning">Client {{ client.nom }} a un solde négatif de {{ client.balance }} €.</li>
+                            {% endfor %}
+                        {% else %}
+                            <li class="list-group-item">Aucun client avec un solde négatif.</li>
+                        {% endif %}
+                        <li class="list-group-item">Aucune nouvelle notification.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Sample data for the chart (replace with dynamic data from the backend)
+        const revenueExpenseData = {
+            labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'],
+            datasets: [
+                {
+                    label: 'Revenus',
+                    data: [1000, 1200, 1500, 1300, 1600, 1800, 2000, 1900, 2100, 2300, 2500, 2700],
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    borderWidth: 1
+                },
+                {
+                    label: 'Dépenses',
+                    data: [500, 600, 700, 800, 900, 1000, 1100, 1200, 1300, 1400, 1500, 1600],
+                    backgroundColor: 'rgba(255, 99, 132, 0.2)',
+                    borderColor: 'rgba(255, 99, 132, 1)',
+                    borderWidth: 1
+                }
+            ]
+        };
+
+        // Chart configuration
+        const config = {
+            type: 'line',
+            data: revenueExpenseData,
+            options: {
+                scales: {
+                    y: {
+                        beginAtZero: true
+                    }
+                }
+            }
+        };
+
+        // Create the chart
+        const revenueExpenseChart = new Chart(
+            document.getElementById('revenue-expense-chart'),
+            config
+        );
+    </script>
+{% endblock %}

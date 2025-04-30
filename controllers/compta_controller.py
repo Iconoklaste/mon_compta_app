@@ -7,10 +7,12 @@ from reports.report_generators import (generate_balance_sheet,
                                        generate_income_statement, 
                                        generate_general_ledger,
                                        generate_cash_flow)
-from models import Client, User, Transaction, Projet, ExerciceComptable   # Import Projet model
+from models import Client, User, Transaction, Projet, ExerciceComptable, Organisation    # Import Projet model
 from datetime import datetime, timedelta, date
-from sqlalchemy import func
+from sqlalchemy import func, extract
 import logging
+from decimal import Decimal
+import calendar
 
 compta_bp = Blueprint('compta', __name__, url_prefix='/compta')
 logger = logging.getLogger(__name__)
@@ -25,6 +27,7 @@ def index():
 
     # Get the user's organization
     organisation = user.organisation
+    organisation_id = organisation.id
 
     # --- Financial Summary ---
     # Calculate overall balance (total paid - total due) for the user's organization
@@ -98,6 +101,91 @@ def index():
         if client_balance < 0:
             negative_balance_clients.append({'nom': client.nom, 'balance': client_balance})
 
+
+        # ============================================================
+        # === NOUVEAU CODE : Préparation des données pour le graphique ===
+        # ============================================================
+        chart_labels = []
+        chart_revenues = []
+        chart_expenses = []
+
+        # 1. Définir la période (par exemple, les 12 derniers mois incluant le mois courant)
+        end_date = date.today()
+        # start_date = end_date - timedelta(days=365) # Approximatif, on ajuste ensuite par mois
+
+        # Créer une liste des 12 derniers mois (année, mois) pour l'itération
+        months_in_period = []
+        current_month_date = date(end_date.year, end_date.month, 1) # Utiliser date object
+        for i in range(12):
+            months_in_period.append((current_month_date.year, current_month_date.month))
+            # Aller au mois précédent
+            last_day_prev_month = current_month_date - timedelta(days=1)
+            current_month_date = date(last_day_prev_month.year, last_day_prev_month.month, 1)
+        months_in_period.reverse() # De le plus ancien au plus récent
+
+        # --- CALCULER LA DATE DE DÉBUT EXACTE DE LA PÉRIODE ---
+        start_year, start_month = months_in_period[0] # Prend l'année et le mois du premier tuple
+        period_start_date = date(start_year, start_month, 1) # Crée la date du 1er jour de ce mois
+        # --- FIN DU CALCUL ---
+
+        # Générer les labels (par ex: "Jan", "Fev",...)
+        month_abbr = ["Inconnu", "Jan", "Fev", "Mar", "Avr", "Mai", "Jui", "Jul", "Aoû", "Sep", "Oct", "Nov", "Déc"]
+        chart_labels = [month_abbr[month] for year, month in months_in_period]
+
+        # 2. Requête pour obtenir les totaux par mois et par type
+        monthly_totals = db.session.query(
+            extract('year', Transaction.date).label('year'),
+            extract('month', Transaction.date).label('month'),
+            Transaction.type,
+            func.sum(Transaction.montant).label('total_montant')
+        ).filter(
+            Transaction.organisation_id == organisation_id,
+            # --- CONDITION CORRIGÉE ---
+            Transaction.date >= period_start_date, # Simplement >= à la date de début calculée
+            # --- FIN CORRECTION ---
+            Transaction.date <= end_date # Jusqu'à aujourd'hui (ou fin du mois courant si préféré)
+        ).group_by(
+            extract('year', Transaction.date), # Grouper par l'expression extraite
+            extract('month', Transaction.date),# Grouper par l'expression extraite
+            Transaction.type
+        ).order_by(
+            extract('year', Transaction.date),
+            extract('month', Transaction.date)
+        ).all()
+
+        # 3. Organiser les résultats dans un dictionnaire (pas de changement ici)
+        totals_dict = {} # clé: (year, month), valeur: {'Entrée': total, 'Sortie': total}
+        for row in monthly_totals:
+            key = (int(row.year), int(row.month)) # Assurer que year/month sont des entiers
+            if key not in totals_dict:
+                totals_dict[key] = {'Entrée': Decimal('0.00'), 'Sortie': Decimal('0.00')}
+            if row.type in ['Entrée', 'Sortie'] and row.total_montant is not None:
+                totals_dict[key][row.type] += row.total_montant
+
+        # 4. Créer les listes de données pour le graphique (pas de changement ici)
+        for year, month in months_in_period:
+            month_data = totals_dict.get((year, month), {'Entrée': Decimal('0.00'), 'Sortie': Decimal('0.00')})
+            chart_revenues.append(float(month_data.get('Entrée', Decimal('0.00'))))
+            chart_expenses.append(float(month_data.get('Sortie', Decimal('0.00'))))
+
+
+        # ============================================================
+        # === FIN DU NOUVEAU CODE GRAPHIQUE ==========================
+        # ============================================================
+
+        # ============================================================
+        # === DEBUGGING - À RETIRER PLUS TARD ========================
+        # ============================================================
+        print("-" * 40)
+        print(f"DEBUG [compta_controller.index]: Type de chart_labels: {type(chart_labels)}")
+        print(f"DEBUG [compta_controller.index]: Valeur de chart_labels: {chart_labels}")
+        print(f"DEBUG [compta_controller.index]: Type de chart_revenues: {type(chart_revenues)}")
+        print(f"DEBUG [compta_controller.index]: Valeur de chart_revenues: {chart_revenues}")
+        print(f"DEBUG [compta_controller.index]: Type de chart_expenses: {type(chart_expenses)}")
+        print(f"DEBUG [compta_controller.index]: Valeur de chart_expenses: {chart_expenses}")
+        print("-" * 40)
+        # ============================================================
+
     return render_template(
         'compta/compta_index.html',
         current_page='Comptabilité',
@@ -107,8 +195,11 @@ def index():
         recent_transactions=recent_transactions,
         overdue_invoices=overdue_invoices,
         negative_balance_clients=negative_balance_clients,
-        remaining_to_bill_projects=remaining_to_bill_projects
-    )
+        remaining_to_bill_projects=remaining_to_bill_projects,
+        chart_labels=chart_labels,       # Vérifier la syntaxe ici
+        chart_revenues=chart_revenues,   # Vérifier la syntaxe ici
+        chart_expenses=chart_expenses    # Vérifier la syntaxe ici
+        )
 @compta_bp.route('/bilan') # Si dans compta_controller
 @login_required
 def afficher_bilan():
