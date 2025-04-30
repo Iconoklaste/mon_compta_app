@@ -330,3 +330,75 @@ def supprimer_membre_equipe(projet_id, membre_id):
         flash(f"Erreur lors de la suppression du membre : {e}", 'danger')
 
     return redirect(url_for('projets.projet_detail', projet_id=projet_id))
+
+# --- NOUVELLE ROUTE : Modifier un membre de l'équipe ---
+@projets_bp.route('/<int:projet_id>/modifier_membre/<int:membre_id>', methods=['POST'])
+@login_required
+def modifier_membre_equipe(projet_id, membre_id):
+    """
+    Gère la modification d'un membre de l'équipe via le formulaire modal.
+    """
+    projet = Projet.query.get_or_404(projet_id)
+    membre = EquipeMembre.query.filter_by(id=membre_id, projet_id=projet.id).first_or_404()
+    user_id = session['user_id']
+    user = User.query.get(user_id)
+
+    # --- Vérification des permissions (cohérent avec les autres routes) ---
+    if not user or projet.organisation_id != user.organisation_id:
+        flash("Action non autorisée.", "danger")
+        # Rediriger vers la liste des projets ou la page d'accueil
+        return redirect(url_for('projets.projets'))
+
+    # Instancier le formulaire avec les données POST et l'objet existant
+    form = EquipeMembreForm(request.form, obj=membre)
+
+    # --- Peupler les choix d'utilisateurs (important AVANT la validation) ---
+    # (Similaire à ajouter_membre_equipe et projet_detail)
+    users_in_org = User.query.filter_by(organisation_id=user.organisation_id).order_by(User.nom).all()
+    form.user_id.choices = [(u.id, u.nom_complet) for u in users_in_org]
+    form.user_id.choices.insert(0, ('', '--- Sélectionner un utilisateur existant (Optionnel) ---'))
+    # --------------------------------------------------------------------
+
+    # validate_on_submit() gère la validation ET le CSRF pour les POST standards
+    if form.validate_on_submit():
+        try:
+            # Mettre à jour les champs du membre existant
+            membre.nom = form.nom.data
+            membre.email = form.email.data # L'email est requis par le formulaire
+            membre.role_projet = form.role_projet.data
+
+            # Gérer la liaison utilisateur (similaire à l'ajout)
+            selected_user_id = form.user_id.data
+            user_to_link = None
+            if selected_user_id:
+                user_to_link = User.query.filter_by(id=selected_user_id, organisation_id=user.organisation_id).first()
+                if user_to_link:
+                    membre.user_id = user_to_link.id
+                    # Optionnel : Forcer la synchronisation nom/email si lié ?
+                    # membre.nom = user_to_link.nom_complet
+                    # membre.email = user_to_link.mail
+                else:
+                    # Si l'ID sélectionné n'est pas valide (ne devrait pas arriver avec le select), on dé-lie
+                    membre.user_id = None
+                    flash("L'utilisateur interne sélectionné n'a pas été trouvé. Le membre reste externe.", "warning")
+            else:
+                # Si aucun utilisateur n'est sélectionné, s'assurer que le lien est retiré
+                membre.user_id = None
+
+            db.session.commit()
+            flash(f"Le membre '{membre.nom}' a été mis à jour avec succès.", "success")
+
+        except Exception as e:
+            db.session.rollback()
+            flash(f"Erreur lors de la mise à jour du membre : {e}", "danger")
+
+        return redirect(url_for('projets.projet_detail', projet_id=projet.id))
+
+    else:
+        # --- Si la validation échoue ---
+        flash("Erreur de validation lors de la modification du membre.", 'danger')
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(f"Erreur dans le champ '{getattr(form, field).label.text}': {error}", 'danger')
+        # Rediriger vers la page détail. L'utilisateur devra rouvrir le modal.
+        return redirect(url_for('projets.projet_detail', projet_id=projet.id))

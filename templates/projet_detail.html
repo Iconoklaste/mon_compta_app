@@ -24,8 +24,6 @@
          border-bottom-left-radius: 0.25rem;
          border-bottom-right-radius: 0.25rem;
     }
-</style>
-<style>
 
 #gantt-chart {
     /* 1. Largeur max toujours à 100% */
@@ -84,6 +82,48 @@
     min-width: 100%; /* Ou une valeur fixe minimale si tu préfères, ex: 800px */
     display: block; /* Évite des espaces indésirables sous le SVG */
 }
+
+        /* Styles pour l'avatar des membres */
+        .member-avatar {
+            width: 36px;           /* Taille du cercle */
+            height: 36px;
+            border-radius: 50%;    /* Pour le rendre circulaire */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;          /* Couleur du texte (initiales) */
+            font-weight: bold;
+            font-size: 0.9em;      /* Taille des initiales */
+            margin-right: 12px;    /* Espace entre l'avatar et le nom */
+            flex-shrink: 0;        /* Empêche l'avatar de rétrécir */
+            text-transform: uppercase; /* Met les initiales en majuscules */
+        }
+
+        /* Couleurs spécifiques */
+        .avatar-internal {
+            background-color: #0d6efd; /* Bleu Bootstrap standard */
+        }
+
+        .avatar-external {
+            background-color: #198754; /* Vert Bootstrap standard */
+        }
+
+        /* Ajustement pour les boutons d'action */
+        .member-actions .btn {
+            /* Optionnel: forcer une taille si btn-sm ne suffit pas */
+             /* width: 30px; */
+             /* height: 30px; */
+             display: inline-flex; /* Aide à centrer l'icône */
+             align-items: center;
+             justify-content: center;
+             padding: 0.25rem 0.5rem; /* Ajuster le padding si nécessaire */
+        }
+        .member-actions .btn i {
+             font-size: 0.8em; /* Ajuster la taille de l'icône si fa-xs ne suffit pas */
+        }
+        /* Ajouter un petit espace entre les boutons dans le groupe */
+
+
 
 </style>
 {% endblock %}
@@ -154,30 +194,56 @@
                 {% if membres_equipe %}
                     <ul class="list-unstyled mb-3">
                         {% for membre in membres_equipe %}
-                        <li class="mb-2 d-flex justify-content-between align-items-center">
-                            <div>
-                                <strong title="{{ membre.email }}">{{ membre.nom }}</strong>
-                                {% if membre.role_projet %}
-                                    <small class="text-muted d-block">{{ membre.role_projet }}</small>
-                                {% endif %}
-                                {% if membre.user %}
-                                    <span class="badge bg-info text-dark" title="Lié à l'utilisateur {{ membre.user.nom_complet }}">
-                                        <i class="fas fa-user-check fa-xs"></i> Interne
-                                    </span>
-                                {% else %}
-                                     <span class="badge bg-secondary" title="Membre externe (non lié à un compte utilisateur)">
-                                        <i class="fas fa-user-slash fa-xs"></i> Externe
-                                    </span>
-                                {% endif %}
+                        <li class="mb-3 d-flex justify-content-between align-items-center"> 
+                            <div class="d-flex align-items-center"> {# Conteneur pour avatar + infos #}
+                                {# --- AJOUT : Avatar Circulaire --- #}
+                                {% set names = membre.nom.split(' ') %}
+                                {% set initials = names[0][0] if names else '?' %}
+                                {% if names|length > 1 %}{% set initials = initials + names[1][0] %}{% endif %}
+                                <div class="member-avatar {% if membre.user %}avatar-internal{% else %}avatar-external{% endif %}"
+                                     title="{{ membre.nom }} - {{ 'Interne' if membre.user else 'Externe' }}">
+                                    <span>{{ initials | upper }}</span>
+                                </div>
+                                {# --- FIN AJOUT Avatar --- #}
+
+                                {# Infos Membre #}
+                                <div>
+                                    <strong title="{{ membre.email }}">{{ membre.nom }}</strong>
+                                    {% if membre.role_projet %}
+                                        <small class="text-muted d-block">{{ membre.role_projet }}</small>
+                                    {% endif %}
+                                    {# Optionnel: garder le badge interne/externe si souhaité, sinon le title de l'avatar suffit
+                                    {% if membre.user %}
+                                        <span class="badge bg-info text-dark ...">Interne</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary ...">Externe</span>
+                                    {% endif %}
+                                    #}
+                                </div>
                             </div>
-                            {# Formulaire pour supprimer le membre #}
-                            <form action="{{ url_for('projets.supprimer_membre_equipe', projet_id=projet.id, membre_id=membre.id) }}" method="POST" class="ms-2">
-                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
-                                <button type="submit" class="btn btn-danger btn-sm p-1" title="Retirer {{ membre.nom }} de l'équipe"
-                                        onclick="return confirm('Êtes-vous sûr de vouloir retirer {{ membre.nom }} de l\'équipe de ce projet ?')">
-                                    <i class="fas fa-user-minus fa-xs"></i>
+
+
+                            {# Groupe de boutons pour les actions sur le membre #}
+                            <div class="btn-group btn-group-sm member-actions" role="group" aria-label="Actions membre">
+                                <button type="button" class="btn btn-outline-warning edit-member-btn"
+                                        data-bs-toggle="modal" data-bs-target="#editMemberModal"
+                                        data-member-id="{{ membre.id }}"
+                                        data-member-nom="{{ membre.nom }}"
+                                        data-member-email="{{ membre.email }}"
+                                        data-member-role="{{ membre.role_projet | default('', true) }}"
+                                        data-member-user-id="{{ membre.user_id | default('', true) }}"
+                                        title="Modifier {{ membre.nom }}">
+                                    <i class="fas fa-pencil-alt"></i>
                                 </button>
-                            </form>
+
+                                {# Formulaire pour supprimer le membre (intégré au groupe) #}
+                                <button type="button" class="btn btn-outline-danger delete-member-btn"
+                                        data-delete-url="{{ url_for('projets.supprimer_membre_equipe', projet_id=projet.id, membre_id=membre.id) }}"
+                                        data-member-nom="{{ membre.nom }}"
+                                        title="Retirer {{ membre.nom }} de l'équipe">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
+                            </div>
                         </li>
                         {% endfor %}
                     </ul>
@@ -186,18 +252,28 @@
                 {% endif %}
 
                 {# Bouton pour ouvrir/fermer le formulaire d'ajout (optionnel, pour UI) #}
-                <button class="btn btn-primary btn-sm mb-2" type="button" data-bs-toggle="collapse" data-bs-target="#collapseAjouterMembre" aria-expanded="false" aria-controls="collapseAjouterMembre">
+                <button class="btn btn-primary btn-sm mb-2" type="button" data-bs-toggle="modal" data-bs-target="#addMemberModal">
                     <i class="fas fa-plus"></i> Ajouter un membre
                 </button>
-
-                {# Formulaire d'ajout (dans un collapse pour ne pas prendre trop de place) #}
-                <div class="collapse" id="collapseAjouterMembre">
-                    <form action="{{ url_for('projets.ajouter_membre_equipe', projet_id=projet.id) }}" method="POST" class="mt-2">
-                        {{ membre_form.csrf_token() }} {# Important pour la sécurité #}
-
-                        <div class="mb-2">
-                            {{ membre_form.user_id.label(class="form-label form-label-sm") }}
-                            {{ membre_form.user_id(class="form-select form-select-sm") }}
+            </div> {# Fin card-body #}
+        </div> {# Fin info-card #}
+    </div>
+    {# --- Modale pour ajouter un membre --- #}
+    <div class="modal fade" id="addMemberModal" tabindex="-1" aria-labelledby="addMemberModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                {# Le formulaire englobe le body et le footer pour que le bouton submit fonctionne #}
+                <form id="addMemberForm" action="{{ url_for('projets.ajouter_membre_equipe', projet_id=projet.id) }}" method="POST">
+                    {{ membre_form.csrf_token() }} {# Important pour la sécurité #}
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="addMemberModalLabel">Ajouter un membre à l'équipe</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        {# Contenu du formulaire déplacé ici #}
+                        <div class="mb-3"> {# Utilisation de mb-3 pour espacement standard BS5 #}
+                            {{ membre_form.user_id.label(class="form-label") }} {# Suppression de form-label-sm pour taille standard #}
+                            {{ membre_form.user_id(class="form-select") }} {# Suppression de form-select-sm #}
                             {% if membre_form.user_id.errors %}
                                 <div class="invalid-feedback d-block">
                                     {{ membre_form.user_id.errors[0] }}
@@ -205,45 +281,110 @@
                             {% endif %}
                             <small class="form-text text-muted">Laisse vide pour ajouter un membre externe.</small>
                         </div>
-
-                        <div class="mb-2">
-                            {{ membre_form.nom.label(class="form-label form-label-sm") }}
-                            {{ membre_form.nom(class="form-control form-control-sm", placeholder="Nom si externe ou différent") }}
+    
+                        <div class="mb-3">
+                            {{ membre_form.nom.label(class="form-label") }}
+                            {{ membre_form.nom(class="form-control", placeholder="Nom si externe ou différent") }} {# Suppression de form-control-sm #}
                              {% if membre_form.nom.errors %}
                                 <div class="invalid-feedback d-block">
                                     {{ membre_form.nom.errors[0] }}
                                 </div>
                             {% endif %}
                         </div>
-
-                        <div class="mb-2">
-                            {{ membre_form.email.label(class="form-label form-label-sm") }}
-                            {{ membre_form.email(class="form-control form-control-sm", placeholder="Email (obligatoire)") }}
+    
+                        <div class="mb-3">
+                            {{ membre_form.email.label(class="form-label") }}
+                            {{ membre_form.email(class="form-control", placeholder="Email (obligatoire)") }} {# Suppression de form-control-sm #}
                              {% if membre_form.email.errors %}
                                 <div class="invalid-feedback d-block">
                                     {{ membre_form.email.errors[0] }}
                                 </div>
                             {% endif %}
                         </div>
-
-                        <div class="mb-2">
-                            {{ membre_form.role_projet.label(class="form-label form-label-sm") }}
-                            {{ membre_form.role_projet(class="form-control form-control-sm", placeholder="Ex: Développeur, Chef de projet...") }}
+    
+                        <div class="mb-3">
+                            {{ membre_form.role_projet.label(class="form-label") }}
+                            {{ membre_form.role_projet(class="form-control", placeholder="Ex: Développeur, Chef de projet...") }} {# Suppression de form-control-sm #}
                              {% if membre_form.role_projet.errors %}
                                 <div class="invalid-feedback d-block">
                                     {{ membre_form.role_projet.errors[0] }}
                                 </div>
                             {% endif %}
                         </div>
-
-                        {{ membre_form.submit(class="btn btn-success btn-sm") }}
-                    </form>
-                </div> {# Fin collapse #}
-
-            </div> {# Fin card-body #}
-        </div> {# Fin info-card #}
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                        {# Le bouton submit est maintenant ici, mais toujours dans le <form> #}
+                        {{ membre_form.submit(class="btn btn-primary") }} {# Changé en btn-primary et taille standard #}
+                    </div>
+                </form> {# Fin du formulaire #}
+            </div>
+        </div>
     </div>
-    {# --- FIN MODIFICATION : Section Équipe du Projet --- #}
+    {# --- Fin Modale Ajout Membre équipe --- #}
+
+    {# --- Modale pour MODIFIER un membre --- #}
+    <div class="modal fade" id="editMemberModal" tabindex="-1" aria-labelledby="editMemberModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                {# Le formulaire englobe le body et le footer #}
+                {# L'action sera définie par JavaScript #}
+                <form id="editMemberForm" action="#" method="POST">
+                    {# Utiliser le même form que pour l'ajout pour la validation et les champs #}
+                    {{ membre_form.csrf_token() }} {# Important pour la sécurité #}
+                    {# Champ caché pour l'ID du membre à modifier #}
+                    <input type="hidden" id="edit_membre_id" name="membre_id" value="">
+
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="editMemberModalLabel">Modifier le membre</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        {# Utiliser des ID uniques pour les champs de cette modale #}
+                        <div class="mb-3">
+                            {{ membre_form.user_id.label(for="edit_user_id", class="form-label") }}
+                            {# Cloner le select original mais avec un ID différent #}
+                            <select id="edit_user_id" name="user_id" class="form-select">
+                                <option value="">-- Sélectionner un utilisateur (Optionnel) --</option>
+                                {% for user_id, user_nom in membre_form.user_id.choices %}
+                                    {% if user_id %} {# Exclure l'option vide par défaut si elle existe #}
+                                        <option value="{{ user_id }}">{{ user_nom }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                            {# Affichage des erreurs spécifique à ce champ si nécessaire #}
+                            <small class="form-text text-muted">Lier à un utilisateur existant ou modifier les infos externes ci-dessous.</small>
+                        </div>
+
+                        <div class="mb-3">
+                            {{ membre_form.nom.label(for="edit_nom", class="form-label") }}
+                            {{ membre_form.nom(id="edit_nom", class="form-control", placeholder="Nom du membre") }}
+                            {# Affichage des erreurs spécifique #}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ membre_form.email.label(for="edit_email", class="form-label") }}
+                            {{ membre_form.email(id="edit_email", class="form-control", placeholder="Email (obligatoire)") }}
+                            {# Affichage des erreurs spécifique #}
+                        </div>
+
+                        <div class="mb-3">
+                            {{ membre_form.role_projet.label(for="edit_role_projet", class="form-label") }}
+                            {{ membre_form.role_projet(id="edit_role_projet", class="form-control", placeholder="Ex: Développeur, Chef de projet...") }}
+                            {# Affichage des erreurs spécifique #}
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Annuler</button>
+                        {# Utiliser le bouton submit du formulaire cloné #}
+                        {{ membre_form.submit(class="btn btn-primary", value="Enregistrer les modifications") }}
+                    </div>
+                </form> {# Fin du formulaire #}
+            </div>
+        </div>
+    </div>
+    {# --- FIN Modale Modifier Membre --- #}
+
 
     <div class="col-md-3">
         <div class="info-card h-100">
@@ -686,10 +827,11 @@ document.addEventListener('DOMContentLoaded', function () {
     try {
         // Parse les données utilisateur (vérifier la source HTML si ça échoue)
         // Assurez-vous que users_data_json est bien passé par Flask et est valide
-        const usersData = {{ users_data_json | default({}) | tojson | safe }}; // Ajout default('{}')
+        const usersData = {{ users_data_json | default('{}') | tojson | safe }}; // Ajout default('{}')
 
-        const addMemberForm = document.getElementById('collapseAjouterMembre');
-        if (addMemberForm) {
+        // --- MODIFICATION : Cibler le formulaire dans la modale ---
+        const addMemberModalForm = document.getElementById('addMemberForm');
+        if (addMemberModalForm) {
             const userIdSelect = addMemberForm.querySelector('#user_id');
             const nomInput = addMemberForm.querySelector('#nom');
             const emailInput = addMemberForm.querySelector('#email');
@@ -713,16 +855,148 @@ document.addEventListener('DOMContentLoaded', function () {
                     }
                 });
             } else {
-                console.warn("Un ou plusieurs champs (user_id, nom, email) non trouvés dans le formulaire d'ajout de membre.");
+                console.warn("Un ou plusieurs champs (user_id, nom, email) non trouvés dans le formulaire de la modale d'ajout de membre.");
             }
         } else {
-             console.warn("Conteneur du formulaire d'ajout de membre (#collapseAjouterMembre) non trouvé.");
+            console.warn("Formulaire d'ajout de membre (#addMemberForm) non trouvé dans la modale.");
         }
     } catch (e) {
         // L'erreur se produit ici si JSON.parse échoue
         console.error("Erreur lors de l'initialisation du pré-remplissage (vérifier users_data_json):", e);
     }
 
+    // --- AJOUT : Gestion de la modale de modification de membre ---
+    const editMemberModalElement = document.getElementById('editMemberModal');
+    if (editMemberModalElement) {
+        const editMemberForm = document.getElementById('editMemberForm');
+        // Utiliser les ID uniques définis dans la modale d'édition
+        const editUserIdSelect = editMemberForm.querySelector('#edit_user_id');
+        const editNomInput = editMemberForm.querySelector('#edit_nom');
+        const editEmailInput = editMemberForm.querySelector('#edit_email');
+        const editRoleInput = editMemberForm.querySelector('#edit_role_projet');
+        const editMemberIdInput = editMemberForm.querySelector('#edit_membre_id'); // Champ caché
+
+        editMemberModalElement.addEventListener('show.bs.modal', function (event) {
+            const button = event.relatedTarget; // Le bouton "Modifier" qui a été cliqué
+            const memberId = button.dataset.memberId;
+            const memberNom = button.dataset.memberNom;
+            const memberEmail = button.dataset.memberEmail;
+            const memberRole = button.dataset.memberRole;
+            const memberUserId = button.dataset.memberUserId; // Peut être une chaîne vide
+
+            // Définir l'URL d'action du formulaire
+            const projetId = '{{ projet.id }}'; // Récupérer l'ID du projet depuis le contexte Jinja
+            // Assurez-vous que la route '/projets/<projet_id>/equipe/<membre_id>/modifier' existe côté serveur
+            editMemberForm.action = `/${projetId}/modifier_membre/${memberId}`;
+
+            // Pré-remplir les champs du formulaire
+            editMemberIdInput.value = memberId; // Remplir le champ caché
+            editNomInput.value = memberNom;
+            editEmailInput.value = memberEmail;
+            editRoleInput.value = memberRole;
+
+            // Gérer la sélection de l'utilisateur et l'état des champs
+            if (memberUserId && memberUserId !== 'None' && memberUserId !== '') { // Vérifier si un user_id est associé
+                editUserIdSelect.value = memberUserId;
+                // Optionnel : Désactiver la modification du nom/email si lié à un utilisateur interne
+                // editNomInput.readOnly = true;
+                // editEmailInput.readOnly = true;
+                editUserIdSelect.disabled = true; // Empêcher de changer l'utilisateur lié facilement
+            } else {
+                editUserIdSelect.value = ''; // Assurer qu'aucune option n'est sélectionnée
+                // editNomInput.readOnly = false;
+                // editEmailInput.readOnly = false;
+                editUserIdSelect.disabled = false; // Permettre de lier un membre externe à un utilisateur
+            }
+        });
+
+        // Optionnel : Nettoyer le formulaire et réactiver le select à la fermeture
+        editMemberModalElement.addEventListener('hidden.bs.modal', function () {
+            editMemberForm.reset(); // Réinitialise les valeurs
+            editMemberForm.action = '#'; // Réinitialise l'action
+            editUserIdSelect.disabled = false; // Réactive le select
+            // Vous pouvez aussi supprimer les classes d'erreur ici si nécessaire
+        });
+    }
+    // --- FIN AJOUT : Gestion modale modification ---
+
+    // --- AJOUT : Gestion de la suppression de membre via Fetch ---
+    const memberList = document.querySelector('.info-card ul.list-unstyled'); // Conteneur de la liste des membres
+
+    if (memberList) {
+        memberList.addEventListener('click', function(event) {
+            // Cibler uniquement les clics sur les boutons de suppression
+            const deleteButton = event.target.closest('.delete-member-btn');
+
+            if (deleteButton) {
+                const memberName = deleteButton.dataset.memberNom;
+                const deleteUrl = deleteButton.dataset.deleteUrl;
+                const listItem = deleteButton.closest('li'); // L'élément <li> à supprimer
+
+                if (!deleteUrl || !listItem) {
+                    console.error("URL de suppression ou élément de liste non trouvé.");
+                    return;
+                }
+
+                // Afficher la confirmation
+                if (confirm(`Êtes-vous sûr de vouloir retirer ${memberName} de l'équipe de ce projet ?`)) {
+                    // Récupérer le token CSRF (depuis un champ caché ou une meta tag)
+                    // Assumons qu'un input avec name="csrf_token" existe quelque part (ex: dans les modales)
+                    const csrfToken = document.querySelector('input[name="csrf_token"]')?.value;
+
+                    if (!csrfToken) {
+                        alert("Erreur de sécurité (Token CSRF manquant). Impossible de supprimer.");
+                        return;
+                    }
+
+                    // Envoyer la requête fetch en POST
+                    fetch(deleteUrl, {
+                        method: 'POST',
+                        headers: {
+                            'X-CSRFToken': csrfToken, // Envoyer le token dans l'en-tête
+                            'Content-Type': 'application/json' // Optionnel, mais bonne pratique
+                        },
+                        // Pas besoin de body si la route n'attend rien de spécifique
+                    })
+                    .then(response => {
+                        // Vérifier si la réponse est OK (status 2xx) ou une redirection (3xx)
+                        if (response.ok || (response.status >= 300 && response.status < 400 && response.redirected)) {
+                            // Supprimer l'élément de la liste visuellement
+                            listItem.remove();
+                            // Afficher un message flash serait idéal, mais plus complexe sans rechargement.
+                            // On pourrait injecter un message temporaire en haut de la carte.
+                            console.log(`${memberName} retiré avec succès.`);
+                            // Optionnel: Mettre à jour le message si la liste devient vide
+                            if (memberList.children.length === 0) {
+                                const noMemberMsg = memberList.nextElementSibling; // Cherche le <p> après <ul>
+                                if (noMemberMsg && noMemberMsg.tagName === 'P') {
+                                    noMemberMsg.style.display = 'block'; // Afficher le message "Aucun membre"
+                                } else {
+                                     // Ou insérer un nouveau message si la structure change
+                                     const p = document.createElement('p');
+                                     p.classList.add('text-muted');
+                                     p.textContent = 'Aucun membre dans l\'équipe pour le moment.';
+                                     memberList.insertAdjacentElement('afterend', p);
+                                }
+                            }
+                        } else {
+                            // Gérer les erreurs HTTP
+                            return response.json().then(errData => { // Essayer de lire le JSON d'erreur
+                                throw new Error(errData.message || `Erreur ${response.status}`);
+                            }).catch(() => { // Si pas de JSON, erreur générique
+                                throw new Error(`Erreur HTTP ${response.status}`);
+                            });
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Erreur lors de la suppression du membre:', error);
+                        alert(`Erreur lors de la suppression de ${memberName}: ${error.message}`);
+                    });
+                }
+            }
+        });
+    }
+    // --- FIN AJOUT ---    
 
     // --- Gestion des cases à cocher des jalons ---
     const milestoneCheckboxes = document.querySelectorAll('.milestone-checkbox');
@@ -851,6 +1125,25 @@ document.addEventListener('DOMContentLoaded', function () {
     var tooltipList = tooltipTriggerList.map(function (tooltipTriggerEl) {
       return new bootstrap.Tooltip(tooltipTriggerEl)
     })
+
+    // --- AJOUT : Réinitialisation du formulaire de la modale AJOUT DE MEMEBRE à la fermeture ---
+    const addMemberModalElement = document.getElementById('addMemberModal');
+    if (addMemberModalElement) {
+        const addMemberFormToReset = document.getElementById('addMemberForm'); // Récupérer le formulaire
+
+        addMemberModalElement.addEventListener('hidden.bs.modal', function () {
+            if (addMemberFormToReset) {
+                addMemberFormToReset.reset(); // Réinitialiser les champs
+
+                // Optionnel : Supprimer les classes d'erreur et messages (si gérés côté client ou si on veut nettoyer après rechargement avec erreurs serveur)
+                addMemberFormToReset.querySelectorAll('.is-invalid').forEach(el => el.classList.remove('is-invalid'));
+                addMemberFormToReset.querySelectorAll('.invalid-feedback').forEach(el => el.textContent = '');
+            }
+        });
+    } else {
+        console.warn("Élément de la modale #addMemberModal non trouvé pour l'ajout de l'écouteur de fermeture.");
+    }
+    // --- FIN AJOUT ---
 
 }); // Fin de DOMContentLoaded
 </script>
