@@ -4,7 +4,7 @@ from sqlalchemy import func
 from sqlalchemy.orm import joinedload
 from controllers.db_manager import db
 from controllers.users_controller import login_required
-from models import User, Client, Transaction, Organisation, Projet, EquipeMembre,  Phase, Jalon
+from models import User, Client, FinancialTransaction, Revenue, Expense, Organisation, Projet, EquipeMembre,  Phase, Jalon # Updated imports
 from datetime import date
 from forms.forms import ProjetForm, ClientForm, EquipeMembreForm
 
@@ -74,7 +74,8 @@ def projet_detail(projet_id):
 
     # Le reste de ta logique existante pour projet_detail
     client = Client.query.get(projet.client_id) if projet.client_id else None # Gérer le cas où client_id est null
-    transactions = Transaction.query.filter_by(projet_id=projet_id).all()
+    # Fetch all transactions (Revenue/Expense) for the project
+    transactions = FinancialTransaction.query.filter_by(projet_id=projet_id).order_by(FinancialTransaction.date.desc()).all()
 
     # Recalculate phase progress
     for phase in projet.phases:
@@ -92,13 +93,13 @@ def projet_detail(projet_id):
     # Pas besoin de db.session.commit() ici si on ne fait que lire et calculer
 
     # Calculate remaining to bill
-    total_billed = db.session.query(func.sum(Transaction.montant)).filter(Transaction.projet_id == projet_id, Transaction.type == 'Entrée').scalar() or 0 # Changé Facture en Entrée
+    total_billed = db.session.query(func.sum(Revenue.montant)).filter(Revenue.projet_id == projet_id).scalar() or 0
     # total_paid = db.session.query(func.sum(Transaction.montant)).filter(Transaction.projet_id == projet_id, Transaction.type == 'Paiement').scalar() or 0 # Type Paiement n'existe plus ?
     # Si tu veux le total payé, il faut se baser sur le statut 'Réglée' des transactions 'Entrée'
-    total_paid = db.session.query(func.sum(Transaction.montant)).filter(
-        Transaction.projet_id == projet_id,
-        Transaction.type == 'Entrée',
-        Transaction.reglement == 'Réglée'
+# Query Revenue directly
+    total_paid = db.session.query(func.sum(Revenue.montant)).filter(
+        Revenue.projet_id == projet_id,
+        Revenue.reglement == 'Réglée'
     ).scalar() or 0
     # Le calcul du reste à facturer doit peut-être être revu selon ta logique exacte
     # Reste à facturer = Prix total - Total déjà facturé (Entrée)

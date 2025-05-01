@@ -83,7 +83,7 @@
                 {% for transaction in transactions %}
                 <tr>
                     <td>{{ transaction.date.strftime('%d/%m/%Y') }}</td>
-                    <td>{{ transaction.type }}</td>
+                    <td>{{ transaction.trans_type }}</td>
                     <td>{{ transaction.description if transaction.description else '-' }}</td>
                     <td>
                         {% if transaction.projet %}

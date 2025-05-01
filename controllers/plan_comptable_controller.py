@@ -3,7 +3,7 @@ from flask import Blueprint, render_template, request, redirect, url_for, flash,
 from controllers.db_manager import db
 from controllers.users_controller import login_required
 # Importer les modèles nécessaires
-from models import User, Organisation, CompteComptable, Transaction 
+from models import User, Organisation, CompteComptable, FinancialTransaction
 # Importer l'Enum et le formulaire
 from models.compte_comptable import ClasseCompte 
 from forms.forms import CompteComptableForm 
@@ -257,7 +257,7 @@ def supprimer_compte(compte_id):
 
     # Vérifier si le compte est utilisé par des transactions
     # Utiliser .first() est plus efficace que .count() si on veut juste savoir s'il y en a au moins une
-    transaction_existante = Transaction.query.filter_by(compte_id=compte.id).first() 
+    transaction_existante = FinancialTransaction.query.filter_by(compte_id=compte.id).first()
     if transaction_existante: 
         flash(f'Impossible de supprimer le compte "{compte.numero} - {compte.nom}" car il est utilisé par au moins une transaction.', 'warning')
         return redirect(url_for('plan_comptable.lister_comptes'))

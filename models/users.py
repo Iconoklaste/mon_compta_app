@@ -17,7 +17,7 @@ class User(db.Model):
     is_demo = db.Column(db.Boolean, nullable=False, default=False)
     role = db.Column(db.String(50), nullable=False, default='Membre')
     projets = db.relationship('Projet', back_populates='user', lazy=True)
-    transactions = db.relationship('Transaction', back_populates='user', lazy=True)
+    transactions = db.relationship('FinancialTransaction', back_populates='user', lazy=True)
 
     participations_projet = db.relationship(
         'EquipeMembre',

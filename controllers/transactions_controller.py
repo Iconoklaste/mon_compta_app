@@ -1,14 +1,27 @@
 # controllers/transactions_controller.py
-from flask import Blueprint, render_template, request, redirect, url_for, flash, session
-from models import Projet, Transaction, User, ExerciceComptable, Organisation, CompteComptable
+from flask import (Blueprint, 
+                   render_template, 
+                   request, 
+                   redirect, 
+                   url_for, 
+                   flash, 
+                   session, 
+                   current_app, 
+                   send_from_directory, 
+                   abort) 
+from sqlalchemy import func # Import func for sum
+from models import Projet, FinancialTransaction, Revenue, Expense, User, ExerciceComptable, Organisation, CompteComptable # Updated imports
 from controllers.db_manager import db
-# 'date' from datetime might not be needed if form handles defaults
-# from datetime import date 
+import os # Needed for path operations
+from werkzeug.utils import secure_filename # To secure filenames
 from controllers.users_controller import login_required
 from forms.forms import EntreeForm, SortieForm # <--- Importer le formulaire
 from utils.ecritures_comptable_util import generer_ecriture_depuis_transaction, generer_ecriture_paiement_client
+import logging
 
 transactions_bp = Blueprint('transactions', __name__, url_prefix='/transactions')
+
+logger = logging.getLogger(__name__)
 
 @transactions_bp.route('/ajouter_entree/<int:projet_id>', methods=['GET', 'POST'])
 @login_required
@@ -23,8 +36,10 @@ def ajouter_entree(projet_id):
     form = EntreeForm(organisation_id=organisation.id)
 
     # Calculer le montant restant à facturer (spécifique aux entrées)
-    # Note: Assure-toi que le type 'Entrée' correspond bien à ce que tu utilises
-    total_billed = sum(t.montant for t in projet.transactions if t.type == 'Entrée')
+# Query directly using Revenue model for accuracy and efficiency
+    total_billed = db.session.query(func.sum(Revenue.montant))\
+        .filter(Revenue.projet_id == projet_id)\
+        .scalar() or 0
     remaining_to_bill = projet.prix_total - total_billed
 
     if form.validate_on_submit():
@@ -81,10 +96,9 @@ def ajouter_entree(projet_id):
                     # Le compte_id vient du QuerySelectField (filtré Classe 7)
                     selected_compte_id = form.compte_id.data.id # Récupère l'ID de l'objet CompteComptable
 
-                    transaction = Transaction(
+                    transaction = Revenue(
                         date=form.date.data,
-                        type='Entrée', # Défini explicitement
-                        montant=montant,
+                        montant=montant, # type='revenue' is handled by polymorphism
                         description=form.description.data,
                         mode_paiement=form.mode_paiement.data,
                         projet_id=projet_id,
@@ -151,8 +165,6 @@ def ajouter_sortie(projet_id):
         # --- Gestion de l'exercice comptable (identique à ajouter_transaction/ajouter_entree) ---
         exercice_a_lier = None
         if form.creer_nouvel_exercice.data == 'true':
-            # ... (logique de création du nouvel exercice, identique à ajouter_transaction) ...
-            # ... (copie le bloc try/except de création d'exercice ici) ...
             date_debut_exercice = form.date_debut_exercice.data
             date_fin_exercice = form.date_fin_exercice.data
             if not date_debut_exercice or not date_fin_exercice:
@@ -169,24 +181,27 @@ def ajouter_sortie(projet_id):
                         date_fin=date_fin_exercice,
                         organisation_id=organisation.id
                     )
-                    db.session.add(new_exercice)
+                    # Important: Ne pas ajouter à la session ici, on le fera avec la transaction
+                    # db.session.add(new_exercice)
                     exercice_a_lier = new_exercice
+                    logger.info(f"Nouvel exercice prêt à être lié: {new_exercice.date_debut} - {new_exercice.date_fin}")
                 except Exception as e:
-                    db.session.rollback()
-                    flash(f"Erreur lors de la création de l'exercice comptable: {e}", 'danger')
+                    # Pas besoin de rollback ici car rien n'a été ajouté à la session
+                    # db.session.rollback()
+                    flash(f"Erreur lors de la préparation du nouvel exercice: {e}", 'danger')
+                    logger.error(f"Erreur préparation exercice: {e}", exc_info=True)
                     # Rendre le template avec l'erreur
                     return render_template('ajouter_sortie.html', projet=projet, form=form) # Adapter le template
 
         else: # Utiliser l'exercice sélectionné
-            selected_exercice_id = form.exercice_id.data
-            if selected_exercice_id: # Vérifie si une valeur a été sélectionnée (pas blank)
-                exercice_a_lier = selected_exercice_id
-                if not exercice_a_lier:
-                    flash("L'exercice comptable sélectionné est invalide.", 'danger')
-                    form.exercice_id.errors.append("Exercice invalide.")
+            selected_exercice_obj = form.exercice_id.data # Ceci est l'objet ExerciceComptable
+            if selected_exercice_obj: # Vérifie si un objet a été sélectionné
+                exercice_a_lier = selected_exercice_obj
+                logger.info(f"Exercice sélectionné: ID {exercice_a_lier.id}")
             else: # Aucun exercice sélectionné et pas de création
                 flash("Veuillez sélectionner un exercice comptable ou en créer un nouveau.", 'danger')
                 form.exercice_id.errors.append("Veuillez sélectionner ou créer un exercice.")
+                logger.warning("Aucun exercice sélectionné ou créé.")
 
         # --- Création de la transaction (si aucune erreur majeure) ---
         if not form.errors and exercice_a_lier:
@@ -194,42 +209,86 @@ def ajouter_sortie(projet_id):
                 # Le compte_id vient du QuerySelectField (filtré Classe 6)
                 selected_compte_id = form.compte_id.data.id # Récupère l'ID de l'objet CompteComptable
 
-                transaction = Transaction(
+                transaction = Expense(
                     date=form.date.data,
-                    type='Sortie', # Défini explicitement
-                    montant=montant,
+                    montant=montant, # type='expense' is handled by polymorphism
                     description=form.description.data,
                     mode_paiement=form.mode_paiement.data,
                     projet_id=projet_id,
                     organisation_id=organisation.id,
                     user_id=user_id,
+                    # Si c'est un nouvel exercice, il sera ajouté à la session via la relation
+                    # Si c'est un exercice existant, SQLAlchemy gère la liaison
                     exercice=exercice_a_lier,
                     reglement="Réglée", # Une dépense est généralement considérée comme réglée lors de la saisie
                     compte_id=selected_compte_id # ID du compte de charge (Classe 6)
                 )
 
+                # --- Handle Attachment Upload (Save to Filesystem) ---
+                file = form.attachment.data
+                saved_filename = None # Pour rollback potentiel
+                if file:
+                    try:
+                        # Generate a secure filename
+                        filename = secure_filename(file.filename)
+                        # Consider adding uniqueness to prevent overwrites
+                        # import uuid; filename = f"{uuid.uuid4()}_{filename}"
+                        save_path = os.path.join(current_app.config['UPLOAD_FOLDER'], filename)
+                        logger.info(f"Tentative de sauvegarde du fichier '{filename}' vers '{save_path}'")
+                        file.save(save_path)
+                        transaction.attachment_filename = filename # Store the secure filename
+                        transaction.attachment_mimetype = file.mimetype
+                        saved_filename = save_path # Keep track for potential rollback
+                        logger.info(f"Fichier '{filename}' sauvegardé avec succès.")
+                    except Exception as e:
+                        # Ne pas bloquer la création de la dépense, mais logger et flasher l'erreur
+                        flash(f"Erreur lors de l'enregistrement de la pièce jointe : {e}. La dépense sera créée sans pièce jointe.", "warning")
+                        logger.error(f"Erreur sauvegarde pièce jointe: {e}", exc_info=True)
+                        transaction.attachment_filename = None # Assurer qu'aucun nom de fichier n'est enregistré
+                        transaction.attachment_mimetype = None
+                # --- End Handle Attachment ---
+
                 db.session.add(transaction)
                 # Flush pour obtenir l'ID de la transaction avant le commit final
                 db.session.flush()
+                logger.info(f"Transaction Expense (pré-commit ID: {transaction.id}) ajoutée à la session.")
 
-                    # Appeler la génération de l'écriture comptable
+                # Appeler la génération de l'écriture comptable
                 ecriture_generee = generer_ecriture_depuis_transaction(transaction, session=db.session)
 
                 if not ecriture_generee:
                     db.session.rollback()
-                    flash("Erreur lors de la génération de l'écriture comptable associée.", 'danger')
+                    # Si on a sauvegardé un fichier, essayer de le supprimer
+                    if saved_filename and os.path.exists(saved_filename):
+                        try:
+                            os.remove(saved_filename)
+                            logger.info(f"Fichier '{saved_filename}' supprimé suite à rollback.")
+                        except Exception as rm_err:
+                            logger.error(f"Erreur lors de la suppression du fichier '{saved_filename}' après rollback: {rm_err}")
+                    flash("Erreur lors de la génération de l'écriture comptable associée. La dépense n'a pas été ajoutée.", 'danger')
+                    logger.error("Échec de generer_ecriture_depuis_transaction, rollback effectué.")
                     return render_template('ajouter_sortie.html', projet=projet, form=form)
 
                 # Commit final pour enregistrer la Transaction ET l'EcritureComptable
                 db.session.commit()
-                flash('Dépense ajoutée avec succès!', 'success')
+                flash('Dépense ajoutée avec succès et écriture comptable générée !', 'success')
+                logger.info(f"Transaction Expense ID {transaction.id} et écriture associée commitées.")
                 return redirect(url_for('projets.projet_detail', projet_id=projet_id))
 
             except Exception as e:
                 db.session.rollback()
+                 # Si on a sauvegardé un fichier, essayer de le supprimer
+                if saved_filename and os.path.exists(saved_filename):
+                    try:
+                        os.remove(saved_filename)
+                        logger.info(f"Fichier '{saved_filename}' supprimé suite à rollback (exception générale).")
+                    except Exception as rm_err:
+                        logger.error(f"Erreur lors de la suppression du fichier '{saved_filename}' après rollback (exception générale): {rm_err}")
                 flash(f'Erreur lors de l\'ajout de la dépense: {e}', 'danger')
+                logger.error(f"Erreur lors de l'ajout de la dépense: {e}", exc_info=True)
         else:
             flash("Veuillez corriger les erreurs dans le formulaire.", "warning")
+            logger.warning(f"Échec validation formulaire ajouter_sortie: {form.errors}")
 
     # Si GET ou validation échouée
     return render_template('ajouter_sortie.html', # Nouveau template
@@ -239,7 +298,7 @@ def ajouter_sortie(projet_id):
 @transactions_bp.route('/modifier_reglement/<int:transaction_id>', methods=['POST'])
 @login_required
 def modifier_reglement(transaction_id):
-    transaction = Transaction.query.get_or_404(transaction_id)
+    transaction = FinancialTransaction.query.get_or_404(transaction_id)
 
     user_id = session['user_id']
     user = User.query.get(user_id)
@@ -258,8 +317,9 @@ def modifier_reglement(transaction_id):
             transaction.reglement = new_reglement
 
             # --- AJOUT : Générer l'écriture de paiement si nécessaire ---
-            ecriture_paiement_generee = True # Supposer que c'est bon si on n'a pas besoin de générer
-            if transaction.type == 'Entrée' and new_reglement == 'Réglée' and old_reglement != 'Réglée':
+            ecriture_paiement_generee = True # Assume success if generation is not needed
+            # Check if it's a Revenue instance being marked as 'Réglée' for the first time
+            if isinstance(transaction, Revenue) and new_reglement == 'Réglée' and old_reglement != 'Réglée':
                 # Appeler la fonction de génération de l'écriture de paiement
                 # Elle vérifie les doublons et ajoute à la session si nécessaire
                 resultat_generation = generer_ecriture_paiement_client(transaction, session=db.session)
@@ -272,7 +332,7 @@ def modifier_reglement(transaction_id):
                 # Si la génération a réussi (ou n'était pas nécessaire), on commit
                 db.session.commit()
                 flash(f"Le statut de règlement a été mis à jour à '{new_reglement}'.", 'success')
-                if transaction.type == 'Entrée' and new_reglement == 'Réglée' and old_reglement != 'Réglée':
+                if isinstance(transaction, Revenue) and new_reglement == 'Réglée' and old_reglement != 'Réglée':
                      flash("L'écriture comptable de paiement a été générée.", 'info')
             else:
                 # Si la génération de l'écriture de paiement a échoué
@@ -290,3 +350,71 @@ def modifier_reglement(transaction_id):
     # Rediriger vers la page de détail du projet
     return redirect(url_for('projets.projet_detail', projet_id=transaction.projet_id))
 
+@transactions_bp.route('/attachments/<int:transaction_id>')
+@login_required
+def download_attachment(transaction_id):
+    """Serves the attachment file for a given transaction."""
+    # Use joinedload to potentially fetch related data efficiently if needed later
+    transaction = FinancialTransaction.query.options(
+        # db.joinedload(FinancialTransaction.organisation) # Example if needed
+    ).get_or_404(transaction_id)
+    user = User.query.get(session['user_id'])
+
+    # Security Check: Ensure the transaction is an Expense and belongs to the user's org
+    if not isinstance(transaction, Expense) or transaction.organisation_id != user.organisation_id:
+        logger.warning(f"User {user.id} attempted to access attachment for transaction {transaction_id} without permission.")
+        abort(403) # Forbidden
+
+    if not transaction.attachment_filename:
+        logger.warning(f"Attachment requested for transaction {transaction_id}, but none exists.")
+        abort(404) # Not Found
+
+    try:
+        logger.info(f"Serving attachment '{transaction.attachment_filename}' for transaction {transaction_id}")
+        return send_from_directory(
+            current_app.config['UPLOAD_FOLDER'],
+            transaction.attachment_filename,
+            as_attachment=False # Set to True to force download, False to display inline if possible
+        )
+    except FileNotFoundError:
+         logger.error(f"Attachment file not found on server: {transaction.attachment_filename} for transaction {transaction_id}")
+         abort(404)
+    except Exception as e:
+        logger.error(f"Error serving attachment for transaction {transaction_id}: {e}", exc_info=True)
+        abort(500)
+
+# --- NOUVELLE FONCTION : Visualiser la pièce jointe ---
+@transactions_bp.route('/view_attachment/<int:transaction_id>')
+@login_required
+def view_attachment(transaction_id):
+    """Sert la pièce jointe pour affichage inline dans le navigateur."""
+    transaction = FinancialTransaction.query.get_or_404(transaction_id)
+    user = User.query.get(session['user_id'])
+
+    # Vérification de sécurité : L'utilisateur appartient à l'organisation de la transaction ?
+    # Et est-ce bien une dépense (Expense) ?
+    if not user or transaction.organisation_id != user.organisation_id:
+        logger.warning(f"User {user.id} attempted to view attachment for transaction {transaction_id} without permission (wrong org).")
+        abort(403) # Interdit
+
+    if not isinstance(transaction, Expense):
+        logger.warning(f"User {user.id} attempted to view attachment for non-expense transaction {transaction_id}.")
+        abort(403) # Interdit (ou 404 si on préfère cacher l'existence)
+
+    if not transaction.attachment_filename:
+        logger.warning(f"Attachment view requested for transaction {transaction_id}, but none exists.")
+        abort(404) # Non trouvé
+
+    try:
+        logger.info(f"Serving attachment '{transaction.attachment_filename}' for inline view (transaction {transaction_id})")
+        return send_from_directory(
+            current_app.config['UPLOAD_FOLDER'],
+            transaction.attachment_filename,
+            as_attachment=False # Important: Tente d'afficher inline
+        )
+    except FileNotFoundError:
+         logger.error(f"Attachment file not found on server: {transaction.attachment_filename} for transaction {transaction_id}")
+         abort(404)
+    except Exception as e:
+        logger.error(f"Error serving attachment for transaction {transaction_id}: {e}", exc_info=True)
+        abort(500)

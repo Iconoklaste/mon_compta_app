@@ -26,7 +26,7 @@ class Organisation(db.Model):
 
     users = db.relationship('User', back_populates='organisation', lazy=True) # Changé pour back_populates
     projets = db.relationship('Projet', back_populates='organisation', lazy=True) # Sera modifié ensuite
-    transactions = db.relationship('Transaction', back_populates='organisation', lazy=True) # Changé pour back_populates
+    transactions = db.relationship('FinancialTransaction', back_populates='organisation', lazy=True) # Changé pour back_populates
     clients = db.relationship("Client", back_populates="organisation", lazy="dynamic")
     plan_comptable = db.relationship("CompteComptable", back_populates="organisation", lazy="dynamic")
     ecritures_comptables = db.relationship("EcritureComptable", back_populates="organisation")

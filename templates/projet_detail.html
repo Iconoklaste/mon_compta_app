@@ -403,7 +403,7 @@
                     {% for transaction in transactions %}
                     <tr>
                         <td>{{ transaction.date.strftime('%d/%m/%Y') }}</td>
-                        <td>{{ transaction.type }}</td>
+                        <td>{{ transaction.trans_type }}</td>
                         <td>
                             {% if transaction.compte %}
                                 {{ transaction.compte.numero }} - {{ transaction.compte.nom }}
@@ -432,10 +432,15 @@
                         </td>
                         <td>
                             {# Conditionner l'affichage du lien facture (exemple: seulement pour les entrées) #}
-                            {% if transaction.type == 'Entrée' %}
+                            {% if transaction.trans_type == 'revenue' %}
                             <a href="{{ url_for('generer_facture', transaction_id=transaction.id) }}"
                                 target="_blank" class="btn btn-outline-secondary btn-sm">
                                 <i class="fas fa-file-invoice"></i> Facture
+                            </a>
+                            {% elif transaction.trans_type == 'expense' and transaction.attachment_filename %}
+                            <a href="{{ url_for('transactions.view_attachment', transaction_id=transaction.id) }}"
+                               target="_blank" class="btn btn-outline-info btn-sm" title="Voir la pièce jointe">
+                                <i class="fas fa-paperclip"></i> Pièce jointe
                             </a>
                             {% else %}
                             -

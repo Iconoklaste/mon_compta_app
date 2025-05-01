@@ -4,7 +4,7 @@ import logging
 from sqlalchemy.orm import Session
 from sqlalchemy import func
 # Ajuste les chemins d'import si nécessaire par rapport à la position de 'utils'
-from models import Transaction, CompteComptable, EcritureComptable, LigneEcriture, Client, Organisation
+from models import FinancialTransaction, Revenue, Expense, CompteComptable, EcritureComptable, LigneEcriture, Client, Organisation # Updated import
 from models.compte_comptable import ClasseCompte
 from controllers.db_manager import db # Pour accéder à la session db.session
 
@@ -17,7 +17,7 @@ COMPTE_BANQUE_DEFAUT = '51'
 COMPTE_CLIENT_DEFAUT = '410'
 # -------------------------------------------------------
 
-def generer_ecriture_depuis_transaction(transaction: Transaction, session: Session = db.session):
+def generer_ecriture_depuis_transaction(transaction: FinancialTransaction, session: Session = db.session):
     """
     Génère et enregistre une EcritureComptable équilibrée à partir d'une Transaction.
 
@@ -53,7 +53,7 @@ def generer_ecriture_depuis_transaction(transaction: Transaction, session: Sessi
     compte_credit_id = None
 
     try:
-        if transaction.type == 'Sortie':
+        if isinstance(transaction, Expense):
             # Dépense: Débit Compte Charge (6xx), Crédit Compte Banque (512)
             compte_debit_id = compte_principal.id
             compte_contrepartie = session.query(CompteComptable).filter_by(
@@ -66,7 +66,7 @@ def generer_ecriture_depuis_transaction(transaction: Transaction, session: Sessi
             compte_credit_id = compte_contrepartie.id
             libelle_ecriture = f"Dépense: {description_transaction}"
 
-        elif transaction.type == 'Entrée':
+        elif isinstance(transaction, Revenue):
             # Revenu/Facture: Débit Compte Client (411), Crédit Compte Produit (7xx)
             compte_credit_id = compte_principal.id
             compte_contrepartie = session.query(CompteComptable).filter_by(
@@ -80,7 +80,7 @@ def generer_ecriture_depuis_transaction(transaction: Transaction, session: Sessi
             libelle_ecriture = f"Facture/Revenu: {description_transaction}"
 
         else:
-            logger.warning(f"Type de transaction non géré '{transaction.type}' pour Transaction ID {transaction.id}. Aucune écriture générée.")
+            logger.warning(f"Type de transaction non géré '{transaction.trans_type}' pour Transaction ID {transaction.id}. Aucune écriture générée.")
             return None
 
         # --- Création de l'écriture et des lignes ---
@@ -128,7 +128,7 @@ def generer_ecriture_depuis_transaction(transaction: Transaction, session: Sessi
 
     return None # Si on arrive ici, quelque chose s'est mal passé
 
-def generer_ecriture_paiement_client(transaction: Transaction, session: Session = db.session):
+def generer_ecriture_paiement_client(transaction: FinancialTransaction, session: Session = db.session):
     """
     Génère et enregistre une EcritureComptable pour le règlement d'une transaction client ('Entrée').
     Débit Banque (51) / Crédit Client (410).
@@ -142,8 +142,8 @@ def generer_ecriture_paiement_client(transaction: Transaction, session: Session 
     """
     logger.info(f"Tentative de génération d'écriture de paiement pour Transaction ID: {transaction.id}")
 
-    if not transaction or transaction.type != 'Entrée' or transaction.reglement != 'Réglée':
-        logger.warning(f"Conditions non remplies pour générer l'écriture de paiement pour Transaction ID: {transaction.id} (Type: {transaction.type}, Règlement: {transaction.reglement})")
+    if not isinstance(transaction, Revenue) or transaction.reglement != 'Réglée':
+        logger.warning(f"Conditions non remplies pour générer l'écriture de paiement pour Transaction ID: {transaction.id} (Type: {transaction.trans_type}, Règlement: {transaction.reglement})")
         return None
 
     organisation_id = transaction.organisation_id

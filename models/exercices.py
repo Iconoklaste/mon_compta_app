@@ -13,7 +13,7 @@ class ExerciceComptable(db.Model):
     organisation = db.relationship('Organisation', back_populates='exercices')
     
     # Relation pour accéder aux transactions de cet exercice
-    transactions = db.relationship('Transaction', back_populates='exercice', lazy=True)
+    transactions = db.relationship('FinancialTransaction', back_populates='exercice', lazy=True)
     ecritures_comptables = db.relationship('EcritureComptable', back_populates='exercice', lazy='dynamic') # Ajout de lazy='dynamic' pour potentiellement gérer de nombreuses écritures
 
     def __repr__(self):

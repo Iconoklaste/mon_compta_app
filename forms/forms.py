@@ -6,6 +6,7 @@ from wtforms import (HiddenField, StringField, DateField,
                      FormField, FloatField, TextAreaField, PasswordField, EmailField,
                      TelField, FileField, DateTimeLocalField)
 # Ajoute cette ligne ici
+from flask_wtf.file import FileField, FileAllowed, FileRequired # Import file field components
 from wtforms_sqlalchemy.fields import QuerySelectField
 from wtforms.validators import (DataRequired, Email, Optional,
                                 EqualTo, Regexp, ValidationError,
@@ -262,12 +263,7 @@ class EntreeForm(FlaskForm):
     # Compte comptable (filtré pour Classe 7 - Produits)
     compte_id = QuerySelectField(
         'Compte de Produit',
-        query_factory=lambda: CompteComptable.query.filter(
-            CompteComptable.type == ClasseCompte.CLASSE_7, # Filtrer par Classe 7
-            CompteComptable.actif == True,
-            # Assure-toi que l'organisation est bien filtrée si nécessaire
-            # CompteComptable.organisation_id == current_user.organisation_id # Exemple
-        ).order_by(CompteComptable.numero),
+        query_factory=lambda: [], # Sera peuplé dynamiquement dans __init__
         get_label=lambda compte: f"{compte.numero} - {compte.nom}",
         allow_blank=False, # Rendre la sélection obligatoire
         validators=[DataRequired(message="Veuillez sélectionner un compte de produit.")]
@@ -322,11 +318,7 @@ class SortieForm(FlaskForm):
     # Compte comptable (filtré pour Classe 6 - Charges)
     compte_id = QuerySelectField(
         'Compte de Charge',
-        query_factory=lambda: CompteComptable.query.filter(
-            CompteComptable.type == ClasseCompte.CLASSE_6, # Filtrer par Classe 6
-            CompteComptable.actif == True,
-            # CompteComptable.organisation_id == current_user.organisation_id # Exemple
-        ).order_by(CompteComptable.numero),
+        query_factory=lambda: [],
         get_label=lambda compte: f"{compte.numero} - {compte.nom}",
         allow_blank=False, # Rendre la sélection obligatoire
         validators=[DataRequired(message="Veuillez sélectionner un compte de charge.")]
@@ -344,6 +336,12 @@ class SortieForm(FlaskForm):
     creer_nouvel_exercice = HiddenField(default='false')
     date_debut_exercice = DateField('Date de début (Nouvel Exercice)', validators=[Optional()])
     date_fin_exercice = DateField('Date de fin (Nouvel Exercice)', validators=[Optional()])
+
+    # Champ pour la pièce jointe (optionnel)
+    attachment = FileField('Pièce Jointe (Facture)', validators=[
+         Optional(), # Rend le champ optionnel
+         FileAllowed(['jpg', 'jpeg', 'png', 'pdf'], 'Seuls les images (jpg, png, gif) et PDF sont autorisés !')
+     ])
 
     submit = SubmitField('Ajouter Dépense')
 

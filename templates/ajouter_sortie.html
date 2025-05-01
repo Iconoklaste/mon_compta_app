@@ -2,7 +2,7 @@
 {% extends 'base.html' %}
 
 {% block page_title %}
-<span style="text-transform: uppercase;">{{projet.nom}}</span> | Ajouter une Dépense/Sortie
+<span style="text-transform: uppercase;">{{projet.nom}}</span> | Ajouter une Dépense
 {% endblock %}
 
 {% block content %}
@@ -21,7 +21,13 @@
         {% endif %}
     {% endwith %}
 
-    <form method="POST" action="{{ url_for('transactions.ajouter_sortie', projet_id=projet.id) }}" novalidate>
+    {# IMPORTANT: Ajout de enctype="multipart/form-data" pour permettre l'upload de fichiers #}
+    <form method="POST"
+        action="{{ url_for('transactions.ajouter_sortie', projet_id=projet.id) }}"
+        enctype="multipart/form-data"
+        data-ocr-url="{{ url_for('ocr.process_ocr_expense') }}" {# <-- AJOUT: URL pour le JS #}
+        data-csrf-token="{{ csrf_token() }}" {# <-- AJOUT: Token CSRF pour le JS #}
+        novalidate>
         {{ form.hidden_tag() }}
 
         {# --- CORRECTION BS5 : Remplacement de form-row par row g-3 --- #}
@@ -147,6 +153,25 @@
         </div>
         {# --- Fin Sélection Compte Comptable --- #}
 
+        {# --- AJOUT : Champ Pièce Jointe --- #}
+        <div class="mb-3">
+            {{ form.attachment.label(class="form-label") }} {# Garde le label du formulaire WTForms #}
+            <div class="input-group"> {# Utiliser input-group pour grouper le champ et le bouton #}
+                {# Assigne un ID au champ fichier pour le JS #}
+                {{ form.attachment(class="form-control" + (" is-invalid" if form.attachment.errors else ""), id="attachment_file") }}
+                {# Bouton pour déclencher l'OCR, initialement désactivé #}
+                <button class="btn btn-outline-secondary" type="button" id="ocr-trigger-button" disabled title="Extraire les données du fichier avec l'IA">
+                    <i class="fas fa-magic"></i> Extraire
+                </button>
+                 {% if form.attachment.errors %}
+                    <div class="invalid-feedback d-block"> {# d-block pour l'afficher sous l'input-group #}
+                        {% for error in form.attachment.errors %}<span>{{ error }}</span>{% endfor %}
+                    </div>
+                 {% endif %}
+            <small class="form-text text-muted">Optionnel : Joindre la facture ou le justificatif (image ou PDF).</small>
+        </div>
+        {# --- FIN AJOUT --- #}
+
         {{ form.submit(class="btn btn-primary") }}
         <a href="{{ url_for('projets.projet_detail', projet_id=projet.id) }}" class="btn btn-secondary">Annuler</a>
 
@@ -156,6 +181,8 @@
 
 {# --- JavaScript spécifique à cette page --- #}
 {% block extra_scripts %}
+    <script src="{{ url_for('static', filename='js/ocr_depenses/ocr_depenses_handler.js') }}" defer></script>
+
     {# Le JavaScript existant est compatible #}
     <script>
         document.addEventListener('DOMContentLoaded', function() {

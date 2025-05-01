@@ -19,6 +19,7 @@ from controllers.whiteboard_controller import whiteboard_bp # Import the whitebo
 from controllers.plan_comptable_controller import plan_comptable_bp
 from controllers.ecritures_controller import ecritures_bp
 from controllers.notes_reunion_controller import notes_reunion_bp
+from controllers.ocr_depenses_controller import ocr_depenses_bp
 from models import *  # Import all models
 #from models.clients import Client # Import the Client model
 from models.organisations import Organisation
@@ -66,6 +67,10 @@ app.config['SECRET_KEY'] = secret_key
 app.config['MAX_LOGO_SIZE'] = 2 * 1024 * 1024 # 2MB max size for logo
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'} # Allowed extensions for logo
 
+UPLOAD_FOLDER = os.path.join(app.root_path, 'uploads', 'attachments')
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+os.makedirs(UPLOAD_FOLDER, exist_ok=True) # Create the folder if it doesn't exist
+
 # Configuration du dossier static
 app.static_folder = 'static'
 app.static_url_path = '/static'
@@ -90,6 +95,7 @@ app.register_blueprint(whiteboard_bp) # Register the whiteboard blueprint
 app.register_blueprint(plan_comptable_bp)
 app.register_blueprint(ecritures_bp)
 app.register_blueprint(notes_reunion_bp)
+app.register_blueprint(ocr_depenses_bp)
 
 @app.route('/test-pen') # Vous pouvez choisir l'URL que vous voulez
 def test_pen_page():
@@ -107,7 +113,7 @@ def test_projet_detail():
 @app.route('/generer_facture/<int:transaction_id>')
 @login_required
 def generer_facture(transaction_id):
-    transaction = Transaction.query.get_or_404(transaction_id)
+    transaction = FinancialTransaction.query.get_or_404(transaction_id)
     # Example using a function that generates the pdf
     pdf_data = generate_facturation_pdf(transaction)
 

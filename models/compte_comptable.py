@@ -85,7 +85,7 @@ class CompteComptable(db.Model):
     actif = db.Column(db.Boolean, nullable=False, default=True)
     organisation_id = db.Column(db.Integer, db.ForeignKey('organisation.id'), nullable=False)
     organisation = db.relationship('Organisation', back_populates='plan_comptable')
-    transactions = db.relationship('Transaction', back_populates='compte', lazy='dynamic')
+    transactions = db.relationship('FinancialTransaction', back_populates='compte', lazy='dynamic')
     client_associe = db.relationship("Client", back_populates="compte_comptable", foreign_keys="Client.compte_comptable_id", uselist=False)
     lignes_ecriture = db.relationship("LigneEcriture", back_populates="compte", lazy="dynamic")
 

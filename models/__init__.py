@@ -2,7 +2,8 @@
 from .organisations import Organisation
 from .users import User
 from .projets import Projet
-from .transactions import Transaction
+# from .transactions import Transaction
+from .financial_transaction import FinancialTransaction, Revenue, Expense
 from .clients import Client
 from .exercices import ExerciceComptable
 from .phases import Phase

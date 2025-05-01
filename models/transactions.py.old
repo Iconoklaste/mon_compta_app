@@ -18,8 +18,8 @@ class Transaction(db.Model):
     exercice_id = db.Column(db.Integer, db.ForeignKey('exercice_comptable.id'), nullable=True)
     reglement = db.Column(db.String(20), default="Non réglée") # Add this line
     compte_id = db.Column(db.Integer, db.ForeignKey('compte_comptable.id'), nullable=False)
-    compte = db.relationship('CompteComptable', back_populates='transactions')
 
+    compte = db.relationship('CompteComptable', back_populates='transactions')
     organisation = db.relationship('Organisation', back_populates='transactions')
     user = db.relationship('User', back_populates='transactions')
     projet = db.relationship('Projet', back_populates='transactions')

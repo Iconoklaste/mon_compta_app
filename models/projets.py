@@ -22,7 +22,7 @@ class Projet(db.Model):
     organisation = db.relationship('Organisation', back_populates='projets')
     user = db.relationship('User', back_populates='projets')
 
-    transactions = db.relationship('Transaction', back_populates='projet', lazy='select', cascade="all, delete-orphan")
+    transactions = db.relationship('FinancialTransaction', back_populates='projet', lazy='select', cascade="all, delete-orphan")
     client = db.relationship('Client', back_populates='projets', lazy='select')
     phases = db.relationship('Phase', back_populates='projet', lazy='select', cascade="all, delete-orphan")
     jalons = db.relationship('Jalon', back_populates='projet', lazy='select', cascade="all, delete-orphan")

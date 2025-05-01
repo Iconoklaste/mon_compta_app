@@ -5,7 +5,7 @@ from flask_wtf.csrf import validate_csrf, CSRFError
 from sqlalchemy.exc import IntegrityError, DataError, SQLAlchemyError
 from controllers.db_manager import db
 from controllers.users_controller import login_required
-from models import Client, Projet, Transaction, User, Organisation
+from models import Client, Projet, FinancialTransaction, Revenue, Expense, User, Organisation # Updated imports
 from forms.forms import ClientForm
 from utils.ecritures_comptable_util import creer_compte_pour_client
 import itertools
@@ -217,10 +217,13 @@ def client_dashboard(client_id):
     client = Client.query.filter_by(id=client_id, organisation_id=user.organisation_id).first_or_404()
 
     projets = client.projets
+    # Fetch all transactions (Revenue/Expense) related to the client's projects
+    # Iterating through projet.transactions still works due to polymorphism
     transactions = list(itertools.chain.from_iterable(projet.transactions for projet in projets))
 
-    total_paye = sum(t.montant for t in transactions if t.type == "Entrée" and t.reglement == "Réglée")
-    total_facture = sum(t.montant for t in transactions if t.type == "Entrée")
+    # Use isinstance to check the type of transaction
+    total_paye = sum(t.montant for t in transactions if isinstance(t, Revenue) and t.reglement == "Réglée")
+    total_facture = sum(t.montant for t in transactions if isinstance(t, Revenue))
     solde_du_client = total_facture - total_paye
 
     return render_template(

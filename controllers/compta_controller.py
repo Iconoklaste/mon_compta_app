@@ -7,7 +7,7 @@ from reports.report_generators import (generate_balance_sheet,
                                        generate_income_statement, 
                                        generate_general_ledger,
                                        generate_cash_flow)
-from models import Client, User, Transaction, Projet, ExerciceComptable, Organisation    # Import Projet model
+from models import Client, User, FinancialTransaction, Revenue, Expense, Projet, ExerciceComptable, Organisation # Import Projet model & Updated Transaction models
 from datetime import datetime, timedelta, date
 from sqlalchemy import func, extract
 import logging
@@ -31,28 +31,28 @@ def index():
 
     # --- Financial Summary ---
     # Calculate overall balance (total paid - total due) for the user's organization
-    total_paid = db.session.query(func.sum(Transaction.montant)).filter(
-        Transaction.type == 'Entrée',
-        Transaction.organisation_id == organisation.id  # Filter by organization
+    total_paid = db.session.query(func.sum(Revenue.montant)).filter(
+        # Revenue already filters trans_type == 'revenue'
+        Revenue.organisation_id == organisation.id  # Filter by organization
     ).scalar() or 0
-    total_due = db.session.query(func.sum(Transaction.montant)).filter(
-        Transaction.type == 'Sortie',
-        Transaction.organisation_id == organisation.id  # Filter by organization
+    total_due = db.session.query(func.sum(Expense.montant)).filter(
+        # Expense already filters trans_type == 'expense'
+        Expense.organisation_id == organisation.id  # Filter by organization
     ).scalar() or 0
     overall_balance = total_paid - total_due
 
     # Calculate pending invoices (total amount of unpaid invoices) for the user's organization
-    pending_invoices = db.session.query(func.sum(Transaction.montant)).filter(
-        Transaction.type == 'Entrée',
-        Transaction.reglement != 'Réglée',
-        Transaction.organisation_id == organisation.id  # Filter by organization
+    pending_invoices = db.session.query(func.sum(Revenue.montant)).filter(
+        # Revenue already filters trans_type == 'revenue'
+        Revenue.reglement != 'Réglée',
+        Revenue.organisation_id == organisation.id  # Filter by organization
     ).scalar() or 0
 
     # Calculate received payments (total amount of payments received) for the user's organization
-    received_payments = db.session.query(func.sum(Transaction.montant)).filter(
-        Transaction.type == 'Entrée',
-        Transaction.reglement == 'Réglée',
-        Transaction.organisation_id == organisation.id  # Filter by organization
+    received_payments = db.session.query(func.sum(Revenue.montant)).filter(
+        # Revenue already filters trans_type == 'revenue'
+        Revenue.reglement == 'Réglée',
+        Revenue.organisation_id == organisation.id  # Filter by organization
     ).scalar() or 0
 
     # --- Projects to be billed ---
@@ -60,23 +60,23 @@ def index():
     remaining_to_bill_projects = 0
     ongoing_projects = Projet.query.filter_by(statut="En cours", organisation_id=organisation.id).all()
     for project in ongoing_projects:
-        total_billed = sum(transaction.montant for transaction in project.transactions)
+        total_billed = sum(transaction.montant for transaction in project.transactions if isinstance(transaction, Revenue))
         remaining_to_bill_projects += project.prix_total - total_billed
 
 
 
     # --- Recent Transactions ---
     # Get the 10 most recent transactions for the user's organization
-    recent_transactions = Transaction.query.filter(Transaction.organisation_id == organisation.id).order_by(Transaction.date.desc()).limit(10).all()
+    recent_transactions = FinancialTransaction.query.filter(FinancialTransaction.organisation_id == organisation.id).order_by(FinancialTransaction.date.desc()).limit(10).all()
 
     # --- Alerts and Reminders ---
     # Find overdue invoices for the user's organization
     today = datetime.now()
     overdue_invoices = []
-    for transaction in Transaction.query.filter(
-            Transaction.type == 'Sortie',
-            Transaction.reglement != 'Réglée',
-            Transaction.organisation_id == organisation.id # Filter by organization
+    for transaction in Expense.query.filter( # Assuming overdue invoices are Expenses we need to pay
+            # Expense already filters trans_type == 'expense'
+            Expense.reglement != 'Réglée',
+            Expense.organisation_id == organisation.id # Filter by organization
     ).all():
         if transaction.due_date and transaction.due_date < today:
             days_overdue = (today - transaction.due_date).days
@@ -87,15 +87,15 @@ def index():
     negative_balance_clients = []
     for client in Client.query.all():
         # Calculate total paid and due for each client using subqueries
-        client_total_paid = db.session.query(func.sum(Transaction.montant)).filter(
-            Transaction.type == 'Entrée',
-            Transaction.projet.has(Projet.client_id == client.id),
-            Transaction.organisation_id == organisation.id # Filter by organization
+        client_total_paid = db.session.query(func.sum(Revenue.montant)).filter(
+            # Revenue already filters trans_type == 'revenue'
+            Revenue.projet.has(Projet.client_id == client.id),
+            Revenue.organisation_id == organisation.id # Filter by organization
         ).scalar() or 0
-        client_total_due = db.session.query(func.sum(Transaction.montant)).filter(
-            Transaction.type == 'Sortie',
-            Transaction.projet.has(Projet.client_id == client.id),
-            Transaction.organisation_id == organisation.id # Filter by organization
+        client_total_due = db.session.query(func.sum(Expense.montant)).filter(
+            # Expense already filters trans_type == 'expense'
+            Expense.projet.has(Projet.client_id == client.id),
+            Expense.organisation_id == organisation.id # Filter by organization
         ).scalar() or 0
         client_balance = client_total_paid - client_total_due
         if client_balance < 0:
@@ -134,39 +134,40 @@ def index():
 
         # 2. Requête pour obtenir les totaux par mois et par type
         monthly_totals = db.session.query(
-            extract('year', Transaction.date).label('year'),
-            extract('month', Transaction.date).label('month'),
-            Transaction.type,
-            func.sum(Transaction.montant).label('total_montant')
+            extract('year', FinancialTransaction.date).label('year'),
+            extract('month', FinancialTransaction.date).label('month'),
+                FinancialTransaction.trans_type, # Use the discriminator column
+                func.sum(FinancialTransaction.montant).label('total_montant')
         ).filter(
-            Transaction.organisation_id == organisation_id,
+            FinancialTransaction.organisation_id == organisation_id,
             # --- CONDITION CORRIGÉE ---
-            Transaction.date >= period_start_date, # Simplement >= à la date de début calculée
+            FinancialTransaction.date >= period_start_date, # Simplement >= à la date de début calculée
             # --- FIN CORRECTION ---
-            Transaction.date <= end_date # Jusqu'à aujourd'hui (ou fin du mois courant si préféré)
+            FinancialTransaction.date <= end_date # Jusqu'à aujourd'hui (ou fin du mois courant si préféré)
         ).group_by(
-            extract('year', Transaction.date), # Grouper par l'expression extraite
-            extract('month', Transaction.date),# Grouper par l'expression extraite
-            Transaction.type
+            extract('year', FinancialTransaction.date), # Grouper par l'expression extraite
+            extract('month', FinancialTransaction.date),# Grouper par l'expression extraite
+            FinancialTransaction.trans_type # Group by the discriminator
         ).order_by(
-            extract('year', Transaction.date),
-            extract('month', Transaction.date)
+            extract('year', FinancialTransaction.date),
+            extract('month', FinancialTransaction.date)
         ).all()
 
         # 3. Organiser les résultats dans un dictionnaire (pas de changement ici)
-        totals_dict = {} # clé: (year, month), valeur: {'Entrée': total, 'Sortie': total}
+        totals_dict = {} # clé: (year, month), valeur: {'revenue': total, 'expense': total}
         for row in monthly_totals:
             key = (int(row.year), int(row.month)) # Assurer que year/month sont des entiers
             if key not in totals_dict:
-                totals_dict[key] = {'Entrée': Decimal('0.00'), 'Sortie': Decimal('0.00')}
-            if row.type in ['Entrée', 'Sortie'] and row.total_montant is not None:
-                totals_dict[key][row.type] += row.total_montant
+                totals_dict[key] = {'revenue': Decimal('0.00'), 'expense': Decimal('0.00')} # Utiliser les nouvelles clés
+            # Utiliser row.trans_type et vérifier les nouvelles valeurs
+            if row.trans_type in ['revenue', 'expense'] and row.total_montant is not None:
+                totals_dict[key][row.trans_type] += row.total_montant # Utiliser row.trans_type comme clé
 
         # 4. Créer les listes de données pour le graphique (pas de changement ici)
         for year, month in months_in_period:
             month_data = totals_dict.get((year, month), {'Entrée': Decimal('0.00'), 'Sortie': Decimal('0.00')})
-            chart_revenues.append(float(month_data.get('Entrée', Decimal('0.00'))))
-            chart_expenses.append(float(month_data.get('Sortie', Decimal('0.00'))))
+            chart_revenues.append(float(month_data.get('revenue', Decimal('0.00')))) # Use 'revenue' key
+            chart_expenses.append(float(month_data.get('expense', Decimal('0.00')))) # Use 'expense' key
 
 
         # ============================================================
