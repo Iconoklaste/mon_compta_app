@@ -173,19 +173,6 @@ def index():
         # === FIN DU NOUVEAU CODE GRAPHIQUE ==========================
         # ============================================================
 
-        # ============================================================
-        # === DEBUGGING - À RETIRER PLUS TARD ========================
-        # ============================================================
-        print("-" * 40)
-        print(f"DEBUG [compta_controller.index]: Type de chart_labels: {type(chart_labels)}")
-        print(f"DEBUG [compta_controller.index]: Valeur de chart_labels: {chart_labels}")
-        print(f"DEBUG [compta_controller.index]: Type de chart_revenues: {type(chart_revenues)}")
-        print(f"DEBUG [compta_controller.index]: Valeur de chart_revenues: {chart_revenues}")
-        print(f"DEBUG [compta_controller.index]: Type de chart_expenses: {type(chart_expenses)}")
-        print(f"DEBUG [compta_controller.index]: Valeur de chart_expenses: {chart_expenses}")
-        print("-" * 40)
-        # ============================================================
-
     return render_template(
         'compta/compta_index.html',
         current_page='Comptabilité',
@@ -200,6 +187,8 @@ def index():
         chart_revenues=chart_revenues,   # Vérifier la syntaxe ici
         chart_expenses=chart_expenses    # Vérifier la syntaxe ici
         )
+
+
 @compta_bp.route('/bilan') # Si dans compta_controller
 @login_required
 def afficher_bilan():
