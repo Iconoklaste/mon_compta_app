@@ -84,6 +84,10 @@ app.config['SESSION_COOKIE_SECURE'] = True
 app.config['SESSION_COOKIE_HTTPONLY'] = True
 app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
 app.config['PERMANENT_SESSION_LIFETIME'] = timedelta(hours=4)
+app.config['SQLALCHEMY_ENGINE_OPTIONS'] = { # Options pour le moteur SQLAlchemy
+    'pool_recycle': 30,  # Recycle connections after 30 seconds (inférieur au wait_timeout de 40s)
+    'pool_pre_ping': True # Optionnel: Vérifie la connexion avant chaque utilisation (léger surcoût)
+}
 
 # Get the secret key from an environment variable too!
 secret_key = os.environ.get('SECRET_KEY')
