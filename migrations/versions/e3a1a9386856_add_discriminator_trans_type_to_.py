@@ -65,9 +65,6 @@ def upgrade():
         batch_op.create_foreign_key(None, 'client', ['client_id'], ['id'])
         batch_op.create_foreign_key(None, 'app_user', ['user_id'], ['id'])
 
-    with op.batch_alter_table('whiteboard', schema=None) as batch_op:
-        batch_op.drop_index('fk_whiteboard_projet')
-        batch_op.create_foreign_key('fk_whiteboard_projet', 'projet', ['projet_id'], ['id'], ondelete='CASCADE')
 
     # Ajoute la colonne, mais la laisse nullable pour l'instant
     op.add_column('financial_transaction', sa.Column('trans_type', sa.String(length=20), nullable=True))
