@@ -2,38 +2,7 @@
 
 
 {% block content %}
-    {% if session['user_id'] %}
-    <div class="index-content">
-        {# Utilisation de Flexbox pour aligner le titre et l'image #}
-        <div class="d-flex align-items-center mt-5 mb-3">
-            <img src="{{ url_for('static', filename='asset/avatar-loova.png') }}" alt="Icône de bienvenue" class="me-3" style="height: 40px; width: auto;"> {# Ajustez la taille et le nom du fichier #}
-            <h1>Bienvenu {{ session['user_prenom'] }} !</h1>
-        </div>
-        
-        <h6 class="mb-5">Commencez votre journée avec Loova :</h6>
-        <hr>
-        <div class="row mt-5">
-            <div class="col-md-6">
-                <article class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Pilotez vos projets</h5>
-                        <p class="text-body-secondary">Suivi précis, outils collaboratifs et équipe synchronisée pour atteindre vos objectifs.</p>
-                        <a href="{{ url_for('projets.projets') }}" class="btn btn-primary">Mes projets <i class="fas fa-arrow-right fa-lg ms-2"></i></a>
-                    </div>
-                </article>
-            </div>
-            <div class="col-md-6">
-                <article class="card">
-                    <div class="card-body">
-                        <h5 class="card-title">Gérez votre comptabilité</h5>
-                        <p class="text-body-secondary">Suivez vos indicateurs clés, gérez votre facturation et simplifiez votre suivi financier au quotidien.</p>
-                        <a href="{{ url_for('compta.index') }}" class="btn btn-primary">Ma Comptabilité <i class="fas fa-arrow-right fa-lg ms-2"></i></a>
-                    </div>
-                </article>
-            </div>
-        </div>
-    </div>
-    {% else %}
+
         {# Landing Page pour utilisateur non connecté (selon la maquette) #}
         <div class="landing-page-content">
 
@@ -100,7 +69,7 @@
                 </section>
             </div>
         </div>
-    {% endif %}
+
 {% endblock %}
 
 {% block extra_scripts %}

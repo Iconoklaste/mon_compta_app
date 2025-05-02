@@ -21,43 +21,75 @@ def login_required(f):
 
 @users_bp.route('/', methods=['GET', 'POST'])
 def index():
+    # --- Vérifier si l'utilisateur est déjà connecté ---
+    if 'user_id' in session:
+        logger.debug(f"Utilisateur ID {session['user_id']} déjà connecté, redirection vers /accueil.")
+        return redirect(url_for('users.accueil')) # Redirige vers la nouvelle route
+
+
+    # --- Si l'utilisateur N'EST PAS connecté ---
+    # On affiche la page publique (index.html) avec le formulaire de connexion
     form = LoginForm()
-    orga_designation = None
-    if form.validate_on_submit():
+    # La variable orga_designation n'est plus utile ici car on ne l'affiche que si l'user est connecté
+    # orga_designation = None # On peut supprimer cette ligne
+
+    # --- Traitement du formulaire de connexion (si soumis en POST) ---
+    if form.validate_on_submit(): # S'exécute seulement si la méthode est POST et la validation réussit
         email_fourni = form.email.data
         password_fourni = form.password.data
-        logger.debug(f"Tentative de connexion pour l'email : {email_fourni}") # Log l'email
+        logger.debug(f"Tentative de connexion pour l'email : {email_fourni}")
 
         user = User.query.filter_by(mail=email_fourni).first()
 
         if user:
-            logger.debug(f"Utilisateur trouvé : {user.mail} (ID: {user.id})") # Log si l'utilisateur est trouvé
-            # --- AJOUT DU PRINT/LOG CRUCIAL ---
+            logger.debug(f"Utilisateur trouvé : {user.mail} (ID: {user.id})")
             password_check_result = user.check_password(password_fourni)
             logger.debug(f"Résultat de user.check_password() : {password_check_result}")
-            # ---------------------------------
 
             if password_check_result:
+                # --- Enregistrement des infos en session ---
                 session['user_id'] = user.id
                 session['user_prenom'] = user.prenom
-                orga_designation = user.organisation.designation
+                # S'assurer que l'organisation existe avant d'accéder à 'designation'
+                orga_designation = user.organisation.designation if user.organisation else "Organisation inconnue"
                 session['organisation'] = orga_designation
-                logger.info(f"Connexion réussie pour l'utilisateur ID: {user.id}, organisation {orga_designation}") # Log succès
+                # -------------------------------------------
+                logger.info(f"Connexion réussie pour l'utilisateur ID: {user.id}, organisation {orga_designation}")
                 flash('Connexion réussie!', 'success')
-                return redirect(url_for('users.index'))
-            
+                # Redirige vers la même route ('users.index'), qui affichera maintenant index_user.html
+                return redirect(url_for('users.accueil'))
             else:
-                logger.warning(f"Mot de passe incorrect pour l'utilisateur : {email_fourni}") # Log échec mdp
+                logger.warning(f"Mot de passe incorrect pour l'utilisateur : {email_fourni}")
                 flash('Email ou mot de passe incorrect.', 'danger')
         else:
-            logger.warning(f"Aucun utilisateur trouvé pour l'email : {email_fourni}") # Log utilisateur non trouvé
+            logger.warning(f"Aucun utilisateur trouvé pour l'email : {email_fourni}")
             flash('Email ou mot de passe incorrect.', 'danger')
-    elif request.method == 'POST':
-         # Si la validation échoue sur un POST, log les erreurs
-         logger.warning(f"Échec de validation du formulaire de connexion : {form.errors}")
-         flash('Erreur de validation du formulaire.', 'warning')
+        # Si la connexion échoue (mauvais email/mdp), on ne fait rien de plus ici,
+        # la fonction continuera et réaffichera index.html avec le message flash d'erreur.
 
-    return render_template('index.html', forms=form, organisation=orga_designation)
+    elif request.method == 'POST':
+         # Si c'est un POST mais que form.validate_on_submit() est False
+         logger.warning(f"Échec de validation du formulaire de connexion : {form.errors}")
+         flash('Erreur de validation du formulaire. Vérifiez les champs.', 'warning')
+
+    # --- Affichage de la page publique (index.html) pour une requête GET ---
+    # --- ou si la connexion POST a échoué ---
+    logger.debug("Utilisateur non connecté ou échec connexion, affichage de index.html (login)")
+    # On passe seulement le formulaire à index.html
+    return render_template('index.html', forms=form)
+
+@users_bp.route('/accueil') # Nouvelle URL
+@login_required # Assure que seul un utilisateur connecté peut y accéder
+def accueil():
+    """Affiche le tableau de bord de l'utilisateur connecté."""
+    user_prenom = session.get('user_prenom', 'Utilisateur')
+    organisation_nom = session.get('organisation', 'Mon Organisation')
+    logger.debug(f"Affichage du tableau de bord /accueil pour l'utilisateur ID {session['user_id']}")
+    return render_template('index_user.html',
+                           user_prenom=user_prenom,
+                           organisation=organisation_nom,
+                           current_page='Accueil')
+
 
 @users_bp.route('/modifier_profil', methods=['GET', 'POST'])
 @login_required
@@ -75,7 +107,7 @@ def modifier_profil():
             user.set_password(form.password.data)
         db.session.commit()
         flash('Profil mis à jour avec succès!', 'success')
-        return redirect(url_for('projets.projets')) # Redirect to projets page after update
+        return redirect(url_for('users.accueil')) # Redirect to projets page after update
 
     return render_template('modifier_profil.html', user=user, form=form) # Pass the form to the template
 
@@ -112,7 +144,7 @@ def ajouter_user():
         db.session.add(new_user)
         db.session.commit()
         flash('Utilisateur ajouté avec succès!', 'success')
-        return redirect(url_for('users.index')) # Redirect to login page after create a user
+        return redirect(url_for('users.accueil')) # Redirect to login page after create a user
 
     return render_template('ajouter_user.html', form=form) # Pass the form to the template
 

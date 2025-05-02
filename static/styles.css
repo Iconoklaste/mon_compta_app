@@ -32,9 +32,12 @@ h1, h2, h3, h4, h5, h6 {
     color: var(--dark-blue); /* Titres en bleu foncé */
 }
 
+.action-item-container a {
+    color: var(--dark-blue); 
+}
+
 /* Liens */
 a {
-    color: var(--dark-red); /* Liens en rouge foncé */
     text-decoration: none;
 }
 
@@ -271,6 +274,7 @@ a:hover {
 }
 
 .sidebar li:hover {
+    padding-top: 0;
     background-color: var(--light-red-80); /* Fond des liens de la sidebar en rouge vif au survol */
     
 }
@@ -702,7 +706,7 @@ a:hover {
 }
 
 .index-content{
-    padding-left: 10rem;
+    padding-left: 5rem;
     padding-right: 10rem;
 }
 

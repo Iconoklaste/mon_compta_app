@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block extra_head %}
+
+<style>
+    /* Définition de l'animation */
+    @keyframes fadeInSlideUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px); /* Commence légèrement plus bas */
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Application de l'animation aux éléments */
+    .fade-in-item {
+        opacity: 0; /* Caché par défaut */
+        animation-name: fadeInSlideUp;
+        animation-duration: 0.6s; /* Durée de l'animation */
+        animation-timing-function: ease-out; /* Courbe de vitesse */
+        animation-fill-mode: forwards; /* Garde l'état final (visible) */
+    }
+</style>
+
+{% endblock %}
+
+
+{% block content %}
+    {# Contenu spécifique à l'utilisateur connecté #}
+    <div class="d-flex align-items-start mt-5">
+        {# Bloc Avatar/Titre - Maintenant à gauche du contenu principal #}
+        <div class="me-4 d-flex justify-content-end" style="width: 70px;"> <!-- Ajout d-flex, justify-content-end et width fixe. Décommente le background pour voir la zone -->
+            <img src="{{ url_for('static', filename='asset/avatar-loova.png') }}" alt="Icône de bienvenue" class="fade-in-item" style="height: 70px; width: auto; animation-delay: 0.1s;"> {# Retrait me-3 #}
+            {# Attention: Assurez-vous que 'user_prenom' est passé à ce template depuis la vue Flask #}
+        </div>
+        <div class="index-content flex-grow-1">
+            <h1 class="fade-in-item" style="animation-delay: 0.3s;">Bienvenu {{ user_prenom | default('Utilisateur') }} !</h1> {# Ajout classe + délai #}
+            <hr class="mb-4 fade-in-item" style="animation-delay: 0.5s;">
+            <h6 class="mb-4 fade-in-item" style="animation-delay: 0.7s;">Que souhaitez-vous faire ?</h6> {# Ajout classe + délai #}
+        
+            <div class="row mt-5">
+                <div class="col-md-6">
+                    <article class="card fade-in-item" style="animation-delay: 0.9s;">
+                        <div class="card-body">
+                            <h5 class="card-title">Pilotez vos projets</h5>
+                            <p class="text-body-secondary">Suivi précis, outils collaboratifs et équipe synchronisée pour atteindre vos objectifs.</p>
+                            <a href="{{ url_for('projets.projets') }}" class="btn btn-primary stretched-link">Mes projets <i class="fas fa-arrow-right fa-lg ms-2"></i></a> {# Ajout stretched-link pour rendre toute la carte cliquable #}
+                        </div>
+                    </article>
+                </div>
+                <div class="col-md-6">
+                    <article class="card fade-in-item" style="animation-delay: 1.1s;"> {# Ajout classe + délai #}
+                        <div class="card-body">
+                            <h5 class="card-title">Gérez votre comptabilité</h5>
+                            <p class="text-body-secondary">Suivez vos indicateurs clés, gérez votre facturation et simplifiez votre suivi financier au quotidien.</p>
+                            <a href="{{ url_for('compta.index') }}" class="btn btn-primary stretched-link">Ma Comptabilité <i class="fas fa-arrow-right fa-lg ms-2"></i></a> {# Ajout stretched-link #}
+                        </div>
+                    </article>
+                </div>
+            </div>
+
+            {# --- Section Chatbot --- #}
+            <div class="chatbot-section mt-5 pt-4 border-top fade-in-item" style="animation-delay: 1.4s;"> {# Ajout classe + délai #}
+                <h6 class="mb-4">Besoin d'aide ou une question rapide ?</h6>
+                <div class="d-flex align-items-center">
+                    {# Avatar du chatbot (peut être différent de celui de l'user) #}
+                    <!-- <img src="{{ url_for('static', filename='asset/avatar-loova.png') }}" alt="Avatar Chatbot Loova" class="me-3 rounded-circle" style="height: 50px; width: 50px; object-fit: cover;"> -->
+
+                    {# Champ de saisie pour le chatbot #}
+                    <div class="input-group">
+                        <input type="text" class="form-control form-control-lg" placeholder="Posez moi votre question ici..." aria-label="Question pour le chatbot">
+                        <button class="btn btn-outline-secondary" type="button" id="button-chatbot-submit"><i class="fas fa-paper-plane"></i></button> {# Bouton Envoyer (optionnel) #}
+                    </div>
+                </div>
+                <small class="form-text text-muted mt-2 d-block">Exemple : "Comment créer une facture ?" ou "Montre-moi le solde du client X"</small>
+            </div>
+        </div>
+    </div>
+{% endblock %}
