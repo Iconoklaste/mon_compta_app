@@ -14,7 +14,6 @@ class Projet(db.Model):
     prix_total = db.Column(db.Numeric(precision=10, scale=2), nullable=False, default=0.0)
     date_creation = db.Column(db.DateTime, default=datetime.utcnow)
 
-    description_test = db.Column(db.String(200), nullable=True) # Ajout pour test
 
     # Foreign keys
     organisation_id = db.Column(db.Integer, db.ForeignKey('organisation.id'), nullable=False)
