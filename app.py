@@ -4,6 +4,9 @@ from flask import Flask, render_template, request, redirect, url_for, send_file,
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv # Importe load_dotenv
 from flask_wtf.csrf import CSRFProtect
+import logging
+from logging.handlers import RotatingFileHandler
+
 # from flask_talisman import Talisman <- TODO
 from controllers.users_controller import login_required, users_bp
 from controllers.db_manager import init_db
@@ -38,6 +41,30 @@ from utils.plan_comptable_initial_setup import generate_default_plan_comptable
 load_dotenv(override=True)
 
 app = Flask(__name__)
+
+if not app.debug: # Configurer le logging seulement si on n'est PAS en mode debug
+    log_dir = os.path.join(app.root_path, 'logs') # Crée un dossier logs dans le dossier de l'app
+    os.makedirs(log_dir, exist_ok=True) # Crée le dossier s'il n'existe pas
+    log_file = os.path.join(log_dir, 'flask_app.log') # Nom du fichier log
+
+    # Créer un handler qui écrit dans un fichier, avec rotation
+    # 1 Mo par fichier, garde les 5 derniers fichiers
+    file_handler = RotatingFileHandler(log_file, maxBytes=1024*1024, backupCount=5, encoding='utf-8') # Ajout encoding
+
+    # Définir le format du log (plus détaillé)
+    log_formatter = logging.Formatter(
+        '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'
+    )
+    file_handler.setFormatter(log_formatter)
+
+    # Définir le niveau de log (INFO, WARNING, ERROR, CRITICAL)
+    file_handler.setLevel(logging.INFO) # Log les infos, warnings, erreurs
+
+    # Ajouter le handler à l'application Flask
+    app.logger.addHandler(file_handler)
+    app.logger.setLevel(logging.INFO) # Définir le niveau pour le logger de l'app
+    app.logger.info('Application Loova démarrée (mode production)') # Message de démarrage
+# --- Fin Configuration Logging ---
 
 # Get the database URI from an environment variable
 # Provide a default value ONLY for local development if absolutely necessary,
