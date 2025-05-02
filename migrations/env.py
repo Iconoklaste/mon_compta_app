@@ -4,6 +4,7 @@ from logging.config import fileConfig
 from flask import current_app
 
 from alembic import context
+from sqlalchemy import pool
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -11,7 +12,8 @@ config = context.config
 
 # Interpret the config file for Python logging.
 # This line sets up loggers basically.
-fileConfig(config.config_file_name)
+if config.config_file_name is not None: # Vérifier si le fichier existe
+    fileConfig(config.config_file_name)
 logger = logging.getLogger('alembic.env')
 
 
@@ -36,7 +38,10 @@ def get_engine_url():
 # for 'autogenerate' support
 # from myapp import mymodel
 # target_metadata = mymodel.Base.metadata
-config.set_main_option('sqlalchemy.url', get_engine_url())
+
+# --- Modification ici pour utiliser get_engine_url() (déplacé dans les fonctions run_migrations) ---
+# config.set_main_option('sqlalchemy.url', get_engine_url())
+
 target_db = current_app.extensions['migrate'].db
 
 # other values from the config, defined by the needs of env.py,
@@ -50,8 +55,17 @@ def get_metadata():
         return target_db.metadatas[None]
     return target_db.metadata
 
+# --- Définir la convention de nommage ---
+naming_convention = {
+    "ix": 'ix_%(column_0_label)s',
+    "uq": "uq_%(table_name)s_%(column_0_name)s",
+    "ck": "ck_%(table_name)s_%(constraint_name)s",
+    "fk": "fk_%(table_name)s_%(column_0_name)s_%(referred_table_name)s",
+    "pk": "pk_%(table_name)s"
+}
+# ---------------------------------------
 
-def run_migrations_offline():
+def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode.
 
     This configures the context with just a URL
@@ -63,9 +77,14 @@ def run_migrations_offline():
     script output.
 
     """
-    url = config.get_main_option("sqlalchemy.url")
+    url = get_engine_url()
     context.configure(
-        url=url, target_metadata=get_metadata(), literal_binds=True
+        url=url,
+        target_metadata=get_metadata(),
+        literal_binds=True,
+        dialect_opts={"paramstyle": "named"},
+        naming_convention=naming_convention, # Ajouter la convention
+        render_as_batch=True # Ajouter render_as_batch
     )
 
     with context.begin_transaction():
@@ -90,9 +109,16 @@ def run_migrations_online():
                 directives[:] = []
                 logger.info('No changes in schema detected.')
 
+    # --- Récupérer les arguments de configuration de Flask-Migrate ---
     conf_args = current_app.extensions['migrate'].configure_args
+    # S'assurer que render_as_batch est True
+    conf_args['render_as_batch'] = True
+    # Ajouter la convention de nommage aux arguments
+    conf_args['naming_convention'] = naming_convention
+    # Ajouter la fonction process_revision_directives si elle n'est pas déjà définie
     if conf_args.get("process_revision_directives") is None:
         conf_args["process_revision_directives"] = process_revision_directives
+    # ----------------------------------------------------------------
 
     connectable = get_engine()
 
