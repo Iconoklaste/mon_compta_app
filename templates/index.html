@@ -3,38 +3,44 @@
 
 {% block content %}
     {% if session['user_id'] %}
-        <div class="row">
+    <div class="index-content">
+        {# Utilisation de Flexbox pour aligner le titre et l'image #}
+        <div class="d-flex align-items-center mt-5 mb-3">
+            <img src="{{ url_for('static', filename='asset/avatar-loova.png') }}" alt="Icône de bienvenue" class="me-3" style="height: 40px; width: auto;"> {# Ajustez la taille et le nom du fichier #}
+            <h1>Bienvenu {{ session['user_prenom'] }} !</h1>
+        </div>
+        
+        <h6 class="mb-5">Commencez votre journée avec Loova :</h6>
+        <hr>
+        <div class="row mt-5">
             <div class="col-md-6">
                 <article class="card">
                     <div class="card-body">
-                        <h5 class="card-title">Gestion de Projet</h5>
-                        <p class="card-text">Accédez à la liste de vos projets et gérez-les.</p>
-                        <a href="{{ url_for('projets.projets') }}" class="btn btn-primary">Voir les Projets</a>
+                        <h5 class="card-title">Pilotez vos projets</h5>
+                        <p class="text-body-secondary">Suivi précis, outils collaboratifs et équipe synchronisée pour atteindre vos objectifs.</p>
+                        <a href="{{ url_for('projets.projets') }}" class="btn btn-primary">Mes projets <i class="fas fa-arrow-right fa-lg ms-2"></i></a>
                     </div>
                 </article>
             </div>
             <div class="col-md-6">
                 <article class="card">
                     <div class="card-body">
-                        <h5 class="card-title">Comptabilité</h5>
-                        <p class="card-text">Accédez à la partie comptabilité de l'application.</p>
-                        <a href="{{ url_for('compta.index') }}" class="btn btn-secondary">Accéder à la Comptabilité</a>
+                        <h5 class="card-title">Gérez votre comptabilité</h5>
+                        <p class="text-body-secondary">Suivez vos indicateurs clés, gérez votre facturation et simplifiez votre suivi financier au quotidien.</p>
+                        <a href="{{ url_for('compta.index') }}" class="btn btn-primary">Ma Comptabilité <i class="fas fa-arrow-right fa-lg ms-2"></i></a>
                     </div>
                 </article>
             </div>
         </div>
+    </div>
     {% else %}
         {# Landing Page pour utilisateur non connecté (selon la maquette) #}
         <div class="landing-page-content">
 
-            <div class="landing-page-header">
-                <img src="{{ url_for('static', filename='asset/logo-loova.png') }}" alt="LOOVA Logo" class="landing-logo">
-                <span class="landing-title">LOOVA</span>
-            </div>
-
             <div class="landing-page-left">
-                <h1>Gérez vos projets et vos finances en toute simplicité</h1>
-                <p class="intro-text">Une plateforme intégrée pour la gestion de projets, la comptabilité et la collaboration entre professionnels.</p>
+                <img src="{{ url_for('static', filename='asset/logo-loova.png') }}" alt="LOOVA Logo" class="landing-logo">
+                <h1>Gérez vos projets et finances en toute simplicité avec Loova !</h1>
+                <p class="intro-text">Un compagnon pour la gestion de projets et la comptabilité au services des TPE/PME et indépendants.</p>
 
                 <div class="features-section">
                     <div class="feature-item">

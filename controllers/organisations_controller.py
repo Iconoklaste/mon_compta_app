@@ -93,12 +93,17 @@ def modifier_organisation():
 
         # Handle logo upload
         if form.logo.data:
-            try:
-                organisation.logo = form.logo.data.read()
-                organisation.logo_mimetype = form.logo.data.mimetype
-            except ValueError as e:
-                flash(str(e), 'danger')
-                return render_template('modifier_organisation.html', organisation=organisation, form=form)
+            logo_file = request.files.get(form.logo.name)
+            if logo_file and logo_file.filename != '':
+                try:
+                    logo_data = logo_file.read()
+                    # Validate size (optional here, but good practice)
+                    organisation.validate_logo('logo', logo_data) # Use the validator
+                    organisation.logo = logo_data
+                    organisation.logo_mimetype = logo_file.mimetype
+                except ValueError as e:
+                    flash(str(e), 'danger')
+                    return render_template('modifier_organisation.html', organisation=organisation, form=form)
 
         db.session.commit()
         flash('Organisation modifiée avec succès!', 'success')

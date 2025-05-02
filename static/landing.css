@@ -24,8 +24,6 @@ body.landing-page .main-content {
     display: flex;
     justify-content: space-around;
     align-items: center;
-    padding-top: 5vh;
-    /*padding: 20px;*/
     flex-grow: 1;
 }
 
@@ -279,8 +277,8 @@ body.landing-page .main-content {
 
 
 .landing-logo {
-    width: 100px;
-    height: 100px;
+    width: 10rem;
+    height: 10rem;
     margin-right: 10px;
 }
 

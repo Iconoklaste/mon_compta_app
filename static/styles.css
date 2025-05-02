@@ -44,6 +44,72 @@ a:hover {
 
 /* Boutons */
 
+/* --- Personnalisation des Boutons Bootstrap --- */
+
+/* Bouton Primaire (.btn-primary) */
+.btn-primary {
+    background-color: var(--light-dark-blue);
+    border-color: var(--light-dark-blue);
+    color: var(--white); /* Assure un bon contraste */
+}
+
+/* État Hover */
+.btn-primary:hover {
+    background-color: #233343; /* Nuance légèrement plus foncée de --dark-blue */
+    border-color: #1e2b37; /* Nuance encore plus foncée */
+    color: var(--white);
+}
+
+/* État Focus */
+.btn-primary:focus, .btn-primary.focus {
+    background-color: #233343;
+    border-color: #1e2b37;
+    color: var(--white);
+    box-shadow: 0 0 0 0.25rem rgba(44, 62, 80, 0.5); /* Ombre basée sur --dark-blue */
+}
+
+/* État Actif/Pressé */
+.btn-primary:active, .btn-primary.active,
+.show > .btn-primary.dropdown-toggle {
+    background-color: #1e2b37; /* Nuance la plus foncée */
+    border-color: #1a252f;
+    color: var(--white);
+}
+
+
+
+/* Bouton Secondaire (.btn-secondary) */
+.btn-secondary {
+    background-color: var(--very-light-gray);
+    border-color: var(--very-light-gray);
+    color: var(--dark-blue); /* Assure un bon contraste */
+}
+
+/* État Hover */
+.btn-secondary:hover {
+    background-color: var(--light-gray); /* Nuance légèrement plus foncée de --dark-blue */
+    border-color: var(--light-gray); /* Nuance encore plus foncée */
+    color: var(--dark-blue);
+}
+
+/* État Focus */
+.btn-secondary:focus, .btn-secondary.focus {
+    background-color: var(--light-gray);
+    border-color: var(--light-gray);
+    color: var(--dark-blue);
+    box-shadow: 0 0 0 0.25rem rgba(44, 62, 80, 0.5); /* Ombre basée sur --dark-blue */
+}
+
+/* État Actif/Pressé */
+.btn-secondary:active, .btn-secondary.active,
+.show > .btn-secondary.dropdown-toggle {
+    background-color: var(--light-gray); /* Nuance la plus foncée */
+    border-color: var(--light-gray);
+    color: var(--dark-blue);
+}
+
+/* --- Fin Personnalisation Boutons --- */
+
 .btn:hover {
     text-decoration: none;
 }
@@ -200,7 +266,6 @@ a:hover {
 }
 
 .sidebar li {
-    margin-bottom: 0.5rem; /* Augmenter l'espace entre les éléments */
     border-radius: 5px; /* Add border-radius to the li */
     transition: background-color 0.2s ease; 
 }
@@ -288,6 +353,57 @@ a:hover {
     padding: 0.5rem; /* Ajuste la zone cliquable du bouton */
 }
 
+.sidebar-bottom-nav li {
+    /* Position relative nécessaire pour positionner le menu enfant en absolu */
+    position: relative;
+}
+
+.user-settings-collapse {
+    position: absolute;
+    bottom: 100%; /* Positionne le menu juste au-dessus du lien parent */
+    left: 0;
+    width: 100%; /* Prend toute la largeur de l'élément parent li */
+    z-index: 10; /* S'assure qu'il est au-dessus des autres éléments si nécessaire */
+    background-color: var(--sidebar-bg, #343a40); /* Fond similaire à la sidebar */
+    border: 1px solid rgba(255, 255, 255, 0.1); /* Bordure légère */
+    border-radius: 0.375rem; /* Coins arrondis */
+    margin-bottom: 0.5rem; /* Espace entre le menu et le lien */
+    box-shadow: 0 -0.5rem 1rem rgba(0, 0, 0, 0.15); /* Ombre portée vers le haut */
+    /* Bootstrap gère l'affichage/masquage via la classe .collapse */
+}
+
+.user-settings-collapse .sidebar-submenu {
+    padding: 0.5rem 0; /* Espacement intérieur */
+    margin-bottom: 0; /* Retire la marge par défaut de ul */
+}
+
+.user-settings-collapse .sidebar-submenu li a.dropdown-item {
+    color: var(--sidebar-text-color, #adb5bd); /* Couleur du texte */
+    padding: 0.5rem 1.5rem; /* Espacement intérieur des liens */
+    display: block; /* Pour que le lien prenne toute la largeur */
+    white-space: nowrap; /* Empêche le retour à la ligne */
+    background-color: transparent; /* Fond transparent par défaut */
+    transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out; /* Transition douce */
+}
+
+.user-settings-collapse .sidebar-submenu li a.dropdown-item:hover {
+    background-color: var(--sidebar-hover-bg, rgba(255, 255, 255, 0.1)); /* Couleur au survol */
+    color: var(--sidebar-hover-text-color, #ffffff);
+}
+
+.user-settings-collapse .dropdown-divider {
+    margin: 0.5rem 1rem; /* Marge pour le séparateur */
+    border-top: 1px solid rgba(255, 255, 255, 0.15); /* Couleur du séparateur */
+}
+
+/* Rotation de l'icône chevron (optionnel) */
+.sidebar-bottom-nav a[aria-expanded="true"] .collapse-icon {
+    transform: rotate(180deg);
+}
+.sidebar-bottom-nav a .collapse-icon {
+    transition: transform 0.35s ease;
+}
+
 /* L'animation de chute et rebond */
 @keyframes fallAndBounce {
     0% {
@@ -341,9 +457,9 @@ a:hover {
 
 /* Navbar */
 .navbar {
-    background-color: var(--white);
+    background-color: var(--very-light-gray);
     color: var(--dark-blue);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+
     padding: 0.5rem 1rem;
     display: flex;
     justify-content: space-between;
@@ -585,6 +701,10 @@ a:hover {
     padding-top: 2rem;
 }
 
+.index-content{
+    padding-left: 10rem;
+    padding-right: 10rem;
+}
 
 /* Page Liste des projets */
 

@@ -1,127 +1,115 @@
 <!-- c:\wamp\www\mon_compta_app\templates\compta\compta_index.html -->
 {% extends 'base.html' %}
 
-{% block page_title %}
-    <h1>Comptabilité</h1>
-{% endblock %}
+
 
 {% block navbar_actions %}
                     <!-- <a href="{{ url_for('clients.clients') }}" class="btn btn-primary">Clients</a> -->
-                    <a href="{{ url_for('plan_comptable.lister_comptes') }}" class="btn btn-primary">Plan comptable</a>
-                    <a href="{{ url_for('ecritures.lister_ecritures') }}" class="btn btn-primary">Ecritures</a>
-                    <a href="{{ url_for('compta.afficher_bilan') }}" class="btn btn-primary">Bilan Comptable</a>
-                    <a href="{{ url_for('compta.afficher_compte_resultat') }}" class="btn btn-primary">Compte de Résultat</a>
-                    <a href="{{ url_for('compta.afficher_grand_livre') }}" class="btn btn-primary">Grand livre</a>
-                    <a href="{{ url_for('compta.afficher_flux_tresorerie') }}" class="btn btn-primary">Flux de Trésorerie</a>
+                    <a href="{{ url_for('plan_comptable.lister_comptes') }}" class="btn btn-secondary">Plan comptable</a>
+                    <a href="{{ url_for('ecritures.lister_ecritures') }}" class="btn btn-secondary">Ecritures</a>
+                    <a href="{{ url_for('compta.afficher_bilan') }}" class="btn btn-secondary">Bilan Comptable</a>
+                    <a href="{{ url_for('compta.afficher_compte_resultat') }}" class="btn btn-secondary">Compte de Résultat</a>
+                    <a href="{{ url_for('compta.afficher_grand_livre') }}" class="btn btn-secondary">Grand livre</a>
+                    <a href="{{ url_for('compta.afficher_flux_tresorerie') }}" class="btn btn-secondary">Flux de Trésorerie</a>
                     <!-- <a href="{{ url_for('projets.projets') }}" class="btn btn-primary">Projets</a> -->
-                    <a href="#" class="btn btn-success">Nouvelle Transaction</a>
+                    <!-- <a href="#" class="btn btn-success">Nouvelle Transaction</a> -->
 {% endblock %}
 
 {% block content %}
-<div class="container-fluid">
-    <div class="row">
-            <!-- Financial Summary Cards (Style du Mockup) -->
-            <div class="row g-4 mb-4">
-                 <div class="col-lg-3 col-md-6"> <!-- Adaptez col-md-* si nécessaire pour 2 colonnes sur tablette -->
+
+<div>
+    <!-- Nouvelle structure : Colonne Actions à gauche, Colonne KPIs à droite -->
+    <div class="row g-4 mb-4">
+
+        <!-- Colonne de Gauche : Actions Rapides -->
+        <div class="col-lg-4">
+            <div class="quick-action-card h-100 d-flex flex-column">
+                <div class="card-body d-flex justify-content-around align-items-center flex-grow-1">
+                    {# Mini-carte pour Action 1 #}
+                    <div class="action-item-container text-center">
+                        <a href="#" class="text-decoration-none">
+                            <div class="icon-placeholder mb-2 mx-auto">
+                                 <i class="fas fa-file-invoice fa-2x text-primary"></i>
+                            </div>
+                            <span class="d-block">Émettre une<br>facture client</span>
+                        </a>
+                    </div>
+
+                    {# Séparateur vertical (optionnel, si vous le souhaitez entre les mini-cartes) #}
+                    <div class="vr mx-2"></div>
+
+                    {# Mini-carte pour Action 2 #}
+                    <div class="action-item-container text-center">
+                        <a href="#" class="text-decoration-none">
+                             <div class="icon-placeholder mb-2 mx-auto">
+                                <i class="fas fa-receipt fa-2x text-warning"></i>
+                             </div>
+                            <span class="d-block">Enregistrer<br>une dépense</span>
+                        </a>
+                        </div>
+                 </div>
+             </div>
+         </div>
+
+        <!-- Colonne de Droite : KPIs (Matrice 2x2) -->
+        <div class="col-lg-8">
+            <div class="row g-4">
+                <!-- KPI : Solde Général -->
+                <div class="col-md-6">
                     <div class="card shadow-sm border-light h-100">
-                        <div class="card-body text-center">
-                            <h5 class="card-title text-muted mb-3">Solde Général</h5>
-                            <p class="card-text display-5 fw-bold mb-0">
+                        <div class="card-body d-flex flex-column justify-content-center">
+                            {# Titre rendu beaucoup plus petit et avec moins de marge #}
+                            <p class="small text-muted mb-1">Solde Général</p>
+                            <p class="display-6 fw-bold mb-0"> {# display-6 est légèrement plus petit que 5, ajuste si besoin #}
                                 <span id="overall-balance">{{ overall_balance | round(0) if overall_balance is not none else '0' }}</span> €
                             </p>
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-3 col-md-6">
+                <!-- KPI : Factures en Attente -->
+                <div class="col-md-6">
                     <div class="card shadow-sm border-light h-100">
-                        <div class="card-body text-center">
-                            <h5 class="card-title text-muted mb-3">Factures en Attente</h5>
-                            <p class="card-text display-5 fw-bold mb-0">
+                        <div class="card-body d-flex flex-column justify-content-center">
+                            {# Titre rendu beaucoup plus petit et avec moins de marge #}
+                            <p class="small text-muted mb-1">Factures en Attente</p>
+                            <p class="display-6 fw-bold mb-0">
                                 <span id="pending-invoices">{{ pending_invoices | round(0) if pending_invoices is not none else '0' }}</span> €
                             </p>
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-3 col-md-6">
+                <!-- KPI : Paiements Reçus -->
+                <div class="col-md-6">
                     <div class="card shadow-sm border-light h-100">
-                        <div class="card-body text-center">
-                            <h5 class="card-title text-muted mb-3">Paiements Reçus</h5>
-                            <p class="card-text display-5 fw-bold mb-0">
+                        <div class="card-body d-flex flex-column justify-content-centerr">
+                            {# Titre rendu beaucoup plus petit et avec moins de marge #}
+                            <p class="small text-muted mb-1">Paiements Reçus</p>
+                            <p class="display-6 fw-bold mb-0">
                                 <span id="received-payments">{{ received_payments | round(0) if received_payments is not none else '0' }}</span> €
                             </p>
                         </div>
                     </div>
                 </div>
-                <div class="col-lg-3 col-md-6">
+                <!-- KPI : Reste à Facturer -->
+                <div class="col-md-6">
                     <div class="card shadow-sm border-light h-100">
-                        <div class="card-body text-center">
-                            <h5 class="card-title text-muted mb-3">Reste à Facturer</h5>
-                            <p class="card-text display-5 fw-bold mb-0">
+                        <div class="card-body d-flex flex-column justify-content-center">
+                            {# Titre rendu beaucoup plus petit et avec moins de marge #}
+                            <p class="small text-muted mb-1">Reste à Facturer</p>
+                            <p class="display-6 fw-bold mb-0">
                                 <span id="remaining-to-bill">{{ remaining_to_bill_projects | round(0) if remaining_to_bill_projects is not none else '0' }}</span> €
                             </p>
                         </div>
                     </div>
                 </div>
             </div>
-
-            <!-- Quick Action Cards (Style du Mockup) -->
-            <div class="row g-4 mb-4">
-                <div class="col-lg-3 col-md-6">
-                     <a href="#" class="text-decoration-none">
-                        <div class="card quick-action-card h-100">
-                            <div class="card-body d-flex align-items-center">
-                                <div class="icon-placeholder me-3">
-                                     <i class="fas fa-file-invoice fa-2x text-primary"></i> <!-- Placeholder Icon -->
-                                </div>
-                                <span>Émettre une<br>facture client</span>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-                 <div class="col-lg-3 col-md-6">
-                    <a href="#" class="text-decoration-none">
-                        <div class="card quick-action-card h-100">
-                            <div class="card-body d-flex align-items-center">
-                                 <div class="icon-placeholder me-3">
-                                    <i class="fas fa-receipt fa-2x text-warning"></i> <!-- Placeholder Icon -->
-                                 </div>
-                                <span>Enregistrer<br>une dépense</span>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <a href="#" class="text-decoration-none">
-                        <div class="card quick-action-card h-100">
-                            <div class="card-body d-flex align-items-center">
-                                <div class="icon-placeholder me-3">
-                                    <i class="fas fa-exchange-alt fa-2x text-info"></i> <!-- Placeholder Icon -->
-                                </div>
-                                <span>Effectuer<br>un virement</span>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <a href="{{ url_for('ecritures.lister_ecritures') }}" class="text-decoration-none">
-                        <div class="card quick-action-card h-100">
-                             <div class="card-body d-flex align-items-center">
-                                <div class="icon-placeholder me-3">
-                                     <i class="fas fa-list-alt fa-2x text-secondary"></i> <!-- Placeholder Icon -->
-                                </div>
-                                <span>Consulter<br>les écritures</span>
-                            </div>
-                        </div>
-                    </a>
-                </div>
-            </div>
-
+        </div>
             <!-- Main Content Area (Transactions, Graph, Alerts - Style du Mockup) -->
             <div class="row g-4">
                 <!-- Left Column: Recent Transactions -->
                 <div class="col-lg-7">
-                    <div class="card shadow-sm border-light h-100">
-                        <div class="card-header bg-transparent border-bottom-0 pt-3 pb-0">
+                    <div class="info-card mb-3">
+                        <div class="card-header rounded-top card-header-custom two-line-header">
                             <h5 class="card-title mb-0">Transactions Récentes</h5>
                         </div>
                         <div class="card-body pt-2">
@@ -200,8 +188,8 @@
                 <!-- Right Column: Graph & Alerts -->
                 <div class="col-lg-5 d-flex flex-column">
                     <!-- Revenue/Expense Graph -->
-                    <div class="card shadow-sm border-light mb-4">
-                        <div class="card-header bg-transparent border-bottom-0 pt-3 pb-0">
+                    <div class="info-card mb-3">
+                        <div class="card-header rounded-top card-header-custom two-line-header">
                             <h5 class="card-title mb-0">Revenus et Dépenses</h5>
                         </div>
                         <div class="card-body">
@@ -258,7 +246,7 @@
 
 
     </div> <!-- Fin row Sidebar/Main -->
-</div> <!-- Fin container-fluid -->
+
 
 <!-- Chart.js Script (Identique à la version précédente) -->
 <!-- !! Assurez-vous de passer les données dynamiquement depuis Flask !! -->

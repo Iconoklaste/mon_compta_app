@@ -1,5 +1,5 @@
 # reports/report_generators.py
-
+from decimal import Decimal
 from sqlalchemy import func, and_, or_
 from sqlalchemy.orm import joinedload # Pour charger les relations efficacement
 # Importer ExerciceComptable si ce n'est pas déjà fait
@@ -22,9 +22,9 @@ def _calculate_account_balance(compte_id: int, date_fin: date, session):
     compte = session.query(CompteComptable).get(compte_id)
     if not compte:
         logger.warning(f"Compte ID {compte_id} non trouvé lors du calcul du solde.")
-        return 0.0 # Ou lever une exception
+        return Decimal('0.0') # Ou lever une exception
 
-    solde_initial = compte.solde_initial or 0.0
+    solde_initial = compte.solde_initial or Decimal('0.0')
 
     # Calculer la somme des débits et crédits jusqu'à la date_fin
     resultats = session.query(
@@ -36,8 +36,8 @@ def _calculate_account_balance(compte_id: int, date_fin: date, session):
         EcritureComptable.date_ecriture <= date_fin
     ).one()
 
-    total_debit = resultats.total_debit or 0.0
-    total_credit = resultats.total_credit or 0.0
+    total_debit = resultats.total_debit or Decimal('0.0')
+    total_credit = resultats.total_credit or Decimal('0.0')
 
     # Le solde est calculé comme Débit - Crédit (convention comptable)
     # Un solde positif signifie Débiteur, négatif signifie Créditeur.
@@ -64,7 +64,7 @@ def _calculate_net_income(organisation_id: int, date_debut_exercice: date, date_
         EcritureComptable.date_ecriture >= date_debut_exercice,
         EcritureComptable.date_ecriture <= date_fin_bilan
     ).one()
-    total_produits = (produits_result.total_credit_p or 0.0) - (produits_result.total_debit_p or 0.0)
+    total_produits = (produits_result.total_credit_p or Decimal('0.0')) - (produits_result.total_debit_p or Decimal('0.0'))
 
     # 2. Calculer Total Charges (Classe 6) sur la période
     charges_result = session.query(
@@ -78,7 +78,7 @@ def _calculate_net_income(organisation_id: int, date_debut_exercice: date, date_
         EcritureComptable.date_ecriture >= date_debut_exercice,
         EcritureComptable.date_ecriture <= date_fin_bilan
     ).one()
-    total_charges = (charges_result.total_debit_c or 0.0) - (charges_result.total_credit_c or 0.0)
+    total_charges = (charges_result.total_debit_c or Decimal('0.0')) - (charges_result.total_credit_c or Decimal('0.0'))
 
     # 3. Calculer le Résultat Net
     resultat_net = total_produits - total_charges
@@ -112,7 +112,7 @@ def generate_balance_sheet(organisation_id: int, date_fin: date):
         # Pour l'instant, on loggue un warning et on calcule sans résultat (ou avec résultat = 0)
         logger.warning(f"Aucun exercice comptable trouvé pour l'organisation {organisation_id} contenant la date {date_fin}. Le résultat ne sera pas calculé.")
         date_debut_exercice_pour_resultat = None
-        resultat_net_exercice = 0.0
+        resultat_net_exercice = Decimal('0.0')
     else:
         date_debut_exercice_pour_resultat = exercice_pertinent.date_debut
         # Calculer le résultat net pour la période de l'exercice jusqu'à date_fin
@@ -147,7 +147,7 @@ def generate_balance_sheet(organisation_id: int, date_fin: date):
 
         # Ignorer les comptes avec solde nul (sauf si c'est un compte important comme Capital)
         # Affiner cette condition si nécessaire
-        if abs(solde) < 0.001 and not compte.numero.startswith('101'): # Exemple: garder le capital même si nul
+        if abs(solde) < Decimal('0.001') and not compte.numero.startswith('101'): # Exemple: garder le capital même si nul
              continue
 
         compte_data = {
@@ -205,7 +205,7 @@ def generate_balance_sheet(organisation_id: int, date_fin: date):
                            - sum(c['solde'] for c in capitaux_propres_details if c['solde'] > 0)
 
     # 6. Vérification de l'équilibre (avec une petite tolérance pour les flottants)
-    equilibre = abs(total_actif - (total_passif + total_capitaux_propres)) < 0.01 # Tolérance de 1 centime
+    equilibre = abs(total_actif - (total_passif + total_capitaux_propres)) < Decimal('0.01') # Tolérance de 1 centime
 
     # 7. Retourner la structure de données complète
     return {
@@ -226,7 +226,7 @@ def generate_balance_sheet(organisation_id: int, date_fin: date):
         },
         'resultat_net_exercice': resultat_net_exercice, # Le résultat calculé
         'equilibre': equilibre, # True si Actif = Passif + CP
-        'desequilibre': total_actif - (total_passif + total_capitaux_propres) if not equilibre else 0.0
+        'desequilibre': total_actif - (total_passif + total_capitaux_propres) if not equilibre else Decimal('0.0')
     }
 
 def generate_income_statement(organisation_id: int, date_debut: date, date_fin: date):
@@ -268,20 +268,20 @@ def generate_income_statement(organisation_id: int, date_debut: date, date_fin: 
             EcritureComptable.date_ecriture <= date_fin
         ).one()
 
-        total_debit_periode = mouvements_periode.total_debit or 0.0
-        total_credit_periode = mouvements_periode.total_credit or 0.0
+        total_debit_periode = mouvements_periode.total_debit or Decimal('0.0')
+        total_credit_periode = mouvements_periode.total_credit or Decimal('0.0')
 
         # Calcul du solde du compte SUR LA PÉRIODE
         # Pour les charges (Classe 6), solde = Débits - Crédits (normalement positif)
         # Pour les produits (Classe 7), solde = Crédits - Débits (normalement positif)
-        solde_periode = 0.0
+        solde_periode = Decimal('0.0')
         if compte.type == ClasseCompte.CLASSE_6:
             solde_periode = total_debit_periode - total_credit_periode
         elif compte.type == ClasseCompte.CLASSE_7:
             solde_periode = total_credit_periode - total_debit_periode
 
         # Ignorer les comptes sans mouvement sur la période
-        if abs(solde_periode) < 0.001:
+        if abs(solde_periode) < Decimal('0.001'):
             continue
 
         compte_data = {
@@ -364,7 +364,7 @@ def generate_general_ledger(organisation_id: int, date_debut: date, date_fin: da
         ).order_by(EcritureComptable.date_ecriture, EcritureComptable.id, LigneEcriture.id).all() # Trier par date, puis ID pour cohérence
 
         # 2.c. Si pas de solde initial ET pas de mouvement, on peut ignorer ce compte pour le rapport
-        if abs(solde_initial_periode) < 0.001 and not lignes_ecriture_periode:
+        if abs(solde_initial_periode) < Decimal('0.001') and not lignes_ecriture_periode:
             continue
 
         # 2.d. Calculer les totaux des mouvements de la période
@@ -425,20 +425,20 @@ def _classify_cash_flow(ecriture: EcritureComptable, cash_account_ids: set):
         description (str): Une description du flux détecté.
         amount (float): Le montant du mouvement de trésorerie (positif pour entrée, négatif pour sortie).
     """
-    cash_movement = 0.0
+    cash_movement = Decimal('0.0')
     counterparty_lines = []
 
     # Séparer les lignes de trésorerie des autres lignes (contreparties)
     for ligne in ecriture.lignes:
         if ligne.compte_id in cash_account_ids:
             # Somme des débits moins crédits sur les comptes de trésorerie
-            cash_movement += (ligne.montant_debit or 0.0) - (ligne.montant_credit or 0.0)
+            cash_movement += (ligne.montant_debit or Decimal('0.0')) - (ligne.montant_credit or Decimal('0.0'))
         else:
             counterparty_lines.append(ligne)
 
     # Si aucun mouvement de trésorerie détecté (ne devrait pas arriver si bien filtré avant)
-    if abs(cash_movement) < 0.001:
-        return 'UNKNOWN', 'Aucun mouvement de trésorerie détecté', 0.0
+    if abs(cash_movement) < Decimal('0.001'):
+        return 'UNKNOWN', 'Aucun mouvement de trésorerie détecté', Decimal('0.0')
 
     # Cas 1: Pas de contrepartie claire (ex: virement interne entre comptes de trésorerie)
     if not counterparty_lines:
@@ -524,13 +524,13 @@ def generate_cash_flow(organisation_id: int, date_debut: date, date_fin: date):
             'organisation_nom': organisation.designation,
             'date_debut': date_debut.strftime('%Y-%m-%d'),
             'date_fin': date_fin.strftime('%Y-%m-%d'),
-            'initial_cash': 0.0, 'flows': {'OPERATING': [], 'INVESTING': [], 'FINANCING': [], 'UNKNOWN': [], 'TRANSFER': []},
-            'totals': {'operating': 0.0, 'investing': 0.0, 'financing': 0.0, 'unknown': 0.0, 'net_variation': 0.0},
-            'final_cash_calculated': 0.0, 'final_cash_direct_balance': 0.0, 'is_verified': True, 'verification_difference': 0.0
+            'initial_cash': Decimal('0.0'), 'flows': {'OPERATING': [], 'INVESTING': [], 'FINANCING': [], 'UNKNOWN': [], 'TRANSFER': []},
+            'totals': {'operating': Decimal('0.0'), 'investing': Decimal('0.0'), 'financing': Decimal('0.0'), 'unknown': Decimal('0.0'), 'net_variation': Decimal('0.0')},
+            'final_cash_calculated': Decimal('0.0'), 'final_cash_direct_balance': Decimal('0.0'), 'is_verified': True, 'verification_difference': Decimal('0.0')
         }
 
     # 2. Calculer la trésorerie initiale (solde de tous les comptes de trésorerie la veille du début)
-    initial_cash = 0.0
+    initial_cash = Decimal('0.0')
     date_veille_debut = date_debut - timedelta(days=1)
     for compte_id in cash_account_ids:
         initial_cash += _calculate_account_balance(compte_id, date_veille_debut, session)
@@ -549,7 +549,7 @@ def generate_cash_flow(organisation_id: int, date_debut: date, date_fin: date):
 
     # 4. Classifier chaque flux et agréger
     flows_details = defaultdict(list) # Dictionnaire pour stocker les détails par catégorie
-    totals = defaultdict(float)      # Dictionnaire pour stocker les totaux par catégorie
+    totals = defaultdict(Decimal)      # Dictionnaire pour stocker les totaux par catégorie
 
     for ecriture in ecritures_cash:
         # Optionnel: Vérifier l'équilibre de l'écriture avant de la traiter
@@ -583,13 +583,13 @@ def generate_cash_flow(organisation_id: int, date_debut: date, date_fin: date):
     final_cash_calculated = initial_cash + net_variation
 
     # 6. Vérification : Calculer la trésorerie finale directement à partir des soldes des comptes
-    final_cash_direct_balance = 0.0
+    final_cash_direct_balance = Decimal('0.0')
     for compte_id in cash_account_ids:
         final_cash_direct_balance += _calculate_account_balance(compte_id, date_fin, session)
 
     # Comparer les deux calculs de trésorerie finale
     verification_diff = final_cash_calculated - final_cash_direct_balance
-    is_verified = abs(verification_diff) < 0.01 # Tolérance pour les erreurs d'arrondi
+    is_verified = abs(verification_diff) < Decimal('0.01') # Tolérance pour les erreurs d'arrondi
 
     if not is_verified:
          logger.warning(f"Flux de trésorerie - Vérification échouée pour Org ID {organisation_id} "

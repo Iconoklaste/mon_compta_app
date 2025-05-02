@@ -22,6 +22,7 @@ def login_required(f):
 @users_bp.route('/', methods=['GET', 'POST'])
 def index():
     form = LoginForm()
+    orga_designation = None
     if form.validate_on_submit():
         email_fourni = form.email.data
         password_fourni = form.password.data
@@ -38,9 +39,13 @@ def index():
 
             if password_check_result:
                 session['user_id'] = user.id
-                logger.info(f"Connexion réussie pour l'utilisateur ID: {user.id}") # Log succès
+                session['user_prenom'] = user.prenom
+                orga_designation = user.organisation.designation
+                session['organisation'] = orga_designation
+                logger.info(f"Connexion réussie pour l'utilisateur ID: {user.id}, organisation {orga_designation}") # Log succès
                 flash('Connexion réussie!', 'success')
                 return redirect(url_for('users.index'))
+            
             else:
                 logger.warning(f"Mot de passe incorrect pour l'utilisateur : {email_fourni}") # Log échec mdp
                 flash('Email ou mot de passe incorrect.', 'danger')
@@ -52,7 +57,7 @@ def index():
          logger.warning(f"Échec de validation du formulaire de connexion : {form.errors}")
          flash('Erreur de validation du formulaire.', 'warning')
 
-    return render_template('index.html', forms=form)
+    return render_template('index.html', forms=form, organisation=orga_designation)
 
 @users_bp.route('/modifier_profil', methods=['GET', 'POST'])
 @login_required
