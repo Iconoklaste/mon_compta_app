@@ -1,5 +1,6 @@
 # controllers/plan_comptable_controller.py
 from flask import Blueprint, render_template, request, redirect, url_for, flash, session
+from flask_login import login_required, current_user
 from controllers.db_manager import db
 from controllers.users_controller import login_required
 # Importer les modèles nécessaires
@@ -30,7 +31,7 @@ classe_descriptions = {
 @login_required
 def lister_comptes():
     """Affiche la page du plan comptable avec la liste et les cards."""
-    user_id = session['user_id']
+    user_id = current_user.id
     user = User.query.get_or_404(user_id)
     organisation = user.organisation
     
@@ -80,7 +81,7 @@ def lister_comptes():
 def ajouter_compte_action():
     """Traite la soumission du formulaire d'ajout de compte."""
     form = CompteComptableForm()
-    user_id = session['user_id']
+    user_id = current_user.id
     user = User.query.get_or_404(user_id)
     organisation = user.organisation
 
@@ -161,7 +162,7 @@ def ajouter_compte_action():
 @login_required
 def modifier_compte_action(compte_id):
     """Traite la soumission du formulaire de modification de compte."""
-    user_id = session['user_id']
+    user_id = current_user.id
     user = User.query.get_or_404(user_id)
     organisation = user.organisation
     
@@ -228,7 +229,7 @@ def modifier_compte_action(compte_id):
 @login_required
 def toggle_actif_compte(compte_id):
     """Active ou désactive un compte."""
-    user_id = session['user_id']
+    user_id = current_user.id
     user = User.query.get_or_404(user_id)
     organisation = user.organisation
 
@@ -249,7 +250,7 @@ def toggle_actif_compte(compte_id):
 @plan_comptable_bp.route('/supprimer/<int:compte_id>', methods=['POST'])
 @login_required
 def supprimer_compte(compte_id):
-    user_id = session['user_id']
+    user_id = current_user.id
     user = User.query.get_or_404(user_id)
     organisation = user.organisation
 

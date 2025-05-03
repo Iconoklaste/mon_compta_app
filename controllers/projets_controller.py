@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, redirect, session, url_for, request, abort, flash, jsonify
+from flask_login import login_required, current_user
 from flask_wtf.csrf import validate_csrf
 from sqlalchemy import func
 from sqlalchemy.orm import joinedload
@@ -13,7 +14,7 @@ projets_bp = Blueprint('projets', __name__)
 @projets_bp.route('/projets')
 @login_required
 def projets():
-    user_id = session['user_id']
+    user_id = current_user.id
     projets = Projet.query.filter_by(user_id=user_id).all()
     return render_template('projets.html',
                            projets=projets,
@@ -66,7 +67,7 @@ def projet_detail(projet_id):
     ).get_or_404(projet_id)
 
     # Vérifier l'accès (si l'utilisateur fait partie de l'organisation du projet)
-    user_id = session['user_id']
+    user_id = current_user.id
     user = User.query.get(user_id)
     if not user or projet.organisation_id != user.organisation_id:
          flash("Accès non autorisé à ce projet.", "danger")
@@ -179,7 +180,7 @@ def projet_detail(projet_id):
 @login_required
 def ajouter_projet():
     form = ProjetForm()
-    user_id = session['user_id']
+    user_id = current_user.id
     user = User.query.get(user_id)
     if not user:
         abort(404)
@@ -226,7 +227,7 @@ def ajouter_projet():
 @login_required
 def ajouter_membre_equipe(projet_id):
     projet = Projet.query.get_or_404(projet_id)
-    user_id = session['user_id']
+    user_id = current_user.id
     user = User.query.get(user_id)
 
     # Vérifier les permissions (l'utilisateur appartient à l'organisation du projet)
@@ -310,7 +311,7 @@ def supprimer_membre_equipe(projet_id, membre_id):
         flash("Erreur de sécurité (CSRF). Action annulée.", 'danger')
         return redirect(url_for('projets.projet_detail', projet_id=projet_id))
 
-    user_id = session['user_id']
+    user_id = current_user.id
     user = User.query.get(user_id)
     membre_a_supprimer = EquipeMembre.query.get_or_404(membre_id)
 
@@ -341,7 +342,7 @@ def modifier_membre_equipe(projet_id, membre_id):
     """
     projet = Projet.query.get_or_404(projet_id)
     membre = EquipeMembre.query.filter_by(id=membre_id, projet_id=projet.id).first_or_404()
-    user_id = session['user_id']
+    user_id = current_user.id
     user = User.query.get(user_id)
 
     # --- Vérification des permissions (cohérent avec les autres routes) ---

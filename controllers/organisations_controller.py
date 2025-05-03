@@ -1,4 +1,5 @@
 from flask import Blueprint, request, jsonify, render_template, redirect, url_for, make_response, session, current_app, flash
+from flask_login import login_user
 from controllers.db_manager import db
 from controllers.users_controller import login_required
 from models import Organisation, User
@@ -72,7 +73,7 @@ def ajouter_organisation():
 @organisations_bp.route('/modifier_organisation', methods=['GET', 'POST'])
 @login_required
 def modifier_organisation():
-    user_id = session['user_id']
+    user_id = current_user.id
     user = User.query.get_or_404(user_id)
     organisation = user.organisation
     form = OrganisationForm(obj=organisation)
@@ -213,7 +214,7 @@ def ajouter_organisation_demo():
                 db.session.commit()
                 logger.info(f"Organisation ID {new_organisation.id} et User ID {new_user.id} commitées en base.")
                 flash('Organisation et utilisateur créés avec succès !', 'success')
-                session['user_id'] = new_user.id
+                login_user(new_user)
                 logger.info(f"Utilisateur ID {new_user.id} ajouté à la session (connecté).")
             except IntegrityError as ie: # Gère les erreurs d'unicité (SIRET, email user, etc.)
                 db.session.rollback()

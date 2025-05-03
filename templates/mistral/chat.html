@@ -1,0 +1,162 @@
+<!-- c:\wamp\www\mon_compta_app\chatbot\templates\chat.html -->
+{% extends 'base.html' %}
+
+{% block page_title %}Chat avec Loova{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <h1>Conversation</h1>
+
+    <div class="chat-container mt-3 border rounded p-3 mb-4" style="min-height: 400px; max-height: 60vh; overflow-y: auto; background-color: #f8f9fa;">
+        {# --- MODIFICATION : Boucle sur l'historique du chat --- #}
+        {% if chat_history %}
+            {% for message in chat_history %}
+                {% if message.role == 'user' %}
+                    <div class="message user-message mb-3 text-end"> {# Alignement à droite pour l'utilisateur #}
+                        {# <p class="mb-0 small text-muted">Vous :</p> #} {# Optionnel: moins de "Vous:" répétitifs #}
+                        <p class="alert alert-primary d-inline-block mb-1">{{ message.content }}</p>
+                    </div>
+                {% elif message.role == 'assistant' %}
+                    <div class="message bot-message mb-3"> {# Alignement à gauche par défaut #}
+                        <p class="mb-0"><img src="{{ url_for('static', filename='asset/avatar-loova.png') }}" alt="Loova" style="width: 20px; height: 20px; margin-right: 5px; vertical-align: middle;"><strong>Loova :</strong></p>
+                        <p class="alert alert-secondary d-inline-block mb-1">{{ message.content | safe }}</p> {# Utiliser | safe si la réponse peut contenir du HTML/Markdown formaté #}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        {% else %}
+            <p class="text-muted">La conversation n'a pas encore commencé.</p>
+        {% endif %}
+        {# --- Indicateur de chargement (caché par défaut) --- #}
+        <div id="loading-indicator" class="message bot-message mb-3" style="display: none;">
+             <p class="mb-0"><img src="{{ url_for('static', filename='asset/avatar-loova.png') }}" alt="Loova" style="width: 20px; height: 20px; margin-right: 5px; vertical-align: middle;"><strong>Loova :</strong></p>
+             <p class="alert alert-secondary d-inline-block mb-1"><i>Réflexion en cours... <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span></i></p>
+        </div>
+        {# ---------------------------------------------------- #}
+    </div>
+
+        <div class="new-question-form mt-4 pt-3 border-top">
+            <form method="POST" action="{{ url_for('chatbot.chatbot_ask') }}" novalidate>
+                {{ chatbot_form.hidden_tag() }} {# Important pour CSRF #}
+                <div class="input-group">
+                    {{ chatbot_form.question(class="form-control", placeholder="Posez une autre question...", autocomplete="off") }} {# Ajout autocomplete="off" #}
+                    <button class="btn btn-primary" type="submit"><i class="fas fa-paper-plane"></i></button> {# Bouton différent pour le distinguer ? #}
+                </div>
+                {# Affichage des erreurs si la soumission depuis cette page échoue #}
+                {% if chatbot_form.question.errors %}
+                    <div class="invalid-feedback d-block mt-1">
+                        {% for error in chatbot_form.question.errors %}
+                            <span>{{ error }}</span><br>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </form>
+        </div>
+
+
+
+    {# Bouton pour retourner à l'accueil ou poser une autre question #}
+    <div class="mt-4">
+        <a href="{{ url_for('users.accueil') }}" class="btn btn-secondary">
+            <i class="fas fa-arrow-left me-2"></i>Retour à l'accueil
+        </a>
+        {# --- Optionnel : Bouton pour effacer l'historique --- #}
+        {% if chat_history %} {# N'afficher que s'il y a un historique #}
+        <form method="POST" action="{{ url_for('chatbot.clear_chat') }}" style="display: inline-block; margin-left: 10px;">
+             <!-- {{ csrf_token() }} {# Important si vous utilisez CSRFProtect globalement #} -->
+             <button type="submit" class="btn btn-outline-danger" onclick="return confirm('Voulez-vous vraiment effacer l\'historique de cette conversation ?');">
+                 <i class="fas fa-trash-alt me-2"></i>Effacer l'historique
+             </button>
+         </form>
+        {% endif %}
+
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+    console.log("Page de chat chargée.");
+
+const chatContainer = document.querySelector('.chat-container');
+const form = document.querySelector('.new-question-form form');
+const input = form.querySelector('input[name="question"]');
+const submitButton = form.querySelector('button[type="submit"]');
+const loadingIndicator = document.getElementById('loading-indicator');
+const csrfToken = form.querySelector('input[name="csrf_token"]').value; // Récupérer le token CSRF
+
+// --- Faire défiler vers le bas du conteneur de chat ---
+function scrollToBottom() {
+    if (chatContainer) {
+        chatContainer.scrollTop = chatContainer.scrollHeight;
+    }
+}
+scrollToBottom(); // Au chargement initial
+
+// --- Intercepter la soumission du formulaire ---
+form.addEventListener('submit', function(event) {
+    event.preventDefault(); // Empêcher le rechargement de la page
+
+    const question = input.value.trim();
+    if (!question) {
+        return; // Ne rien faire si la question est vide
+    }
+
+    // 1. Ajouter la question de l'utilisateur à l'affichage (optimiste)
+    const userMessageDiv = document.createElement('div');
+    userMessageDiv.className = 'message user-message mb-3 text-end';
+    userMessageDiv.innerHTML = `<p class="alert alert-primary d-inline-block mb-1">${question}</p>`;
+    // Insérer avant l'indicateur de chargement
+    chatContainer.insertBefore(userMessageDiv, loadingIndicator);
+
+    // 2. Afficher l'indicateur de chargement et désactiver le formulaire
+    loadingIndicator.style.display = 'block';
+    input.value = ''; // Vider l'input
+    input.disabled = true;
+    submitButton.disabled = true;
+    chatContainer.scrollTop = chatContainer.scrollHeight;
+
+    // 3. Envoyer la requête AJAX (fetch)
+    fetch(form.action, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json', // Envoyer en JSON
+            'X-CSRFToken': csrfToken, // Envoyer le token CSRF dans les headers
+            'X-Requested-With': 'XMLHttpRequest' // Indiquer que c'est une requête AJAX
+        },
+        body: JSON.stringify({ question: question }) // Envoyer la question dans le corps JSON
+    })
+    .then(response => response.json()) // Attendre une réponse JSON
+    .then(data => {
+        // 4. Cacher l'indicateur et réactiver le formulaire
+        loadingIndicator.style.display = 'none';
+        input.disabled = false;
+        submitButton.disabled = false;
+
+        // 5. Ajouter la réponse du bot à l'affichage
+        const botMessageDiv = document.createElement('div');
+        botMessageDiv.className = 'message bot-message mb-3';
+        // Utiliser data.answer ou data.error selon la réponse du serveur
+        const answerContent = data.success ? data.answer : `<span class="text-danger">${data.error || 'Erreur inconnue'}</span>`;
+        botMessageDiv.innerHTML = `<p class="mb-0"><img src="{{ url_for('static', filename='asset/avatar-loova.png') }}" alt="Loova" style="width: 20px; height: 20px; margin-right: 5px; vertical-align: middle;"><strong>Loova :</strong></p>
+                                   <p class="alert alert-secondary d-inline-block mb-1">${answerContent}</p>`;
+        chatContainer.insertBefore(botMessageDiv, loadingIndicator); // Insérer avant l'indicateur (qui est caché)
+        scrollToBottom(); // Faire défiler pour voir la réponse
+    })
+    .catch(error => {
+        console.error('Erreur lors de la requête fetch:', error);
+        // Gérer l'erreur (afficher un message, etc.)
+        loadingIndicator.style.display = 'none';
+        input.disabled = false;
+        submitButton.disabled = false;
+        // Afficher un message d'erreur générique dans le chat
+        const errorDiv = document.createElement('div');
+        errorDiv.className = 'message bot-message mb-3';
+        errorDiv.innerHTML = `<p class="mb-0"><img src="{{ url_for('static', filename='asset/avatar-loova.png') }}" alt="Loova" style="width: 20px; height: 20px; margin-right: 5px; vertical-align: middle;"><strong>Loova :</strong></p>
+                              <p class="alert alert-danger d-inline-block mb-1">Désolé, une erreur de communication est survenue.</p>`;
+        chatContainer.insertBefore(errorDiv, loadingIndicator);
+        scrollToBottom();
+    });
+});
+
+</script>
+{% endblock %}

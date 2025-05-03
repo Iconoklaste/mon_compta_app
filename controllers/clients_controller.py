@@ -1,6 +1,7 @@
 # c:\wamp\www\mon_compta_app\controllers\clients_controller.py
 
 from flask import Blueprint, request, jsonify, render_template, flash, session, redirect, url_for
+from flask_login import login_required, current_user
 from flask_wtf.csrf import validate_csrf, CSRFError
 from sqlalchemy.exc import IntegrityError, DataError, SQLAlchemyError
 from controllers.db_manager import db
@@ -19,7 +20,7 @@ logger = logging.getLogger(__name__)
 @login_required
 def clients():
     """Render the clients list page."""
-    user_id = session.get('user_id')
+    user_id = current_user.id
     user = User.query.get(user_id)
     if not user or not user.organisation_id:
         flash("Impossible de déterminer votre organisation.", "danger")
@@ -39,7 +40,7 @@ def ajouter_client_page():
 
     # --- Traitement de la soumission POST (formulaire standard) ---
     if form.validate_on_submit(): # Gère la validation ET le CSRF pour les formulaires standard
-        user_id = session.get('user_id')
+        user_id = current_user.id
         user = User.query.get(user_id)
         if not user or not user.organisation_id:
             flash("Impossible de déterminer votre organisation.", "danger")
@@ -138,7 +139,7 @@ def ajouter_client_ajax():
     form = ClientForm(data=form_data)
 
     # --- Récupérer l'organisation de l'utilisateur ---
-    user_id = session.get('user_id')
+    user_id = current_user.id
     user = User.query.get(user_id)
     if not user or not user.organisation_id:
         message = "Impossible de déterminer votre organisation."
@@ -212,7 +213,7 @@ def ajouter_client_ajax():
 def client_dashboard(client_id):
     """Render the client dashboard."""
     # ... (le reste de la fonction client_dashboard reste inchangé) ...
-    user_id = session.get('user_id')
+    user_id = current_user.id
     user = User.query.get(user_id)
     client = Client.query.filter_by(id=client_id, organisation_id=user.organisation_id).first_or_404()
 

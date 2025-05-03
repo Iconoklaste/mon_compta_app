@@ -26,7 +26,7 @@ def process_ocr_expense():
     Reçoit un fichier de dépense (via POST), l'envoie à Mistral OCR
     et retourne les données extraites en JSON.
     """
-    user_id = session.get('user_id')
+    user_id = current_user.id
     user = User.query.get(user_id)
     if not user or not user.organisation_id:
         logger.warning(f"Tentative d'accès OCR sans utilisateur valide ou organisation (user_id: {user_id}).")

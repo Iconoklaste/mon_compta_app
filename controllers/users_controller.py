@@ -1,29 +1,26 @@
 from flask import Blueprint, render_template, request, redirect, url_for, session, jsonify, flash
-from functools import wraps
 from controllers.db_manager import db
 from models import User, Organisation
 from werkzeug.security import generate_password_hash, check_password_hash
-from forms.forms import LoginForm, ModifierProfilForm, AjouterUserForm, AjouterUserFormDemo
+from forms.forms import (LoginForm, 
+                         ModifierProfilForm, 
+                         AjouterUserForm, 
+                         AjouterUserFormDemo, 
+                         ChatbotQuestionForm)
+
+from flask_login import login_user, logout_user, login_required, current_user # <-- Importer les fonctions et current_user
 import logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 users_bp = Blueprint('users', __name__)
 
-def login_required(f):
-    @wraps(f)
-    def decorated_function(*args, **kwargs):
-        if 'user_id' not in session:
-            flash('Vous devez être connecté pour accéder à cette page.', 'danger')
-            return redirect(url_for('users.index'))  # Redirect to index (login)
-        return f(*args, **kwargs)
-    return decorated_function
 
 @users_bp.route('/', methods=['GET', 'POST'])
 def index():
     # --- Vérifier si l'utilisateur est déjà connecté ---
-    if 'user_id' in session:
-        logger.debug(f"Utilisateur ID {session['user_id']} déjà connecté, redirection vers /accueil.")
+    if current_user.is_authenticated:
+        logger.debug(f"Utilisateur ID {current_user.id} déjà connecté, redirection vers /accueil.")
         return redirect(url_for('users.accueil')) # Redirige vers la nouvelle route
 
 
@@ -48,7 +45,7 @@ def index():
 
             if password_check_result:
                 # --- Enregistrement des infos en session ---
-                session['user_id'] = user.id
+                login_user(user)
                 session['user_prenom'] = user.prenom
                 # S'assurer que l'organisation existe avant d'accéder à 'designation'
                 orga_designation = user.organisation.designation if user.organisation else "Organisation inconnue"
@@ -82,19 +79,24 @@ def index():
 @login_required # Assure que seul un utilisateur connecté peut y accéder
 def accueil():
     """Affiche le tableau de bord de l'utilisateur connecté."""
-    user_prenom = session.get('user_prenom', 'Utilisateur')
-    organisation_nom = session.get('organisation', 'Mon Organisation')
-    logger.debug(f"Affichage du tableau de bord /accueil pour l'utilisateur ID {session['user_id']}")
+    user_prenom = current_user.prenom
+    organisation = current_user.organisation.designation if current_user.organisation else 'Mon Organisation'
+    logger.debug(f"Affichage du tableau de bord /accueil pour l'utilisateur ID {current_user.id}")
+
+    # --- Instancier le formulaire du chatbot ---
+    chatbot_form = ChatbotQuestionForm()
+
     return render_template('index_user.html',
                            user_prenom=user_prenom,
-                           organisation=organisation_nom,
+                           organisation=organisation,
+                           chatbot_form=chatbot_form,
                            current_page='Accueil')
 
 
 @users_bp.route('/modifier_profil', methods=['GET', 'POST'])
 @login_required
 def modifier_profil():
-    user_id = session['user_id']
+    user_id = current_user.id
     user = User.query.get_or_404(user_id)
     form = ModifierProfilForm(obj=user) # Create an instance of the form
 
@@ -113,7 +115,14 @@ def modifier_profil():
 
 @users_bp.route('/logout')
 def logout():
-    session.pop('user_id', None)
+    """Déconnecte l'utilisateur et nettoie la session."""
+    user_id = current_user.id if current_user.is_authenticated else None
+
+    session.pop('mistral_chat_history', None)
+    logout_user()
+    flash('Vous avez été déconnecté avec succès.', 'success')
+    if user_id:
+        logger.info(f"Utilisateur ID {user_id} déconnecté.")
     return redirect(url_for('users.index'))
 
 @users_bp.route('/ajouter_user', methods=['GET', 'POST'])

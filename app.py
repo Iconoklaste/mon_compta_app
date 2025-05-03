@@ -3,6 +3,7 @@ from dotenv import load_dotenv
 from flask import Flask, render_template, request, redirect, url_for, send_file, make_response, jsonify, session, abort, flash
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv # Importe load_dotenv
+from flask_login import LoginManager
 from flask_wtf.csrf import CSRFProtect
 import logging
 from logging.handlers import RotatingFileHandler
@@ -23,6 +24,7 @@ from controllers.plan_comptable_controller import plan_comptable_bp
 from controllers.ecritures_controller import ecritures_bp
 from controllers.notes_reunion_controller import notes_reunion_bp
 from controllers.ocr_depenses_controller import ocr_depenses_bp
+from controllers.mistral_chat import chatbot_bp
 from models import *  # Import all models
 #from models.clients import Client # Import the Client model
 from models.organisations import Organisation
@@ -109,9 +111,18 @@ app.static_url_path = '/static'
 init_db(app)
 from controllers.db_manager import db
 
+# --- Initialisation Flask-Login ---
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'users.index' # Redirige vers la page de connexion si accès non autorisé
+login_manager.login_message = "Veuillez vous connecter pour accéder à cette page."
+login_manager.login_message_category = "info" # Catégorie pour les messages flash
+# ----------------------------------
+
 migrate = Migrate(app, db)  # Initialize Migrate
 
 csrf = CSRFProtect(app)     # Initialise CSRFProtect
+print("DEBUG: CSRFProtect initialisée.")
 
 # Register the blueprint
 app.register_blueprint(projets_bp)
@@ -127,6 +138,15 @@ app.register_blueprint(plan_comptable_bp)
 app.register_blueprint(ecritures_bp)
 app.register_blueprint(notes_reunion_bp)
 app.register_blueprint(ocr_depenses_bp)
+app.register_blueprint(chatbot_bp)
+
+
+# --- Configuration du User Loader pour Flask-Login ---
+@login_manager.user_loader
+def load_user(user_id):
+    # Flask-Login utilise cette fonction pour recharger l'objet User depuis l'ID stocké en session
+    return User.query.get(int(user_id))
+# ----------------------------------------------------
 
 @app.route('/test-pen') # Vous pouvez choisir l'URL que vous voulez
 def test_pen_page():
@@ -330,5 +350,7 @@ if __name__ == '__main__':
                 if not final_client: missing.append("client")
                 # Revenir à print
                 print(f"ERREUR: Impossible de créer le projet par défaut car l'{' ou '.join(missing)} manque.")
+
+
 
     app.run()

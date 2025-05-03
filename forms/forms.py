@@ -455,3 +455,17 @@ class NoteReunionForm(FlaskForm):
     # Le contenu sera géré par le Rich Text Editor, mais on utilise TextAreaField
     contenu = TextAreaField('Contenu de la note', validators=[DataRequired()])
     submit = SubmitField('Enregistrer la note')
+
+# --- Formulaire pour la question du Chatbot ---
+class ChatbotQuestionForm(FlaskForm):
+    question = StringField(
+        'Votre question',
+        validators=[DataRequired("Veuillez entrer une question.")],
+        render_kw={
+            "placeholder": "Ex: Comment créer une facture ?",
+            "aria-label": "Question pour le chatbot",
+            "class": "form-control" # Classe Bootstrap pour le style
+        }
+    )
+    # Pas besoin de SubmitField si on garde le bouton HTML existant
+    # submit = SubmitField('Envoyer', render_kw={"class": "btn btn-outline-secondary"})

@@ -64,10 +64,30 @@
         <div class="chatbot-section mt-4 pt-4 border-top fade-in-item" style="animation-delay: 1.1s;">
              {# On peut ajouter une petite phrase d'intro ici aussi si on veut #}
              <p class="text-muted small mb-2">Ou posez-moi directement votre question :</p>
-            <div class="input-group">
-                <input type="text" class="form-control" placeholder="Ex: Comment créer une facture ?" aria-label="Question pour le chatbot">
-                <button class="btn btn-outline-secondary" type="button" id="button-chatbot-submit"><i class="fas fa-paper-plane"></i></button>
-            </div>
+             <form method="POST" action="{{ url_for('chatbot.chatbot_ask') }}" novalidate id="chatbot-index-form"> {# Ajout ID au formulaire #}
+                {{ chatbot_form.hidden_tag() }}
+                {# --- Container Flex pour Avatar/Spinner + Input Group --- #}
+                <div class="d-flex align-items-center">
+                    {# --- Avatar Utilisateur (ou placeholder) et Spinner --- #}
+                    <div class="me-2 chatbot-avatar-container"> {# me-2 pour marge droite #}
+                        <img src="{{ url_for('static', filename='asset/avatar-loova.png') }}" alt="Votre Avatar" class="rounded-circle" style="width: 38px; height: 38px;" id="chatbot-user-avatar"> {# Placeholder, ajuster si nécessaire #}
+                        <span class="spinner-border spinner-border-sm d-none" role="status" aria-hidden="true" id="chatbot-input-spinner"></span>
+                    </div>
+                    {# --- Input Group (Champ + Bouton) --- #}
+                    <div class="input-group flex-grow-1"> {# flex-grow-1 pour prendre l'espace restant #}
+                    {{ chatbot_form.question(class="form-control") }} {# Affiche l'input, les attributs sont définis dans forms.py #}
+                    <button class="btn btn-outline-secondary" type="submit" id="button-chatbot-submit"><i class="fas fa-paper-plane"></i></button> {# Spinner retiré du bouton #}
+                </div>
+
+                {# --- Affichage des erreurs de validation --- #}
+                {% if chatbot_form.question.errors %}
+                    <div class="invalid-feedback d-block mt-1"> {# d-block pour forcer l'affichage #}
+                        {% for error in chatbot_form.question.errors %}
+                            <span>{{ error }}</span><br>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </form>
             {# <small class="form-text text-muted mt-2 d-block">Exemple : "Comment créer une facture ?" ou "Montre-moi le solde du client X"</small> #}
         </div>
 
@@ -81,26 +101,24 @@
 {% block extra_scripts %}
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            const chatbotButton = document.getElementById('button-chatbot-submit');
-            if (chatbotButton) {
-                chatbotButton.addEventListener('click', function() {
-                    // Logique pour envoyer la question du chatbot
-                    const questionInput = chatbotButton.previousElementSibling; // Prend l'input juste avant
-                    console.log('Question pour le chatbot:', questionInput.value);
-                    // Ajouter ici l'appel AJAX ou autre pour traiter la question
-                    questionInput.value = ''; // Vider l'input après envoi (optionnel)
+            console.log("Page d'accueil chargée, formulaire chatbot prêt.");
+
+            const chatbotForm = document.getElementById('chatbot-index-form'); // Utiliser l'ID
+            const submitButton = document.getElementById('button-chatbot-submit');
+            const inputField = chatbotForm.querySelector('input[name="question"]'); // Sélectionner l'input
+            const avatar = document.getElementById('chatbot-user-avatar');
+            const spinner = document.getElementById('chatbot-input-spinner');
+
+            if (chatbotForm && submitButton && inputField && avatar && spinner) {
+                chatbotForm.addEventListener('submit', function() {
+                    // Afficher le spinner, cacher l'avatar, désactiver input et bouton
+                    spinner.classList.remove('d-none');
+                    avatar.classList.add('d-none');
+                    submitButton.disabled = true;
+                    
+                    // La soumission standard du formulaire continue et charge chat.html
                 });
             }
-            // Ajouter un listener pour la touche Entrée sur l'input
-             const questionInput = document.querySelector('.chatbot-section input[type="text"]');
-             if(questionInput && chatbotButton) {
-                 questionInput.addEventListener('keypress', function(event) {
-                     if (event.key === 'Enter') {
-                         event.preventDefault(); // Empêche le rechargement/soumission de formulaire par défaut
-                         chatbotButton.click(); // Déclenche le clic sur le bouton d'envoi
-                     }
-                 });
-             }
         });
     </script>
 {% endblock %}

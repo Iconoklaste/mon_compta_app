@@ -1,6 +1,7 @@
 # c:\wamp\www\mon_compta_app\controllers\compta_controller.py
 
 from flask import Blueprint, render_template, url_for, redirect, session, flash
+from flask_login import login_required, current_user
 from controllers.db_manager import db
 from controllers.users_controller import login_required
 from reports.report_generators import (generate_balance_sheet, 
@@ -20,7 +21,7 @@ logger = logging.getLogger(__name__)
 @compta_bp.route('/')
 @login_required
 def index():
-    user_id = session['user_id']
+    user_id = current_user.id
     user = User.query.get(user_id)
     if not user:
         return redirect(url_for('users.logout'))
@@ -193,7 +194,7 @@ def index():
 @compta_bp.route('/bilan') # Si dans compta_controller
 @login_required
 def afficher_bilan():
-    user_id = session.get('user_id')
+    user_id = current_user.id
     user = User.query.get(user_id)
     if not user or not user.organisation_id:
         flash("Utilisateur ou organisation non trouvé.", "warning")
@@ -229,7 +230,7 @@ def afficher_bilan():
 @compta_bp.route('/compte-resultat') # Nouvelle route
 @login_required
 def afficher_compte_resultat():
-    user_id = session.get('user_id')
+    user_id = current_user.id
     user = User.query.get(user_id)
     if not user or not user.organisation_id:
         flash("Utilisateur ou organisation non trouvé.", "warning")
@@ -287,7 +288,7 @@ def afficher_compte_resultat():
 @compta_bp.route('/grand-livre') # Nouvelle route
 @login_required
 def afficher_grand_livre():
-    user_id = session.get('user_id')
+    user_id = current_user.id
     user = User.query.get(user_id)
     if not user or not user.organisation_id:
         flash("Utilisateur ou organisation non trouvé.", "warning")
@@ -340,7 +341,7 @@ def afficher_grand_livre():
 @compta_bp.route('/flux-tresorerie') # Nouvelle route
 @login_required
 def afficher_flux_tresorerie():
-    user_id = session.get('user_id')
+    user_id = current_user.id
     user = User.query.get(user_id)
     if not user or not user.organisation_id:
         flash("Utilisateur ou organisation non trouvé.", "warning")

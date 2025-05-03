@@ -2,8 +2,9 @@
 
 from controllers.db_manager import db
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask_login import UserMixin
 
-class User(db.Model):
+class User(UserMixin, db.Model):
     __tablename__ = 'app_user'
     id = db.Column(db.Integer, primary_key=True)
     nom = db.Column(db.String(50), nullable=False)
@@ -24,6 +25,13 @@ class User(db.Model):
         back_populates='user',
         lazy='dynamic' # Permet de filtrer/compter sans tout charger
     )
+
+
+    # --- Propriétés requises par Flask-Login (fournies par UserMixin si id est la clé primaire) ---
+    # is_authenticated: True si l'utilisateur est authentifié.
+    # is_active: True si l'utilisateur est actif (pas banni, etc.).
+    # is_anonymous: False pour les utilisateurs réels.
+    # get_id(): Retourne l'ID unique de l'utilisateur (généralement self.id).
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)

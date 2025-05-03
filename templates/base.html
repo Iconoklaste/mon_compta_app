@@ -10,7 +10,7 @@
 
     <!-- Tes CSS personnalisés (après Bootstrap pour pouvoir surcharger) -->
     <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
-    {% if not session['user_id'] %}
+    {% if not current_user.is_authenticated %}
     <link rel="stylesheet" href="{{ url_for('static', filename='landing.css') }}">
     {% endif %}
 
@@ -25,12 +25,12 @@
     {# Ce bloc est conservé pour les CSS/JS spécifiques à certaines pages #}
     {% endblock %}
 </head>
-<body class="{% if not session['user_id'] %}landing-page{% endif %}{% block body_class %}{% endblock %}">
+<body class="{% if not current_user.is_authenticated %}landing-page{% endif %}{% block body_class %}{% endblock %}">
     <div class="app-container">
-        {% if session['user_id'] %}
+        {% if current_user.is_authenticated %}
         {# --- Sidebar (pas de changement majeur ici, le masquage sera géré par CSS/JS) --- #}
         <aside class="sidebar">
-            <div class="sidebar-brand">{{ session['organisation'] }}</div>
+            <div class="sidebar-brand">{{ current_user.organisation.designation }}</div>
 
             {# --- Navigation Principale --- #}
             <nav id="sidebar-content"> {# Retrait flex-grow-1 si non nécessaire ici #}
@@ -111,7 +111,7 @@
 
         {# --- Contenu Principal --- #}
         <main class="main-content">
-            {% if session['user_id'] %}
+            {% if current_user.is_authenticated %}
             {# --- MODIFICATION : Navbar avec structure responsive Bootstrap --- #}
             <header class="navbar navbar-expand-lg" id="main-navbar"> {# Ajout de navbar-expand-lg #}
                 <div class="container-fluid"> {# Wrapper standard Bootstrap #}
@@ -176,7 +176,7 @@
             </div>
 
             {# Footer spécifique à la Landing Page #}
-            {% if not session['user_id'] %}
+            {% if not current_user.is_authenticated %}
             <footer class="landing-footer">
                 <div class="footer-links">
                     <img src="{{ url_for('static', filename='asset/logo-nv.png') }}" alt="STUDIO NOBLE-VAL Logo" class="footer-logo">

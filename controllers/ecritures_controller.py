@@ -1,6 +1,7 @@
 # controllers/ecritures_controller.py
 
 from flask import Blueprint, render_template, session, redirect, url_for, flash
+from flask_login import login_required, current_user
 from sqlalchemy.orm import joinedload, selectinload # Pour optimiser le chargement des relations
 from controllers.db_manager import db
 from controllers.users_controller import login_required
@@ -14,7 +15,7 @@ ecritures_bp = Blueprint('ecritures', __name__, url_prefix='/ecritures')
 def lister_ecritures():
     """Affiche la liste des écritures comptables pour l'organisation de l'utilisateur."""
     try:
-        user_id = session['user_id']
+        user_id = current_user.id
         user = User.query.get(user_id)
         if not user or not user.organisation_id:
             flash("Utilisateur ou organisation non trouvé.", "warning")

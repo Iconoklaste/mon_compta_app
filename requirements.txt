@@ -26,6 +26,7 @@ exceptiongroup==1.2.2
 executing==2.2.0
 filelock==3.18.0
 Flask==3.1.0
+Flask-Login==0.6.3
 Flask-Migrate==4.1.0
 Flask-SQLAlchemy==3.1.1
 flask-talisman==1.1.0

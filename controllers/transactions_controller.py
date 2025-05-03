@@ -9,6 +9,7 @@ from flask import (Blueprint,
                    current_app, 
                    send_from_directory, 
                    abort) 
+from flask_login import login_required, current_user
 from sqlalchemy import func # Import func for sum
 from models import Projet, FinancialTransaction, Revenue, Expense, User, ExerciceComptable, Organisation, CompteComptable # Updated imports
 from controllers.db_manager import db
@@ -28,7 +29,7 @@ logger = logging.getLogger(__name__)
 def ajouter_entree(projet_id):
     """Gère l'ajout d'une transaction d'entrée (Revenu/Facture) pour un projet."""
     projet = Projet.query.get_or_404(projet_id)
-    user_id = session['user_id']
+    user_id = current_user.id
     user = User.query.get_or_404(user_id)
     organisation = user.organisation
 
@@ -148,7 +149,7 @@ def ajouter_entree(projet_id):
 def ajouter_sortie(projet_id):
     """Gère l'ajout d'une transaction de sortie (Dépense) pour un projet."""
     projet = Projet.query.get_or_404(projet_id)
-    user_id = session['user_id']
+    user_id = current_user.id
     user = User.query.get_or_404(user_id)
     organisation = user.organisation
 
@@ -300,7 +301,7 @@ def ajouter_sortie(projet_id):
 def modifier_reglement(transaction_id):
     transaction = FinancialTransaction.query.get_or_404(transaction_id)
 
-    user_id = session['user_id']
+    user_id = current_user.id
     user = User.query.get(user_id)
     if not user or transaction.organisation_id != user.organisation_id:
         flash("Vous n'avez pas la permission de modifier cette transaction.", 'danger')
@@ -358,7 +359,7 @@ def download_attachment(transaction_id):
     transaction = FinancialTransaction.query.options(
         # db.joinedload(FinancialTransaction.organisation) # Example if needed
     ).get_or_404(transaction_id)
-    user = User.query.get(session['user_id'])
+    user = current_user
 
     # Security Check: Ensure the transaction is an Expense and belongs to the user's org
     if not isinstance(transaction, Expense) or transaction.organisation_id != user.organisation_id:
@@ -389,7 +390,7 @@ def download_attachment(transaction_id):
 def view_attachment(transaction_id):
     """Sert la pièce jointe pour affichage inline dans le navigateur."""
     transaction = FinancialTransaction.query.get_or_404(transaction_id)
-    user = User.query.get(session['user_id'])
+    user = current_user
 
     # Vérification de sécurité : L'utilisateur appartient à l'organisation de la transaction ?
     # Et est-ce bien une dépense (Expense) ?
