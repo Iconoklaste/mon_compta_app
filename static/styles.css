@@ -865,8 +865,8 @@ table th {
 /* Conteneur de l'avatar sur la page d'accueil utilisateur */
 .user-welcome-avatar-container {
     /* --- Caper la taille du CONTENEUR --- */
-    width: 60px;       /* Largeur fixe souhaitée pour le conteneur */
-    height: 60px;      /* Hauteur fixe souhaitée pour le conteneur */
+    width: 70px;       /* Largeur fixe souhaitée pour le conteneur */
+    height: 70px;      /* Hauteur fixe souhaitée pour le conteneur */
     flex-shrink: 0;    /* Empêche le conteneur de rétrécir si l'espace manque */
     /* Optionnel: Styles pour l'apparence du conteneur si besoin (ex: arrondi, fond) */
     /* border-radius: 50%; */
