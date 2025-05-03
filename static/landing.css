@@ -367,3 +367,191 @@ body.landing-page .main-content {
     color: white; /* Assure-toi qu'il a la bonne couleur */
 }
 
+/* ============================================= */
+/*    STYLES RESPONSIVES POUR LANDING.CSS      */
+/* ============================================= */
+
+/* --- Point de rupture Tablettes (<= 992px) --- */
+@media (max-width: 991.98px) {
+    .landing-page-content {
+        flex-direction: column; /* Empiler les sections */
+        align-items: center; /* Centrer les sections empilées */
+        padding: 2rem 1rem; /* Ajouter un peu de padding global */
+        gap: 3rem; /* Espace entre la section gauche et droite */
+    }
+
+    .landing-page-left,
+    .landing-page-right {
+        flex-basis: auto; /* Réinitialiser la base flex */
+        width: 100%; /* Prendre toute la largeur */
+        padding-right: 0; /* Supprimer le padding droit de la section gauche */
+        max-width: 600px; /* Limiter la largeur maximale pour la lisibilité */
+        align-items: center; /* Centrer le contenu de la section droite */
+    }
+
+     .landing-page-left {
+        order: 1; /* Garder la section gauche en premier */
+        margin: 0; /* Réinitialiser les marges spécifiques */
+        text-align: center; /* Centrer le texte dans la section gauche */
+    }
+    .landing-page-left h1 {
+        font-size: 2.2rem; /* Réduire légèrement la taille du titre */
+        max-width: 95%; /* Permettre au titre de prendre plus de largeur */
+    }
+     .landing-page-left .intro-text {
+        font-size: 1rem;
+        max-width: 80%;
+        margin-bottom: 3vh;
+    }
+
+    .btn-decouvrir {
+        width: auto; /* Laisser le contenu définir la largeur */
+        max-width: 350px; /* Limite max */
+        padding: 15px 25px; /* Ajuster padding */
+    }
+
+    .landing-page-right {
+        order: 2; /* S'assurer qu'elle vient après */
+        padding: 0; /* Réinitialiser le padding */
+    }
+
+    .login-card {
+        width: 90%; /* Rendre la carte flexible */
+        max-width: 450px; /* Limite max */
+        height: auto; /* Laisser la hauteur s'adapter au contenu */
+        padding: 25px;
+        margin-top: 0; /* Pas besoin de marge sup si gap est utilisé sur le parent */
+    }
+
+    .features-section {
+        justify-content: center; /* Centrer les features quand elles wrappent */
+        gap: 30px; /* Espace uniforme */
+    }
+    .feature-item {
+        min-width: 180px; /* Ajuster si nécessaire */
+    }
+
+    .landing-logo {
+        width: 8rem; /* Réduire la taille du logo */
+        height: 8rem;
+    }
+}
+
+
+/* --- Point de rupture Mobiles (<= 767.98px) --- */
+@media (max-width: 767.98px) {
+    .landing-page-left h1 {
+        font-size: 1.8rem; /* Réduire encore le titre */
+        line-height: 1.4;
+    }
+    .landing-page-left .intro-text {
+        font-size: 0.9rem;
+        max-width: 90%;
+    }
+
+    .login-card {
+        width: 95%;
+        padding: 20px;
+        max-width: 400px; /* Réduire un peu la limite max */
+    }
+    .login-card form .form-control {
+         height: 42px; /* Réduire légèrement hauteur input */
+         padding-left: 35px;
+    }
+    .login-card form .form-group .input-icon {
+        left: 10px;
+        font-size: 0.9rem;
+    }
+    .login-card form .form-group .password-toggle-icon {
+         right: 10px;
+    }
+
+    .features-section {
+        gap: 20px; /* Réduire l'espace */
+    }
+    .feature-item {
+        flex-basis: 45%; /* Essayer 2 features par ligne */
+        min-width: 140px;
+    }
+     .feature-icon-wrapper {
+        width: 50px;
+        height: 50px;
+        margin-bottom: 10px;
+    }
+    .feature-icon-wrapper i {
+        font-size: 1.5rem;
+    }
+    .feature-item h3 {
+        font-size: 1rem;
+    }
+    .feature-item p {
+        font-size: 0.85rem;
+    }
+
+    .landing-logo {
+        width: 6rem;
+        height: 6rem;
+    }
+
+    .landing-footer {
+        flex-direction: column; /* Empiler les sections du footer */
+        align-items: center;
+        text-align: center;
+        gap: 10px; /* Espace entre logo/liens et copyright */
+        padding: 15px;
+    }
+    .footer-links {
+        margin-bottom: 10px; /* Espace sous les liens principaux */
+        display: flex;
+        flex-direction: column; /* Empiler logo et copyright SNV */
+        align-items: center;
+        gap: 5px;
+    }
+    .footer-copyright {
+        justify-content: center; /* Centrer les liens copyright */
+        flex-wrap: wrap; /* Permettre le retour à la ligne si besoin */
+    }
+}
+
+
+/* --- Point de rupture Petits Mobiles (<= 575.98px) --- */
+@media (max-width: 575.98px) {
+     .landing-page-content {
+        padding: 1.5rem 0.75rem; /* Réduire padding global */
+        gap: 2rem; /* Réduire l'espace */
+    }
+    .landing-page-left h1 {
+        font-size: 1.6rem;
+    }
+     .landing-page-left .intro-text {
+        font-size: 0.85rem;
+        max-width: 95%;
+    }
+
+    .login-card {
+        width: 100%; /* Pleine largeur sur très petit écran */
+        max-width: none; /* Pas de limite max */
+        box-shadow: none; /* Optionnel: enlever l'ombre */
+        border-radius: 0; /* Optionnel: enlever coins arrondis */
+        padding: 15px;
+    }
+
+    .feature-item {
+        flex-basis: 100%; /* Une seule feature par ligne */
+        min-width: 0;
+    }
+
+    .landing-logo {
+        width: 5rem;
+        height: 5rem;
+    }
+
+    .btn-decouvrir {
+        font-size: 0.9rem;
+        padding: 12px 20px;
+    }
+    .login-card .btn-connexion {
+        font-size: 0.9rem;
+        padding: 10px;
+    }
+}
