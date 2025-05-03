@@ -4,6 +4,7 @@ import logging
 import base64
 import json
 from flask import Blueprint, request, jsonify, current_app, session # Ajout de session
+from flask_login import login_required, current_user
 from mistralai import Mistral
 from mistralai import models as mistral_models
 from mistralai.models import OCRResponse

@@ -8,7 +8,7 @@ from forms.forms import (LoginForm,
                          AjouterUserFormDemo, 
                          ChatbotQuestionForm)
 
-from flask_login import login_user, logout_user, login_required, current_user # <-- Importer les fonctions et current_user
+from flask_login import login_user, logout_user, login_required, current_user
 import logging
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)

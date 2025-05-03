@@ -1,5 +1,5 @@
 from flask import Blueprint, request, jsonify, render_template, redirect, url_for, make_response, session, current_app, flash
-from flask_login import login_user
+from flask_login import login_user, login_required, current_user
 from controllers.db_manager import db
 from controllers.users_controller import login_required
 from models import Organisation, User
