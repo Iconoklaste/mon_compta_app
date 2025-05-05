@@ -19,7 +19,7 @@
                 {% elif message.role == 'assistant' %}
                     <div class="message bot-message mb-3"> {# Alignement à gauche par défaut #}
                         <p class="mb-0"><img src="{{ url_for('static', filename='asset/avatar-loova.png') }}" alt="Loova" style="width: 20px; height: 20px; margin-right: 5px; vertical-align: middle;"><strong>Loova :</strong></p>
-                        <p class="alert alert-secondary d-inline-block mb-1">{{ message.content | safe }}</p> {# Utiliser | safe si la réponse peut contenir du HTML/Markdown formaté #}
+                        <div class="alert alert-secondary d-inline-block mb-1 chatbot-response-content">{{ message.content | safe }}</div> {# |safe est OK car le contenu est du HTML généré côté serveur #}
                     </div>
                 {% endif %}
             {% endfor %}
@@ -29,7 +29,8 @@
         {# --- Indicateur de chargement (caché par défaut) --- #}
         <div id="loading-indicator" class="message bot-message mb-3" style="display: none;">
              <p class="mb-0"><img src="{{ url_for('static', filename='asset/avatar-loova.png') }}" alt="Loova" style="width: 20px; height: 20px; margin-right: 5px; vertical-align: middle;"><strong>Loova :</strong></p>
-             <p class="alert alert-secondary d-inline-block mb-1"><i>Réflexion en cours... <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span></i></p>
+             {# Utiliser une div ici aussi pour la cohérence #}
+             <div class="alert alert-secondary d-inline-block mb-1"><i>Réflexion en cours... <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span></i></div>
         </div>
         {# ---------------------------------------------------- #}
     </div>
@@ -61,12 +62,11 @@
         </a>
         {# --- Optionnel : Bouton pour effacer l'historique --- #}
         {% if chat_history %} {# N'afficher que s'il y a un historique #}
-        <form method="POST" action="{{ url_for('chatbot.clear_chat') }}" style="display: inline-block; margin-left: 10px;">
-             <!-- {{ csrf_token() }} {# Important si vous utilisez CSRFProtect globalement #} -->
-             <button type="submit" class="btn btn-outline-danger" onclick="return confirm('Voulez-vous vraiment effacer l\'historique de cette conversation ?');">
-                 <i class="fas fa-trash-alt me-2"></i>Effacer l'historique
-             </button>
-         </form>
+
+        <button type="button" id="clear-chat-btn" class="btn btn-outline-danger" style="margin-left: 10px;">
+            <i class="fas fa-trash-alt me-2"></i>Effacer l'historique
+        </button>
+
         {% endif %}
 
     </div>
@@ -77,86 +77,213 @@
 <script>
     console.log("Page de chat chargée.");
 
-const chatContainer = document.querySelector('.chat-container');
-const form = document.querySelector('.new-question-form form');
-const input = form.querySelector('input[name="question"]');
-const submitButton = form.querySelector('button[type="submit"]');
-const loadingIndicator = document.getElementById('loading-indicator');
-const csrfToken = form.querySelector('input[name="csrf_token"]').value; // Récupérer le token CSRF
+    const chatContainer = document.querySelector('.chat-container');
+    const form = document.querySelector('.new-question-form form');
+    const input = form.querySelector('input[name="question"]');
+    const submitButton = form.querySelector('button[type="submit"]');
+    const loadingIndicator = document.getElementById('loading-indicator');
+    const csrfTokenInput = form.querySelector('input[name="csrf_token"]'); // Sélectionner l'input CSRF
+    const csrfToken = csrfTokenInput ? csrfTokenInput.value : null; // Récupérer la valeur, gérer si absent
 
-// --- Faire défiler vers le bas du conteneur de chat ---
-function scrollToBottom() {
-    if (chatContainer) {
-        chatContainer.scrollTop = chatContainer.scrollHeight;
+    // --- Sélection du bouton "Effacer l'historique" ---
+    // Note: Il faut ajouter l'ID 'clear-chat-btn' au bouton dans le HTML
+    const clearChatButton = document.getElementById('clear-chat-btn');
+    const clearChatUrl = "{{ url_for('chatbot.clear_chat') }}";
+
+    // --- Vérification de l'existence des éléments ---
+    if (!chatContainer) console.error("Erreur: Élément '.chat-container' non trouvé.");
+    if (!form) console.error("Erreur: Formulaire '.new-question-form form' non trouvé.");
+    if (!input) console.error("Erreur: Input 'input[name=\"question\"]' non trouvé.");
+    if (!submitButton) console.error("Erreur: Bouton 'button[type=\"submit\"]' non trouvé.");
+    if (!loadingIndicator) console.error("Erreur: Élément '#loading-indicator' non trouvé.");
+    if (!csrfToken) console.warn("Attention: Token CSRF non trouvé. Les requêtes POST pourraient échouer.");
+    if (!clearChatButton) console.log("Info: Bouton '#clear-chat-btn' non trouvé (peut-être normal si historique vide).");
+
+
+    // --- Faire défiler vers le bas du conteneur de chat ---
+    function scrollToBottom() {
+        if (chatContainer) {
+            chatContainer.scrollTop = chatContainer.scrollHeight;
+        }
     }
-}
-scrollToBottom(); // Au chargement initial
-
-// --- Intercepter la soumission du formulaire ---
-form.addEventListener('submit', function(event) {
-    event.preventDefault(); // Empêcher le rechargement de la page
-
-    const question = input.value.trim();
-    if (!question) {
-        return; // Ne rien faire si la question est vide
+    // S'assurer que le DOM est prêt avant de scroller
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", scrollToBottom);
+    } else {
+        scrollToBottom(); // Au chargement initial si DOM déjà prêt
     }
 
-    // 1. Ajouter la question de l'utilisateur à l'affichage (optimiste)
-    const userMessageDiv = document.createElement('div');
-    userMessageDiv.className = 'message user-message mb-3 text-end';
-    userMessageDiv.innerHTML = `<p class="alert alert-primary d-inline-block mb-1">${question}</p>`;
-    // Insérer avant l'indicateur de chargement
-    chatContainer.insertBefore(userMessageDiv, loadingIndicator);
 
-    // 2. Afficher l'indicateur de chargement et désactiver le formulaire
-    loadingIndicator.style.display = 'block';
-    input.value = ''; // Vider l'input
-    input.disabled = true;
-    submitButton.disabled = true;
-    chatContainer.scrollTop = chatContainer.scrollHeight;
+    // --- Intercepter la soumission du formulaire de question ---
+    if (form && input && submitButton && loadingIndicator && csrfToken) {
+        form.addEventListener('submit', function(event) {
+            event.preventDefault(); // Empêcher le rechargement de la page
 
-    // 3. Envoyer la requête AJAX (fetch)
-    fetch(form.action, {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json', // Envoyer en JSON
-            'X-CSRFToken': csrfToken, // Envoyer le token CSRF dans les headers
-            'X-Requested-With': 'XMLHttpRequest' // Indiquer que c'est une requête AJAX
-        },
-        body: JSON.stringify({ question: question }) // Envoyer la question dans le corps JSON
-    })
-    .then(response => response.json()) // Attendre une réponse JSON
-    .then(data => {
-        // 4. Cacher l'indicateur et réactiver le formulaire
-        loadingIndicator.style.display = 'none';
-        input.disabled = false;
-        submitButton.disabled = false;
+            const question = input.value.trim();
+            if (!question) {
+                // Optionnel: ajouter une validation visuelle si besoin
+                // input.classList.add('is-invalid');
+                return; // Ne rien faire si la question est vide
+            }
+            // input.classList.remove('is-invalid'); // Retirer l'erreur si elle était présente
 
-        // 5. Ajouter la réponse du bot à l'affichage
-        const botMessageDiv = document.createElement('div');
-        botMessageDiv.className = 'message bot-message mb-3';
-        // Utiliser data.answer ou data.error selon la réponse du serveur
-        const answerContent = data.success ? data.answer : `<span class="text-danger">${data.error || 'Erreur inconnue'}</span>`;
-        botMessageDiv.innerHTML = `<p class="mb-0"><img src="{{ url_for('static', filename='asset/avatar-loova.png') }}" alt="Loova" style="width: 20px; height: 20px; margin-right: 5px; vertical-align: middle;"><strong>Loova :</strong></p>
-                                   <p class="alert alert-secondary d-inline-block mb-1">${answerContent}</p>`;
-        chatContainer.insertBefore(botMessageDiv, loadingIndicator); // Insérer avant l'indicateur (qui est caché)
-        scrollToBottom(); // Faire défiler pour voir la réponse
-    })
-    .catch(error => {
-        console.error('Erreur lors de la requête fetch:', error);
-        // Gérer l'erreur (afficher un message, etc.)
-        loadingIndicator.style.display = 'none';
-        input.disabled = false;
-        submitButton.disabled = false;
-        // Afficher un message d'erreur générique dans le chat
-        const errorDiv = document.createElement('div');
-        errorDiv.className = 'message bot-message mb-3';
-        errorDiv.innerHTML = `<p class="mb-0"><img src="{{ url_for('static', filename='asset/avatar-loova.png') }}" alt="Loova" style="width: 20px; height: 20px; margin-right: 5px; vertical-align: middle;"><strong>Loova :</strong></p>
-                              <p class="alert alert-danger d-inline-block mb-1">Désolé, une erreur de communication est survenue.</p>`;
-        chatContainer.insertBefore(errorDiv, loadingIndicator);
-        scrollToBottom();
-    });
-});
+            // 1. Ajouter la question de l'utilisateur à l'affichage (optimiste)
+            // --- Correction : Retirer le message "Historique effacé" s'il existe ---
+            const clearedMsg = chatContainer.querySelector('#history-cleared-msg');
+            if (clearedMsg) {
+                clearedMsg.remove();
+                // Si le message existait, on est en train d'ajouter le 1er message après un effacement.
+                // On peut donc réafficher et réactiver le bouton "Effacer" s'il existe et est caché.
+                if (clearChatButton && clearChatButton.style.display === 'none') {
+                    clearChatButton.style.display = 'inline-block'; // Rétablir l'affichage (ajuster si besoin)
+                    clearChatButton.disabled = false;
+                    clearChatButton.innerHTML = '<i class="fas fa-trash-alt me-2"></i>Effacer l\'historique';
+                    console.log("Bouton 'Effacer' réactivé après ajout d'un nouveau message.");
+                }
+            }
+            const userMessageDiv = document.createElement('div');
+            userMessageDiv.className = 'message user-message mb-3 text-end';
+            // Échapper le HTML potentiel dans la question de l'utilisateur
+            const escapedQuestion = document.createTextNode(question).textContent;
+            userMessageDiv.innerHTML = `<p class="alert alert-primary d-inline-block mb-1">${escapedQuestion}</p>`;
+            // Insérer avant l'indicateur de chargement
+            if (chatContainer) {
+                chatContainer.insertBefore(userMessageDiv, loadingIndicator);
+            }
+
+            // 2. Afficher l'indicateur de chargement et désactiver le formulaire
+            loadingIndicator.style.display = 'block';
+            input.value = ''; // Vider l'input
+            input.disabled = true;
+            submitButton.disabled = true;
+            scrollToBottom(); // Faire défiler pour voir l'indicateur
+
+            // 3. Envoyer la requête AJAX (fetch)
+            fetch(form.action, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json', // Envoyer en JSON
+                    'X-CSRFToken': csrfToken, // Envoyer le token CSRF dans les headers
+                    'X-Requested-With': 'XMLHttpRequest' // Indiquer que c'est une requête AJAX
+                },
+                body: JSON.stringify({ question: question }) // Envoyer la question dans le corps JSON
+            })
+            .then(response => {
+                if (!response.ok) {
+                    // Essayer de lire le corps JSON pour un message d'erreur structuré
+                    return response.json().then(errData => {
+                        throw new Error(errData.error || `Erreur serveur (${response.status})`);
+                    }).catch(() => {
+                        // Si le corps n'est pas JSON ou vide, lancer une erreur générique
+                        throw new Error(`Erreur HTTP ${response.status}`);
+                    });
+                }
+                return response.json(); // Attendre une réponse JSON
+            })
+            .then(data => {
+                // 5. Ajouter la réponse du bot à l'affichage
+                const botMessageDiv = document.createElement('div');
+                botMessageDiv.className = 'message bot-message mb-3';
+                // data.answer contient maintenant du HTML généré par le serveur
+                const answerContent = data.success ? data.answer : `<span class="text-danger">${data.error || 'Erreur inconnue'}</span>`;
+
+                // Utiliser la même structure HTML que pour l'historique initial
+                // Notamment la div pour le contenu de la réponse
+                botMessageDiv.innerHTML = `
+                    <p class="mb-0"><img src="{{ url_for('static', filename='asset/avatar-loova.png') }}" alt="Loova" style="width: 20px; height: 20px; margin-right: 5px; vertical-align: middle;"><strong>Loova :</strong></p>
+                    <div class="alert alert-secondary d-inline-block mb-1 chatbot-response-content">${answerContent}</div>`; // Insérer le HTML reçu
+
+                if (chatContainer) {
+                    chatContainer.insertBefore(botMessageDiv, loadingIndicator); // Insérer avant l'indicateur (qui est caché)
+                }
+            })
+            .catch(error => {
+                console.error('Erreur lors de la requête fetch (question):', error);
+                // Afficher un message d'erreur générique dans le chat
+                const errorDiv = document.createElement('div');
+                errorDiv.className = 'message bot-message mb-3';
+                errorDiv.innerHTML = `<p class="mb-0"><img src="{{ url_for('static', filename='asset/avatar-loova.png') }}" alt="Loova" style="width: 20px; height: 20px; margin-right: 5px; vertical-align: middle;"><strong>Loova :</strong></p>
+                                      {# Utiliser une div ici aussi #}
+                                      <div class="alert alert-danger d-inline-block mb-1">Désolé, une erreur de communication est survenue (${error.message}).</div>`;
+                if (chatContainer) {
+                    chatContainer.insertBefore(errorDiv, loadingIndicator);
+                }
+            })
+            .finally(() => {
+                // 4. Cacher l'indicateur et réactiver le formulaire (toujours exécuté)
+                loadingIndicator.style.display = 'none';
+                input.disabled = false;
+                submitButton.disabled = false;
+                input.focus(); // Remettre le focus sur l'input
+                scrollToBottom(); // Faire défiler pour voir la réponse ou l'erreur
+            });
+        });
+    }
+
+
+    // --- Gérer le clic sur le bouton "Effacer l'historique" ---
+    if (clearChatButton && csrfToken) { // S'assurer que le bouton et le token existent
+        clearChatButton.addEventListener('click', function() {
+            if (confirm('Voulez-vous vraiment effacer l\'historique de cette conversation ?')) {
+                let operationSuccess = false; // Flag pour savoir si l'opération a réussi
+
+                // Afficher un indicateur de chargement
+                clearChatButton.disabled = true;
+                clearChatButton.innerHTML = '<span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span> Effacement...';
+
+                fetch(clearChatUrl, {
+                    method: 'POST',
+                    headers: {
+                        'X-CSRFToken': csrfToken, // Utiliser le token CSRF
+                        'X-Requested-With': 'XMLHttpRequest' // Indiquer requête AJAX
+                    }
+                })
+                .then(response => {
+                    if (!response.ok) {
+                        return response.json().then(err => { throw new Error(err.error || `Erreur serveur: ${response.statusText}`) });
+                    }
+                    return response.json(); // Supposons que le backend renvoie {success: true}
+                })
+                .then(data => {
+                    if (data && data.success) {
+                        operationSuccess = true; // Marquer comme succès
+                        // 1. Vider le conteneur de chat visuellement
+                        if (chatContainer) {
+                            // Supprimer tous les messages (éléments avec la classe 'message')
+                            const messages = chatContainer.querySelectorAll('.message:not(#loading-indicator)'); // Exclure l'indicateur de chargement
+                            messages.forEach(msg => msg.remove());
+                            // Ajouter un message indiquant que c'est vide
+                            const emptyMsg = document.createElement('p');
+                            emptyMsg.className = 'text-muted';
+                            emptyMsg.textContent = 'L\'historique a été effacé.';
+                            chatContainer.appendChild(emptyMsg); // Ajouter le message
+                        }
+                        // 2. Cacher le bouton "Effacer l'historique"
+                        clearChatButton.style.display = 'none';
+                    } else {
+                        // Gérer le cas où le backend renvoie une réponse OK mais indique un échec logique
+                        throw new Error(data.error || "L'opération a échoué côté serveur.");
+                    }
+                })
+                .catch(error => {
+                    console.error('Erreur lors de la requête fetch pour effacer:', error);
+                    alert(`Une erreur est survenue lors de la tentative d'effacement: ${error.message}`);
+                    // La restauration du bouton se fera dans finally si operationSuccess est false
+                })
+                .finally(() => {
+                    // Restaurer le bouton seulement si l'opération a échoué
+                    if (!operationSuccess) {
+                        clearChatButton.disabled = false;
+                        clearChatButton.innerHTML = '<i class="fas fa-trash-alt me-2"></i>Effacer l\'historique';
+                    }
+                });
+            }
+        });
+    } else if (clearChatButton && !csrfToken) {
+         console.warn("Le bouton 'Effacer l'historique' existe mais le token CSRF est manquant. Le bouton ne fonctionnera pas.");
+         clearChatButton.disabled = true; // Désactiver pour éviter les erreurs
+         clearChatButton.title = "Erreur de configuration : Token CSRF manquant.";
+    }
 
 </script>
 {% endblock %}

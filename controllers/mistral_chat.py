@@ -8,6 +8,7 @@ from flask import (Blueprint,
                    session,
                    request)
 from forms.forms import ChatbotQuestionForm
+from markdown_it import MarkdownIt # Importé
 import logging
 import os
 from controllers.users_controller import login_required # Pour protéger la route si besoin
@@ -16,6 +17,7 @@ from mistralai import Mistral
 # Note: L'import 'json' n'était pas utilisé et a été retiré.
 
 logger = logging.getLogger(__name__) # Initialiser le logger
+md = MarkdownIt() # Initialise le parseur Markdown une seule fois
 
 # Création du Blueprint 'chatbot'
 chatbot_bp = Blueprint('chatbot', __name__, template_folder='../templates/mistral')
@@ -75,7 +77,8 @@ def chatbot_ask():
         logger.debug(f"DEBUG: Historique récupéré de la session: {chat_history}")
         # --------------------------------------------------------------------------
 
-        answer = None # Initialiser la variable réponse
+        raw_answer = None # Initialiser la variable réponse BRUTE (Markdown)
+        html_answer = None # Initialiser la variable réponse HTML
 
         try:
             # --- Début de l'appel à Mistral  ---
@@ -105,38 +108,57 @@ def chatbot_ask():
                 model=model_chat,
                 messages=messages
             )
-            answer = chat_response.choices[0].message.content
+            raw_answer = chat_response.choices[0].message.content # Réponse BRUTE (Markdown)
             logger.info(f"Réponse de Mistral AI reçue.")
             # --- Fin de l'appel à Mistral ---
 
-            # --- CORRECTION : Mettre à jour l'historique ET retourner la réponse pour AJAX ICI ---
-            # Mettre à jour l'historique avec la question et la réponse actuelles
+            # --- Conversion Markdown -> HTML ---
+            html_answer = md.render(raw_answer)
+            # -----------------------------------
+
+            # --- Mettre à jour l'historique ET retourner la réponse pour AJAX ICI ---
+            # Mettre à jour l'historique avec la question et la réponse BRUTE
             chat_history.append({"role": "user", "content": question})
-            chat_history.append({"role": "assistant", "content": answer})
+            chat_history.append({"role": "assistant", "content": raw_answer}) # Stocker le brut
             session['mistral_chat_history'] = chat_history
             logger.debug(f"DEBUG: Historique mis à jour et sauvegardé.")
 
-            # Si c'est une requête AJAX, retourner la réponse JSON maintenant
+            # Si c'est une requête AJAX, retourner la réponse HTML JSON maintenant
             if is_ajax:
-                return jsonify({"success": True, "answer": answer})
-            # --- FIN CORRECTION ---
+                return jsonify({"success": True, "answer": html_answer}) # Renvoie le HTML
+            # --- FIN MODIFICATION ---
 
         except Exception as e:
             logger.error(f"Erreur lors de l'appel à Mistral AI (ou traitement) : {e}", exc_info=True)
             flash("Désolé, une erreur est survenue lors de la communication avec l'assistant.", "danger")
             # En cas d'erreur API, on ne modifie pas l'historique
-            answer = "Erreur lors de la génération de la réponse." # Définir une réponse d'erreur
+            error_message = "Erreur lors de la génération de la réponse."
+            html_answer = f'<p class="text-danger">{error_message}</p>' # Renvoyer un message d'erreur HTML
             if is_ajax:
-                 return jsonify({"success": False, "error": "Erreur lors de la génération de la réponse."}), 500
+                 # Renvoyer l'erreur HTML dans la clé 'answer' pour l'afficher côté client
+                 return jsonify({"success": False, "answer": html_answer}), 500
             # Pour non-AJAX, on continue pour rendre le template avec le flash message
 
-        # --- Rendu du template (uniquement pour les requêtes non-AJAX qui ont réussi ou échoué après l'API) ---
+        # --- Rendu du template (uniquement pour les requêtes non-AJAX) ---
+        # Ce bloc est moins pertinent si tu utilises AJAX pour toutes les interactions,
+        # mais il est conservé pour la complétude.
         if not is_ajax:
-            logger.debug(f"DEBUG: Historique passé au template (non-AJAX): {chat_history}")
+            logger.debug(f"Rendu non-AJAX demandé (ou fallback après erreur API).")
             new_chatbot_form = ChatbotQuestionForm()
-            # Passer l'historique (qui peut être l'ancien si l'API a échoué) et le formulaire
+
+            # --- Traiter l'historique pour l'affichage non-AJAX ---
+            processed_history = []
+            for message in chat_history:
+                processed_message = message.copy()
+                if processed_message.get('role') == 'assistant':
+                    # Convertir le contenu brut stocké en HTML pour l'affichage
+                    processed_message['content'] = md.render(processed_message.get('content', ''))
+                processed_history.append(processed_message)
+            # -------------------------------------------------------
+
+            # Passer l'historique traité et le formulaire
             return render_template('chat.html',
-                                   chat_history=chat_history,
+                                   chat_history=processed_history, # Utiliser l'historique traité
                                    chatbot_form=new_chatbot_form)
 
         # Ce code ne devrait normalement pas être atteint pour une requête AJAX réussie
@@ -155,13 +177,26 @@ def chatbot_ask():
 @login_required # Assurez-vous que seul un utilisateur connecté peut effacer
 def clear_chat():
     """Efface l'historique du chat dans la session."""
-    # Utilise la même clé spécifique
-    if 'mistral_chat_history' in session:
-        session.pop('mistral_chat_history')
-        flash("L'historique de la conversation a été effacé.", "info")
-        logger.info("Historique du chat effacé de la session.")
-    else:
-        flash("Aucun historique à effacer.", "info")
-        logger.info("Tentative d'effacement de l'historique du chat, mais aucun historique trouvé.")
-    # Rediriger vers la page d'accueil
-    return redirect(url_for('users.accueil'))
+    # Vérifier si c'est une requête AJAX (bonne pratique)
+    is_ajax = request.headers.get('X-Requested-With') == 'XMLHttpRequest'
+    if not is_ajax:
+        # Si ce n'est pas AJAX, on peut choisir de rediriger ou de renvoyer une erreur
+        flash("Action non autorisée.", "warning")
+        return redirect(url_for('users.accueil')) # Ou retourner une erreur 405 Method Not Allowed
+
+    try:
+        # Utilise la même clé spécifique
+        if 'mistral_chat_history' in session:
+            session.pop('mistral_chat_history')
+            logger.info("Historique du chat effacé de la session via AJAX.")
+            # Retourner une réponse JSON de succès
+            return jsonify(success=True)
+        else:
+            logger.info("Tentative d'effacement AJAX de l'historique du chat, mais aucun historique trouvé.")
+            # Même s'il n'y avait rien, l'opération est un succès du point de vue de l'appelant
+            return jsonify(success=True)
+    except Exception as e:
+        logger.error(f"Erreur lors de l'effacement de l'historique du chat via AJAX: {e}", exc_info=True)
+        # Retourner une réponse JSON d'erreur
+        return jsonify(success=False, error="Une erreur interne est survenue lors de l'effacement."), 500
+
