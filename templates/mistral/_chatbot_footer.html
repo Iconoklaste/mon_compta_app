@@ -1,0 +1,24 @@
+{# c:\wamp\www\mon_compta_app\templates\mistral\_chatbot_footer.html #}
+{# Ce fichier contient uniquement le code HTML du footer de chat #}
+{# Il suppose que 'chatbot_form' est disponible via le context processor #}
+<footer class="chatbot-footer"> {# Tu peux utiliser une classe spécifique si besoin #}
+    <div class="container-fluid"> {# Utiliser container-fluid pour la largeur #}
+        <div class="new-question-form py-2"> {# Ajuste le padding si nécessaire #}
+            <form method="POST" action="{{ url_for('chatbot.chatbot_ask') }}" novalidate id="footer-chatbot-form"> {# Ajout d'un ID unique #}
+                {{ chatbot_form.hidden_tag() }} {# Important pour CSRF #}
+                <div class="input-group">
+                    {{ chatbot_form.question(class="form-control", placeholder="Posez une question à Loova...", autocomplete="off", aria_label="Question pour le chatbot") }}
+                    <button class="btn btn-primary" type="submit" aria-label="Envoyer la question"><i class="fas fa-paper-plane"></i></button>
+                </div>
+                {# Affichage des erreurs si la soumission depuis cette page échoue (rare si AJAX fonctionne) #}
+                {% if chatbot_form.question.errors %}
+                    <div class="invalid-feedback d-block mt-1">
+                        {% for error in chatbot_form.question.errors %}
+                            <span>{{ error }}</span><br>
+                        {% endfor %}
+                    </div>
+                {% endif %}
+            </form>
+        </div>
+    </div>
+</footer>

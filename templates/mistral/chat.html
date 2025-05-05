@@ -1,25 +1,28 @@
 <!-- c:\wamp\www\mon_compta_app\chatbot\templates\chat.html -->
 {% extends 'base.html' %}
 
-{% block page_title %}Chat avec Loova{% endblock %}
+{% block extra_head %}
+    {{ super() }}
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/chatbot.css') }}">
+{% endblock %}
+
+{% block page_title %}<h1>Conversation</h1>{% endblock %}
 
 {% block content %}
 <div class="container mt-4">
-    <h1>Conversation</h1>
-
-    <div class="chat-container mt-3 border rounded p-3 mb-4" style="min-height: 400px; max-height: 60vh; overflow-y: auto; background-color: #f8f9fa;">
+    <div class="chat-container mt-3">
         {# --- MODIFICATION : Boucle sur l'historique du chat --- #}
         {% if chat_history %}
             {% for message in chat_history %}
                 {% if message.role == 'user' %}
                     <div class="message user-message mb-3 text-end"> {# Alignement à droite pour l'utilisateur #}
                         {# <p class="mb-0 small text-muted">Vous :</p> #} {# Optionnel: moins de "Vous:" répétitifs #}
-                        <p class="alert alert-primary d-inline-block mb-1">{{ message.content }}</p>
+                        <p class="alert alert-primary d-inline-block p-2 mb-1">{{ message.content }}</p>
                     </div>
                 {% elif message.role == 'assistant' %}
                     <div class="message bot-message mb-3"> {# Alignement à gauche par défaut #}
-                        <p class="mb-0"><img src="{{ url_for('static', filename='asset/avatar-loova.png') }}" alt="Loova" style="width: 20px; height: 20px; margin-right: 5px; vertical-align: middle;"><strong>Loova :</strong></p>
-                        <div class="alert alert-secondary d-inline-block mb-1 chatbot-response-content">{{ message.content | safe }}</div> {# |safe est OK car le contenu est du HTML généré côté serveur #}
+                        <p class="mb-1"><img src="{{ url_for('static', filename='asset/avatar-loova.png') }}" alt="Loova"><strong>Loova :</strong></p> 
+                        <div class="alert alert-secondary d-inline-block p-2 mb-1 chatbot-response-content">{{ message.content | safe }}</div> {# |safe est OK car le contenu est du HTML généré côté serveur #}
                     </div>
                 {% endif %}
             {% endfor %}
@@ -27,9 +30,9 @@
             <p class="text-muted">La conversation n'a pas encore commencé.</p>
         {% endif %}
         {# --- Indicateur de chargement (caché par défaut) --- #}
-        <div id="loading-indicator" class="message bot-message mb-3" style="display: none;">
-             <p class="mb-0"><img src="{{ url_for('static', filename='asset/avatar-loova.png') }}" alt="Loova" style="width: 20px; height: 20px; margin-right: 5px; vertical-align: middle;"><strong>Loova :</strong></p>
-             {# Utiliser une div ici aussi pour la cohérence #}
+        <div id="loading-indicator" class="message bot-message mb-3" style="display: none;"> {# display:none est géré par JS, mais on peut le mettre en CSS aussi #}
+            <p class="mb-0"><img src="{{ url_for('static', filename='asset/avatar-loova.png') }}" alt="Loova"><strong>Loova :</strong></p> {# Style déplacé vers chatbot.css #}
+            {# Utiliser une div ici aussi pour la cohérence #}
              <div class="alert alert-secondary d-inline-block mb-1"><i>Réflexion en cours... <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span></i></div>
         </div>
         {# ---------------------------------------------------- #}
@@ -63,7 +66,7 @@
         {# --- Optionnel : Bouton pour effacer l'historique --- #}
         {% if chat_history %} {# N'afficher que s'il y a un historique #}
 
-        <button type="button" id="clear-chat-btn" class="btn btn-outline-danger" style="margin-left: 10px;">
+        <button type="button" id="clear-chat-btn" class="btn btn-outline-danger">
             <i class="fas fa-trash-alt me-2"></i>Effacer l'historique
         </button>
 
@@ -181,6 +184,7 @@
                 return response.json(); // Attendre une réponse JSON
             })
             .then(data => {
+                console.log("Données reçues du serveur :", data);
                 // 5. Ajouter la réponse du bot à l'affichage
                 const botMessageDiv = document.createElement('div');
                 botMessageDiv.className = 'message bot-message mb-3';
@@ -190,19 +194,28 @@
                 // Utiliser la même structure HTML que pour l'historique initial
                 // Notamment la div pour le contenu de la réponse
                 botMessageDiv.innerHTML = `
-                    <p class="mb-0"><img src="{{ url_for('static', filename='asset/avatar-loova.png') }}" alt="Loova" style="width: 20px; height: 20px; margin-right: 5px; vertical-align: middle;"><strong>Loova :</strong></p>
+                    <p class="mb-0"><img src="{{ url_for('static', filename='asset/avatar-loova.png') }}" alt="Loova"><strong>Loova :</strong></p>
                     <div class="alert alert-secondary d-inline-block mb-1 chatbot-response-content">${answerContent}</div>`; // Insérer le HTML reçu
 
                 if (chatContainer) {
                     chatContainer.insertBefore(botMessageDiv, loadingIndicator); // Insérer avant l'indicateur (qui est caché)
                 }
+                // Vérifier et gérer la redirection ---
+                if (data.redirect_url) {
+                    console.log("Redirection demandée vers :", data.redirect_url);
+                    // Attendre un court instant pour que l'utilisateur voie le message (optionnel)
+                    setTimeout(() => {
+                        window.location.href = data.redirect_url; // Effectue la redirection
+                    }, 500); // Délai de 1.5 secondes (ajustable)
+                }
+                // --- FIN vérif ---
             })
             .catch(error => {
                 console.error('Erreur lors de la requête fetch (question):', error);
                 // Afficher un message d'erreur générique dans le chat
                 const errorDiv = document.createElement('div');
                 errorDiv.className = 'message bot-message mb-3';
-                errorDiv.innerHTML = `<p class="mb-0"><img src="{{ url_for('static', filename='asset/avatar-loova.png') }}" alt="Loova" style="width: 20px; height: 20px; margin-right: 5px; vertical-align: middle;"><strong>Loova :</strong></p>
+                errorDiv.innerHTML = `<p class="mb-0"><img src="{{ url_for('static', filename='asset/avatar-loova.png') }}" alt="Loova"><strong>Loova :</strong></p>
                                       {# Utiliser une div ici aussi #}
                                       <div class="alert alert-danger d-inline-block mb-1">Désolé, une erreur de communication est survenue (${error.message}).</div>`;
                 if (chatContainer) {

@@ -1,0 +1,66 @@
+/* Styles spécifiques au chatbot */
+
+/* Conteneur principal du chat */
+.chat-container {
+    min-height: 400px;
+    max-height: 60vh; /* 60% de la hauteur de la fenêtre */
+    overflow-y: auto; /* Barre de défilement si contenu dépasse */
+    background-color: #f8f9fa; /* Fond légèrement gris */
+    border: 1px solid #dee2e6; /* Bordure standard Bootstrap */
+    border-radius: 0.25rem; /* Coins arrondis standard Bootstrap */
+    padding: 1rem; /* Espacement intérieur */
+    margin-bottom: 1.5rem; /* Marge en bas */
+}
+
+/* Avatar de Loova dans les messages */
+.bot-message img {
+    width: 30px;
+    height: 30px;
+    margin-right: 5px;
+    vertical-align: middle;
+}
+
+/* Indicateur de chargement (caché par défaut via JS, mais on peut le définir ici aussi) */
+#loading-indicator {
+    /* display: none;  La gestion est faite en JS, mais on peut le forcer ici si besoin */
+}
+
+/* Avatar plus petit dans l'indicateur de chargement */
+#loading-indicator img {
+    width: 20px; /* Taille réduite */
+    height: 20px; /* Taille réduite */
+    margin-right: 5px;
+    vertical-align: middle;
+}
+
+/* Marge pour le bouton "Effacer l'historique" */
+#clear-chat-btn {
+    margin-left: 10px;
+}
+
+/* Style de base pour les tableaux dans les réponses du chatbot */
+.chat-message-content table { /* Ciblez plus spécifiquement si nécessaire */
+    width: 100%; /* Ou une largeur spécifique */
+    border-collapse: collapse; /* Fusionne les bordures des cellules */
+    margin-top: 1em;
+    margin-bottom: 1em;
+    border: 1px solid #ccc; /* Bordure extérieure */
+  }
+  
+  .chat-message-content th,
+  .chat-message-content td {
+    border: 1px solid #ddd; /* Bordures des cellules */
+    padding: 8px;          /* Espacement intérieur */
+    text-align: left;      /* Alignement du texte */
+  }
+  
+  .chat-message-content th {
+    background-color: #f2f2f2; /* Couleur de fond pour l'en-tête */
+    font-weight: bold;
+  }
+  
+  /* Optionnel : Style pour les lignes paires (meilleure lisibilité) */
+  .chat-message-content tbody tr:nth-child(even) {
+    background-color: #f9f9f9;
+  }
+  

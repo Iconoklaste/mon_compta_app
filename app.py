@@ -32,6 +32,7 @@ from models.users import User
 from models.exercices import ExerciceComptable
 from models.projets import Projet
 from models.clients import Client
+from forms.forms import ChatbotQuestionForm
 from datetime import date, datetime, timedelta
 import os
 from flask_migrate import Migrate  # Import Migrate
@@ -147,6 +148,12 @@ def load_user(user_id):
     # Flask-Login utilise cette fonction pour recharger l'objet User depuis l'ID stocké en session
     return User.query.get(int(user_id))
 # ----------------------------------------------------
+
+@app.context_processor
+def inject_chatbot_form():
+    """Injecte le formulaire du chatbot dans le contexte de tous les templates."""
+    form = ChatbotQuestionForm()
+    return dict(chatbot_form=form)
 
 @app.route('/test-pen') # Vous pouvez choisir l'URL que vous voulez
 def test_pen_page():

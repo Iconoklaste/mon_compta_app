@@ -190,6 +190,9 @@
                     <a href="#">Contact</a>
                 </div>
             </footer>
+            {% else %}
+                {% block footer_chat %}
+                {% endblock %}
             {% endif %}
         </main>
          {# --- Fin Contenu Principal --- #}
@@ -203,6 +206,8 @@
 
     {# --- MODIFICATION : Ajouter un lien vers votre JS personnalisé (pour le toggle sidebar) --- #}
     <script src="{{ url_for('static', filename='js/hamburger.js') }}"></script>
+
+
 
     {% block extra_scripts %}
     {# Bloc pour les scripts JS spécifiques à certaines pages #}
