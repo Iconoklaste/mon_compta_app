@@ -58,7 +58,7 @@ def supprimer_projet(projet_id):
     flash('Projet supprimé avec succès!', 'success')
     return redirect(url_for('projets.projets'))
 
-@projets_bp.route('/<int:projet_id>')
+@projets_bp.route('/projet/<int:projet_id>')
 @login_required
 def projet_detail(projet_id):
     # Charger le projet et précharger les membres et leurs utilisateurs associés si possible

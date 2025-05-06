@@ -4,7 +4,7 @@
 
 {# --- Styles spécifiques --- #}
 {% block extra_head %}
-
+<meta name="csrf-token" content="{{ csrf_token() }}">
 <link href="https://cdn.jsdelivr.net/npm/quill@2.0.0-rc.2/dist/quill.snow.css" rel="stylesheet" />
 <link rel="stylesheet" href="{{ url_for('static', filename='css/detail-projet.css') }}">
 
@@ -268,7 +268,7 @@
     </div>
     {# --- FIN Modale Modifier Membre --- #}
 
-
+    {# --- DEBUT Section outils --- #}
     <div class="col-md-3">
         <div class="info-card h-100">
             <div class="rounded-top card-header-custom two-line-header"><h5 class="card-title mb-0">Outils</h5></div>
@@ -277,14 +277,33 @@
                     class="btn btn-primary mb-2">
                     <i class="fas fa-chalkboard"></i> Ouvrir le Tableau Blanc
                 </a>
-                <br>
+
+                {# --- DEBUT: Bouton d'ajout de note de réunion --- #}
+                <hr class="my-3"> {# Séparateur visuel #}
                 <a href="{{ url_for('notes_reunion.ajouter_note', projet_id=projet.id) }}"
                     class="btn btn-primary mb-2">
                     <i class="fas fa-plus"></i> Ajouter une note de réunion
                 </a>
+
+                {# --- DEBUT: Formulaire d'upload RAG --- #}
+                <hr class="my-3"> {# Séparateur visuel #}
+                <h6 class="card-subtitle mb-2 text-muted">Indexer pour Loova (RAG)</h6>
+                <form id="ragUploadForm" enctype="multipart/form-data">
+                    <div class="mb-2">
+                        <label for="documentFile" class="form-label visually-hidden">Sélectionner un document</label>
+                        <input class="form-control form-control-sm" type="file" id="documentFile" name="document" accept=".pdf,.docx,.txt" required>
+                    </div>
+                    <button type="submit" class="btn btn-info btn-sm w-100">
+                        <i class="fas fa-upload"></i> Indexer Document
+                    </button>
+                </form>
+                <div id="ragUploadStatus" class="mt-2" style="font-size: 0.8em;"></div>
+                {# --- FIN: Formulaire d'upload RAG --- #}
+
             </div>
         </div>
     </div>
+
 </div>
 
 <div class="tabs-container">
@@ -1035,6 +1054,81 @@ document.addEventListener('DOMContentLoaded', function () {
         console.warn("Élément de la modale #addMemberModal non trouvé pour l'ajout de l'écouteur de fermeture.");
     }
     // --- FIN AJOUT ---
+
+
+    // --- DEBUT: Gestion de l'upload pour RAG ---
+    const uploadForm = document.getElementById('ragUploadForm');
+    const documentFile = document.getElementById('documentFile');
+    const uploadStatusDiv = document.getElementById('ragUploadStatus');
+    
+    // Récupérer l'ID du projet depuis le contexte Jinja2
+    const projetIdForRag = {{ projet.id | tojson }};
+
+    if (uploadForm && documentFile && uploadStatusDiv && projetIdForRag) {
+        uploadForm.addEventListener('submit', function (event) {
+            event.preventDefault(); 
+
+            if (!documentFile.files || documentFile.files.length === 0) {
+                uploadStatusDiv.innerHTML = '<div class="alert alert-warning p-1" role="alert">Veuillez sélectionner un fichier.</div>';
+                return;
+            }
+
+            const file = documentFile.files[0];
+            const formData = new FormData();
+            formData.append('document', file); 
+
+            uploadStatusDiv.innerHTML = '<div class="alert alert-info p-1" role="alert">Indexation en cours...</div>';
+
+            const uploadUrl = `/rag/projets/${projetIdForRag}/indexer_document`;
+
+            fetch(uploadUrl, {
+                method: 'POST',
+                body: formData,
+                headers: {
+                    // Si vous utilisez Flask-WTF CSRF globalement et que le token est dans un meta tag
+                    // 'X-CSRFToken': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+                    // Pour l'instant, on se base sur la protection de session de @login_required
+                    // et le fait que le token CSRF est dans les formulaires principaux de la page.
+                    // Si vous avez un token CSRF dans un champ caché du formulaire d'upload,
+                    // FormData le prendra automatiquement s'il a un 'name'.
+                    // Sinon, pour les requêtes fetch pures, le header est la meilleure approche.
+                    // Pour simplifier, et si vos autres formulaires POST fonctionnent sans header CSRF explicite en JS
+                    // (car le token est dans le corps du formulaire), cela pourrait fonctionner.
+                    // Sinon, il faudra ajouter le header X-CSRFToken.
+                    'X-CSRFToken': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content')
+                }
+            })
+            .then(response => {
+                if (!response.ok) {
+                    return response.json().then(errData => {
+                        throw { status: response.status, data: errData };
+                    }).catch(() => {
+                        throw { status: response.status, data: { error: `Erreur HTTP ${response.status}` } };
+                    });
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    uploadStatusDiv.innerHTML = `<div class="alert alert-success p-1" role="alert">${data.message || 'Document indexé!'}</div>`;
+                    uploadForm.reset(); 
+                } else {
+                    uploadStatusDiv.innerHTML = `<div class="alert alert-danger p-1" role="alert">Erreur: ${data.error || 'Inconnue.'}</div>`;
+                }
+            })
+            .catch(error => {
+                console.error('Erreur upload RAG:', error);
+                let errorMessage = (error && error.data && error.data.error) ? error.data.error : `Erreur serveur (${error.status || 'inconnu'}).`;
+                uploadStatusDiv.innerHTML = `<div class="alert alert-danger p-1" role="alert">${errorMessage}</div>`;
+            });
+        });
+    } else {
+        if (!uploadForm) console.warn("Formulaire #ragUploadForm non trouvé.");
+        if (!documentFile) console.warn("Input #documentFile non trouvé.");
+        if (!uploadStatusDiv) console.warn("Div #ragUploadStatus non trouvé.");
+        if (!projetIdForRag) console.warn("projetIdForRag non disponible pour le script RAG.");
+    }
+    // --- FIN: Gestion de l'upload pour RAG ---
 
 }); // Fin de DOMContentLoaded
 </script>

@@ -1,6 +1,16 @@
 # c:\wamp\www\mon_compta_app\app.py
 from dotenv import load_dotenv
-from flask import Flask, render_template, request, redirect, url_for, send_file, make_response, jsonify, session, abort, flash
+from flask import (Flask,
+                   render_template,
+                   request,
+                   redirect,
+                   url_for,
+                   send_file,
+                   make_response,
+                   jsonify,
+                   session,
+                   abort,
+                   flash)
 from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv # Importe load_dotenv
 from flask_login import LoginManager
@@ -25,6 +35,7 @@ from controllers.ecritures_controller import ecritures_bp
 from controllers.notes_reunion_controller import notes_reunion_bp
 from controllers.ocr_depenses_controller import ocr_depenses_bp
 from controllers.mistral_chat import chatbot_bp
+from controllers.rag_controller import rag_bp
 from models import *  # Import all models
 #from models.clients import Client # Import the Client model
 from models.organisations import Organisation
@@ -101,9 +112,15 @@ app.config['SECRET_KEY'] = secret_key
 app.config['MAX_LOGO_SIZE'] = 2 * 1024 * 1024 # 2MB max size for logo
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'} # Allowed extensions for logo
 
+# --- Dossier pour l'upload de pièce jointe user ---
 UPLOAD_FOLDER = os.path.join(app.root_path, 'uploads', 'attachments')
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True) # Create the folder if it doesn't exist
+
+# --- Dossier pour le RAG ---
+RAG_STORAGE_PATH = os.path.join(app.root_path, 'data', 'rag_storage')
+app.config['RAG_STORAGE_PATH'] = RAG_STORAGE_PATH
+os.makedirs(RAG_STORAGE_PATH, exist_ok=True)
 
 # Configuration du dossier static
 app.static_folder = 'static'
@@ -140,6 +157,7 @@ app.register_blueprint(ecritures_bp)
 app.register_blueprint(notes_reunion_bp)
 app.register_blueprint(ocr_depenses_bp)
 app.register_blueprint(chatbot_bp)
+app.register_blueprint(rag_bp)
 
 
 # --- Configuration du User Loader pour Flask-Login ---

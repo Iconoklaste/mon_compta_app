@@ -51,6 +51,15 @@ document.addEventListener('DOMContentLoaded', () => {
         return div.innerHTML;
     }
 
+    // Fonction pour extraire le projet_id de l'URL actuelle
+    function getProjetIdFromUrl() {
+        const match = window.location.pathname.match(/\/projet\/(\d+)/);
+        if (match && match[1]) {
+            return match[1]; // Retourne l'ID du projet sous forme de chaîne
+        }
+        return null;
+    }
+
     function scrollToSidebarMessagesBottom() {
         if (chatbotSidebarMessagesContainer) {
             chatbotSidebarMessagesContainer.scrollTop = chatbotSidebarMessagesContainer.scrollHeight;
@@ -154,6 +163,8 @@ document.addEventListener('DOMContentLoaded', () => {
         if (inputBarSpinner) inputBarSpinner.classList.remove('d-none');
         if (inputBarAvatar) inputBarAvatar.classList.add('d-none');
 
+        const projetIdFromPage = getProjetIdFromUrl(); // Extrait l'ID du projet de l'URL
+
         let isRedirecting = false;
 
         fetch(sidebarChatbotForm.action, {
@@ -163,7 +174,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 'X-CSRFToken': csrfToken,
                 'X-Requested-With': 'XMLHttpRequest'
             },
-            body: JSON.stringify({ question: question })
+            body: JSON.stringify({ question: question, projet_id_from_page: projetIdFromPage }) // Ajout de projet_id_from_page
         })
         .then(response => {
             if (!response.ok) {

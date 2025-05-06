@@ -11,13 +11,15 @@ from flask import (Blueprint,
 from forms.forms import ChatbotQuestionForm
 from markdown_it import MarkdownIt # Importé
 
-
+import time
 import logging
 import os
 from controllers.users_controller import login_required # Pour protéger la route si besoin
 
 from mistralai import Mistral
+from mistralai import models as mistral_models
 from .mistral_tools_config import TOOLS_LIST, AVAILABLE_FUNCTIONS
+from .rag_retriever import get_context_from_rag # Nouvelle importation pour la logique RAG
 
 
 logger = logging.getLogger(__name__) # Initialiser le logger
@@ -44,7 +46,12 @@ def chatbot_ask():
     # --- Gérer les données différemment pour AJAX (JSON) ---
     if is_ajax:
         data = request.get_json()
-        question = data.get('question') if data else None
+        if not data:
+            logger.warning("Requête AJAX reçue sans données JSON.")
+            return jsonify({"success": False, "error": "Données manquantes."}), 400
+
+        question = data.get('question')
+        projet_id_from_page_str = data.get('projet_id_from_page')
         # Validation simple pour AJAX (CSRF est géré par header X-CSRFToken)
         if not question:
              logger.warning("Requête AJAX reçue sans question valide.")
@@ -80,9 +87,30 @@ def chatbot_ask():
         chat_history = session.get('mistral_chat_history', [])
         logger.debug(f"DEBUG: Historique récupéré de la session: {chat_history}")
 
+        # --- Mettre à jour le current_projet_id en session si fourni par AJAX ---
+        if is_ajax and projet_id_from_page_str:
+            try:
+                projet_id_from_page_int = int(projet_id_from_page_str)
+                if session.get('current_projet_id') != projet_id_from_page_int:
+                    session['current_projet_id'] = projet_id_from_page_int
+                    logger.info(f"ID de projet mis à jour en session via AJAX : {projet_id_from_page_int}")
+            except ValueError:
+                logger.warning(f"Impossible de convertir projet_id_from_page '{projet_id_from_page_str}' en entier.")
+        # --------------------------------------------------------------------
+
         raw_answer = None # Initialiser la variable réponse BRUTE (Markdown)
         html_answer = None # Initialiser la variable réponse HTML
         redirect_url = None # Initialiser la variable pour l'URL de redirection
+
+        # --- Logique RAG (maintenant externalisée) ---
+        current_projet_id_for_rag = session.get('current_projet_id')
+        retrieved_context_for_prompt = "" # Initialiser le contexte RAG
+        if current_projet_id_for_rag:
+            # Appel à la fonction externalisée
+            retrieved_context_for_prompt = get_context_from_rag(question, current_projet_id_for_rag, api_key, logger)
+        else:
+             logger.info("Aucun projet_id courant en session, pas de recherche RAG spécifique au projet.")
+         # --- Fin de la Logique RAG ---
 
         try:
             # --- Début de l'appel à Mistral  ---
@@ -144,18 +172,59 @@ def chatbot_ask():
                      messages.append(message_to_add)
                  else:
                       logger.warning(f"Élément invalide trouvé dans l'historique du chat : {msg}")
-            messages.append({"role": "user", "content": question})
+            final_question_for_mistral = f"{retrieved_context_for_prompt}{question}"
+            # Correction ici: utiliser final_question_for_mistral
+            messages.append({"role": "user", "content": final_question_for_mistral})
+
+            # --- Logique de relance avec temporisation exponentielle ---
+            max_retries = 5
+            base_delay = 1  # secondes
+            response = None # Initialiser la réponse
+
+            for attempt in range(max_retries):
+                try:
+                    logger.debug(f"Tentative {attempt + 1}/{max_retries} d'appel à l'API Mistral Chat.")
+                    response = client.chat.complete(
+                        model=model_chat,
+                        messages=messages,
+                        tools=TOOLS_LIST,
+                        tool_choice="auto"
+                    )
+                    break # Sortir de la boucle si succès
+                except mistral_models.SDKError as e: # Utiliser mistral_models.SDKError
+                    if e.status_code == 429:
+                        if attempt < max_retries - 1:
+                            delay = base_delay * (2 ** attempt)
+                            logger.warning(f"Erreur 429 (Rate Limit Exceeded). Nouvelle tentative dans {delay} secondes...")
+                            time.sleep(delay)
+                        else:
+                            logger.error(f"Erreur 429 après {max_retries} tentatives. Abandon.")
+                            raise # Relancer l'exception si toutes les tentatives échouent
+                    else:
+                        raise # Relancer les autres erreurs SDK
+            
+            if response is None: # Si toutes les tentatives ont échoué sans lever d'exception (ne devrait pas arriver avec le raise)
+                logger.error("Impossible d'obtenir une réponse de l'API Mistral après plusieurs tentatives.")
+                # Gérer l'erreur comme vous le faisiez avant
+                flash("Désolé, une erreur est survenue lors de la communication avec l'assistant (limite de requêtes atteinte).", "danger")
+                error_message = "Erreur lors de la génération de la réponse (limite de requêtes)."
+                html_answer = f'<p class="text-danger">{error_message}</p>'
+                if is_ajax:
+                    return jsonify({"success": False, "answer": html_answer, "redirect_url": None}), 500
+                # Pour non-AJAX, on continue pour rendre le template avec le flash message
+                # ... (vous devrez peut-être ajuster le flux d'erreur ici) ...
+                # Pour l'instant, on va simplement relancer l'erreur si response est None après la boucle
+                # ce qui sera attrapé par le bloc except Exception plus bas.
+                # Cela simplifie la gestion d'erreur ici.
+                # Cependant, il est préférable de gérer explicitement ce cas.
+                # Pour cet exemple, on va supposer que si response est None, c'est une erreur fatale.
+                # La logique ci-dessus avec `raise` dans la boucle `except` devrait déjà couvrir cela.
+                # Donc, si on arrive ici avec response=None, c'est une situation anormale.
+                # On va lever une exception pour être sûr.
+                raise Exception("Échec de l'appel API Mistral après toutes les tentatives.")
 
             logger.debug(f"Messages envoyés à l'API: {messages}")
             # -------------------------------------------------------------
-
-            response = client.chat.complete(
-                model=model_chat,
-                messages=messages,
-                tools=TOOLS_LIST,        # <-- Passer la description des outils
-                tool_choice="auto"
-            )
-
 
             response_message = response.choices[0].message
             logger.info("Première réponse de Mistral AI reçue.")
@@ -293,12 +362,30 @@ def chatbot_ask():
 
                     logger.debug(f"Messages pour le deuxième appel: {messages_for_second_call}")
 
-                    second_response = client.chat.complete(
-                        model=model_chat,
-                        messages=messages_for_second_call
-                        # Pas besoin de 'tools' ici, on attend une réponse texte
-                    )
-                    final_response_message = second_response.choices[0].message
+                    
+                    # --- Logique de relance pour le deuxième appel ---
+                    second_api_response = None
+                    for attempt in range(max_retries): # Utiliser les mêmes paramètres de relance
+                        try:
+                            logger.debug(f"Tentative {attempt + 1}/{max_retries} pour le deuxième appel API Mistral Chat.")
+                            second_api_response = client.chat.complete(
+                                model=model_chat,
+                                messages=messages_for_second_call
+                            )
+                            break # Succès
+                        except mistral_models.SDKError as e:
+                            if e.status_code == 429:
+                                if attempt < max_retries - 1:
+                                    delay = base_delay * (2 ** attempt)
+                                    logger.warning(f"Erreur 429 (2e appel). Nouvelle tentative dans {delay} secondes...")
+                                    time.sleep(delay)
+                                else:
+                                    logger.error(f"Erreur 429 (2e appel) après {max_retries} tentatives. Abandon.")
+                                    raise 
+                            else:
+                                raise
+                    final_response_message = second_api_response.choices[0].message
+
                     raw_answer = final_response_message.content
                     logger.info("Réponse finale de Mistral reçue après appel de fonction.")
 
