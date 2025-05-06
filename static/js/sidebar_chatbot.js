@@ -12,7 +12,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const sidebarChatbotSubmitBtn = sidebarChatbotForm ? sidebarChatbotForm.querySelector('button[type="submit"]') : null;
     const chatbotInputArea = document.getElementById('chatbot-sidebar-input-area'); // Zone d'input pour déclencher l'ouverture
 
-    // Spinner et avatar de la barre de saisie (si vous les conservez distinctement)
+    const toggleIcon = toggleChatbotSidebarBtn ? toggleChatbotSidebarBtn.querySelector('i') : null;
+
     const inputBarSpinner = document.getElementById('chatbot-input-spinner-sidebar');
     const inputBarAvatar = document.getElementById('chatbot-user-avatar-sidebar');
 
@@ -25,7 +26,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Vérification des éléments essentiels
-    if (!chatbotSidebarContainer || !sidebarChatbotForm || !sidebarChatbotQuestionInput || !sidebarChatbotSubmitBtn || !chatbotSidebarMessagesContainer || !chatbotSidebarHeader || !toggleChatbotSidebarBtn || !sidebarLoadingIndicator || !chatbotInputArea) {
+    if (!chatbotSidebarContainer || !sidebarChatbotForm || !sidebarChatbotQuestionInput || !sidebarChatbotSubmitBtn || !chatbotSidebarMessagesContainer || !chatbotSidebarHeader || !toggleChatbotSidebarBtn || !sidebarLoadingIndicator || !chatbotInputArea || !toggleIcon) {
         console.error('Chat Sidebar: Un ou plusieurs éléments HTML requis sont manquants. La fonctionnalité du chat pourrait être altérée.');
         return;
     }
@@ -41,7 +42,8 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
-    let isSidebarChatExpanded = false;
+    // Initial state: sidebar is expanded by default (no 'collapsed' class)
+    let isSidebarChatExpanded = !chatbotSidebarContainer.classList.contains('collapsed');
 
     function escapeHTML(str) {
         const div = document.createElement('div');
@@ -76,29 +78,36 @@ document.addEventListener('DOMContentLoaded', () => {
         scrollToSidebarMessagesBottom();
     }
 
-    function openChatView() { // Affiche le header et les messages
-        if (isSidebarChatExpanded || !chatbotSidebarContainer || !chatbotSidebarHeader || !chatbotSidebarMessagesContainer) return;
-        chatbotSidebarContainer.classList.add('is-expanded'); // Pour CSS (ex: rotation flèche)
-        chatbotSidebarHeader.style.display = 'flex';
-        chatbotSidebarMessagesContainer.style.display = 'block';
+    function expandSidebar() {
+        if (isSidebarChatExpanded || !chatbotSidebarContainer) return;
+        chatbotSidebarContainer.classList.remove('collapsed');
+        toggleIcon.classList.remove('fa-chevron-left');
+        toggleIcon.classList.add('fa-chevron-right');
         isSidebarChatExpanded = true;
         scrollToSidebarMessagesBottom();
         sidebarChatbotQuestionInput.focus();
     }
 
-    function closeChatView() { // Cache le header et les messages, mais garde la barre d'input
-        if (!isSidebarChatExpanded || !chatbotSidebarContainer || !chatbotSidebarHeader || !chatbotSidebarMessagesContainer) return;
-        chatbotSidebarContainer.classList.remove('is-expanded');
-        chatbotSidebarHeader.style.display = 'none';
-        chatbotSidebarMessagesContainer.style.display = 'none';
+    function collapseSidebar() {
+        if (!isSidebarChatExpanded || !chatbotSidebarContainer) return;
+        chatbotSidebarContainer.classList.add('collapsed');
+        toggleIcon.classList.remove('fa-chevron-right');
+        toggleIcon.classList.add('fa-chevron-left');
         isSidebarChatExpanded = false;
     }
 
     // Le clic sur la zone d'input ouvre la vue chat si elle est fermée
     if (chatbotInputArea) {
         chatbotInputArea.addEventListener('click', () => { // Ou 'focusin' sur footerChatbotQuestionInput
-            if (!isSidebarChatExpanded) {
-                openChatView();
+            if (!isSidebarChatExpanded && chatbotSidebarContainer.classList.contains('collapsed')) {
+                expandSidebar();
+            }
+        });
+    }
+    if (sidebarChatbotQuestionInput) {
+        sidebarChatbotQuestionInput.addEventListener('focus', () => {
+            if (!isSidebarChatExpanded && chatbotSidebarContainer.classList.contains('collapsed')) {
+                expandSidebar();
             }
         });
     }
@@ -107,9 +116,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (toggleChatbotSidebarBtn) {
         toggleChatbotSidebarBtn.addEventListener('click', () => {
             if (isSidebarChatExpanded) {
-                closeChatView();
+                collapseSidebar();
             } else {
-                openChatView();
+                expandSidebar();
             }
         });
     }
@@ -124,7 +133,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         if (!isSidebarChatExpanded) {
-            openChatView(); // S'assurer que la vue est ouverte avant d'envoyer
+            expandSidebar(); // S'assurer que la vue est ouverte avant d'envoyer
         }
 
         addMessageToSidebarChat(question, 'user');
@@ -132,9 +141,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
         // Afficher l'indicateur de chargement dans la zone des messages
-        if (sidebarLoadingIndicator && chatbotSidebarMessagesContainer) {
+        if (sidebarLoadingIndicator && chatbotSidebarMessagesContainer && sidebarLoadingIndicator.classList.contains('d-none')) {
             chatbotSidebarMessagesContainer.appendChild(sidebarLoadingIndicator); // L'ajouter à la fin
-            sidebarLoadingIndicator.style.display = 'flex'; // ou 'block' selon le style
+            sidebarLoadingIndicator.classList.remove('d-none');
+            sidebarLoadingIndicator.style.display = 'flex'; // Assurer display flex
             scrollToSidebarMessagesBottom();
         }
 
@@ -166,7 +176,7 @@ document.addEventListener('DOMContentLoaded', () => {
             return response.json();
         })
         .then(data => {
-            if (sidebarLoadingIndicator) sidebarLoadingIndicator.style.display = 'none';
+            if (sidebarLoadingIndicator) sidebarLoadingIndicator.classList.add('d-none');
 
             if (data.redirect_url) {
                 isRedirecting = true;
@@ -174,7 +184,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // if(data.answer) addMessageToFooterChat(data.answer, 'assistant', true);
                 window.location.href = data.redirect_url;
             } else {
-                if (!isSidebarChatExpanded) openChatView(); // S'assurer que c'est ouvert
+                if (!isSidebarChatExpanded) expandSidebar(); // S'assurer que c'est ouvert
 
                 if (data.success && data.answer) {
                     addMessageToSidebarChat(data.answer, 'assistant', true);
@@ -188,15 +198,14 @@ document.addEventListener('DOMContentLoaded', () => {
         })
         .catch(error => {
             console.error('Erreur avec le chatbot de la sidebar:', error);
-            if (sidebarLoadingIndicator) sidebarLoadingIndicator.style.display = 'none';
-            if (!isSidebarChatExpanded) openChatView(); // Ouvrir pour afficher l'erreur
+            if (sidebarLoadingIndicator) sidebarLoadingIndicator.classList.add('d-none');
+            if (!isSidebarChatExpanded) expandSidebar(); // Ouvrir pour afficher l'erreur
             addMessageToSidebarChat(`Désolé, une erreur de communication est survenue: ${error.message}`, 'assistant', false);
         })
         .finally(() => {
             // Assurer que l'indicateur de chargement est caché
-            if (sidebarLoadingIndicator && sidebarLoadingIndicator.parentElement === chatbotSidebarMessagesContainer) {
-                // Le cacher simplement, car il est ajouté/retiré du DOM au besoin
-                sidebarLoadingIndicator.style.display = 'none';
+            if (sidebarLoadingIndicator) { // Toujours s'assurer qu'il est caché
+                sidebarLoadingIndicator.classList.add('d-none');
             }
 
             if (!isRedirecting) {
@@ -218,10 +227,12 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // État initial : la vue détaillée du chat (header et messages) est cachée.
-    // La barre d'input est toujours visible.
-    if (chatbotSidebarHeader) chatbotSidebarHeader.style.display = 'none';
-    if (chatbotSidebarMessagesContainer) chatbotSidebarMessagesContainer.style.display = 'none';
-    if (chatbotSidebarContainer) chatbotSidebarContainer.classList.remove('is-expanded');
-    isSidebarChatExpanded = false; // Confirmer l'état initial
+    // Set initial icon based on state
+    if (isSidebarChatExpanded) {
+        toggleIcon.classList.remove('fa-chevron-left');
+        toggleIcon.classList.add('fa-chevron-right');
+    } else { // collapsed
+        toggleIcon.classList.remove('fa-chevron-right');
+        toggleIcon.classList.add('fa-chevron-left');
+    }
 });

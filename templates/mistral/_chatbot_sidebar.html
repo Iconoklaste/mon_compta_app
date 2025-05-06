@@ -2,16 +2,16 @@
 {# Ce fichier contient uniquement le code HTML du sidebar de chat #}
 {# Il suppose que 'chatbot_form' est disponible via le context processor #}
 <aside class="chatbot-sidebar-right" id="chatbot-sidebar-container">
-    {# Entête de la sidebar, initialement caché (géré par JS) #}
-    <div class="chatbot-sidebar-header" id="chatbot-sidebar-header" style="display: none;">
+    {# Entête de la sidebar #}
+    <div class="chatbot-sidebar-header" id="chatbot-sidebar-header">
         <span>Conversation avec Loova</span>
         <button id="toggle-chatbot-sidebar-btn" class="btn btn-sm btn-light" aria-label="Réduire/Agrandir le chat">
-            <i class="fas fa-chevron-down"></i>
+            <i class="fas fa-chevron-right"></i> {# Icône par défaut pour "réduire vers la droite" #}
         </button>
     </div>
 
-    {# Conteneur pour les messages du chat, initialement caché (géré par JS) #}
-    <div class="chatbot-sidebar-messages-container" id="chatbot-sidebar-messages" style="display: none;">
+    {# Conteneur pour les messages du chat #}
+    <div class="chatbot-sidebar-messages-container" id="chatbot-sidebar-messages">
         {# Les messages seront ajoutés ici par JavaScript #}
     </div>
 
@@ -46,8 +46,8 @@
     </div>
 
     {# Indicateur de chargement pour les messages de la sidebar, initialement caché #}
-    <div id="sidebar-chat-loading-indicator" class="message bot-message p-2" style="display: none;">
-        <div class="d-flex align-items-center">
+    <div id="sidebar-chat-loading-indicator" class="message bot-message p-2 d-none"> {# Utiliser d-none pour cacher #}
+        <div class="d-flex">
             <img src="{{ url_for('static', filename='asset/avatar-loova.png') }}" alt="Loova" class="rounded-circle me-2" style="width: 30px; height: 30px;">
             <div class="alert alert-secondary d-inline-block mb-0 p-2">
                 <i>Réflexion en cours... <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span></i>
@@ -55,5 +55,3 @@
         </div>
     </div>
 </aside>
-
-

@@ -64,28 +64,43 @@
     background-color: #f9f9f9;
   }
  
-
-  /* =============================================== */
+/* =============================================== */
 /* == Styles pour la Sidebar de Chat (Droite) == */
 /* =============================================== */
 
 .chatbot-sidebar-right {
-  position: fixed;
-  bottom: 0; /* S'ancre en bas à droite */
-  right: 0;
-  width: 360px; /* Largeur de la sidebar, ajuste selon tes besoins */
-  height: auto; /* La hauteur s'adaptera au contenu, jusqu'à max-height */
-  max-height: 90vh; /* Hauteur maximale pour ne pas couvrir tout l'écran */
+  width: 360px; /* Largeur quand la sidebar est ouverte */
+  flex-shrink: 0; /* Empêche la sidebar de se réduire si le contenu principal est trop large */
   background-color: #ffffff;
   border-left: 1px solid #dee2e6;
-  border-top: 1px solid #dee2e6; /* Ajout d'une bordure en haut aussi */
-  box-shadow: -3px -3px 10px rgba(0, 0, 0, 0.08);
-  z-index: 1040; /* S'assurer qu'elle est au-dessus de la plupart des contenus */
+  /* box-shadow: -2px 0 5px rgba(0,0,0,0.05); */ /* Ombre optionnelle */
   display: flex;
   flex-direction: column;
-  border-top-left-radius: 8px; /* Coins arrondis pour un look plus doux */
-  /* transition: transform 0.3s ease-in-out, height 0.3s ease-in-out; */ /* Pour d'éventuelles animations JS */
+  overflow-y: auto; /* Gère le défilement interne de la sidebar si son contenu est trop long */
+  overflow-x: hidden; /* Empêche le contenu de déborder horizontalement pendant la transition */
+  transition: width 0.3s ease-in-out;
+  height: 100%; /* Prend toute la hauteur de son parent flex (.main-and-chat-wrapper) */
 }
+
+/* État replié de la sidebar */
+.chatbot-sidebar-right.collapsed {
+  width: 60px; /* Largeur réduite pour afficher juste le bouton */
+}
+
+.chatbot-sidebar-right.collapsed .chatbot-sidebar-header span {
+  display: none; /* Cache le titre "Conversation avec Loova" */
+}
+
+.chatbot-sidebar-right.collapsed .chatbot-sidebar-messages-container,
+.chatbot-sidebar-right.collapsed .chatbot-sidebar-input-area,
+.chatbot-sidebar-right.collapsed #sidebar-chat-loading-indicator {
+  display: none !important; /* Cache les messages et la zone de saisie */
+}
+
+.chatbot-sidebar-right.collapsed .chatbot-sidebar-header {
+  justify-content: center; /* Centre le bouton quand le titre est caché */
+}
+
 
 /* Entête de la sidebar */
 .chatbot-sidebar-header {
@@ -95,14 +110,16 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  cursor: pointer; /* Suggère qu'on peut cliquer pour réduire/agrandir */
-  border-top-left-radius: 8px; /* Correspond au conteneur principal */
+  cursor: pointer;
+  flex-shrink: 0; /* Empêche le header de se réduire */
 }
 
 .chatbot-sidebar-header span {
   font-weight: 600;
   font-size: 0.95rem;
   color: #343a40;
+  white-space: nowrap; /* Empêche le texte de passer à la ligne pendant la transition */
+  overflow: hidden;
 }
 
 .chatbot-sidebar-header #toggle-chatbot-sidebar-btn {
@@ -111,61 +128,67 @@
 .chatbot-sidebar-header #toggle-chatbot-sidebar-btn i {
   transition: transform 0.3s ease;
 }
-.chatbot-sidebar-right.is-expanded .chatbot-sidebar-header #toggle-chatbot-sidebar-btn i {
-  transform: rotate(180deg); /* Tourne la flèche quand c'est agrandi */
-}
+
+/* L'icône du bouton change en fonction de l'état (géré par JS ou CSS via la classe .collapsed) */
+/* .chatbot-sidebar-right.collapsed .chatbot-sidebar-header #toggle-chatbot-sidebar-btn i {
+  transform: rotate(180deg); /* Si on garde la même icône et on la tourne */
+/* } */
 
 
 /* Conteneur des messages */
 .chatbot-sidebar-messages-container {
-  flex-grow: 1; /* Prend l'espace disponible */
-  overflow-y: auto; /* Active le défilement si les messages dépassent */
+  flex-grow: 1; /* Prend l'espace disponible en hauteur */
+  overflow-y: auto;
   padding: 1rem;
   background-color: #fdfdfd;
-  min-height: 150px; /* Hauteur minimale quand les messages sont visibles */
-  max-height: calc(90vh - 120px); /* Ajuster en fonction de la hauteur du header et input */
+  /* min-height: 150px; */ /* Plus nécessaire si flex-grow est utilisé */
 }
 
-/* Styles pour les messages individuels dans la sidebar */
-/* Tu peux réutiliser/adapter tes styles existants pour .message, .user-message, .bot-message */
+/* Styles pour les messages individuels (inchangés) */
 .chatbot-sidebar-messages-container .message {
   margin-bottom: 0.75rem;
   display: flex;
-  max-width: 95%; /* Un peu moins pour laisser de l'air */
+  max-width: 95%;
 }
-
 .chatbot-sidebar-messages-container .user-message {
-  margin-left: auto; /* Aligne à droite */
+  margin-left: auto;
   flex-direction: row-reverse;
 }
 .chatbot-sidebar-messages-container .user-message .alert {
-  background-color: #007bff; /* Couleur primaire Bootstrap */
+  background-color: #007bff;
   color: white;
-  border-radius: 1rem 1rem 0.25rem 1rem; /* Forme de bulle */
+  border-radius: 1rem 1rem 0.25rem 1rem;
   padding: 0.5rem 0.85rem;
   word-wrap: break-word;
 }
-
 .chatbot-sidebar-messages-container .bot-message {
-  margin-right: auto; /* Aligne à gauche */
+  margin-right: auto;
+}
+
+.chatbot-sidebar-messages-container .bot-message > .d-flex { /* Cible le conteneur direct de l'avatar et de la bulle */
+  flex-direction: column; /* Empile l'avatar et la bulle verticalement */
+  align-items: flex-start; /* Aligne les éléments (avatar, bulle) à gauche */
 }
 
 .chatbot-sidebar-messages-container .bot-message .alert {
-  background-color: #e9ecef; /* Gris clair */
+  background-color: #e9ecef;
   color: #212529;
-  border-radius: 1rem 1rem 1rem 0.25rem; /* Forme de bulle */
+  border-radius: 1rem 1rem 1rem 0.25rem;
   padding: 0.5rem 0.85rem;
   word-wrap: break-word;
+  width: 100%; /* La bulle prend toute la largeur disponible */
+  margin-left: 0; /* S'assure qu'il n'y a pas de marge à gauche héritée */
 }
-.chatbot-sidebar-messages-container .bot-message img { /* Avatar de Loova */
+.chatbot-sidebar-messages-container .bot-message img {
   width: 30px;
   height: 30px;
   border-radius: 50%;
-  margin-right: 8px;
-  align-self: flex-start; /* Aligner l'avatar en haut du message */
+  margin-bottom: 0.3rem; /* Espace entre l'avatar et la bulle en dessous */
+  /* margin-right: 0; /* Annule le me-2 de la classe bootstrap si besoin, mais la direction column le gère */
+
 }
 .chatbot-sidebar-messages-container .bot-message .chatbot-response-content p:last-child {
-  margin-bottom: 0; /* Éviter double marge si le contenu est un <p> */
+  margin-bottom: 0;
 }
 
 
@@ -174,37 +197,39 @@
   padding: 0.75rem 1rem;
   border-top: 1px solid #dee2e6;
   background-color: #ffffff;
+  flex-shrink: 0; /* Empêche la zone de saisie de se réduire */
 }
-
 .chatbot-sidebar-input-area .form-control-lg {
-  font-size: 0.9rem; /* Un peu plus petit pour la sidebar */
+  font-size: 0.9rem;
   padding: 0.6rem 1rem;
 }
-
 .chatbot-sidebar-input-area .btn {
-  padding: 0.6rem 0.85rem; /* Ajuster la taille du bouton */
+  padding: 0.6rem 0.85rem;
 }
-
 .chatbot-sidebar-input-area .chatbot-avatar-container {
   display: flex;
-  align-items: center; /* Centrer verticalement l'avatar et le spinner */
+  align-items: center;
 }
-.chatbot-sidebar-input-area #chatbot-input-spinner-footer {
-  /* Le spinner est déjà d-none, JS le montrera. */
-  /* S'assurer qu'il est bien aligné si visible. */
-}
-
 
 /* Indicateur de chargement pour la sidebar */
 #sidebar-chat-loading-indicator.message.bot-message {
-  padding: 0.75rem 1rem; /* Padding cohérent */
-  background-color: #fdfdfd; /* Correspond au fond des messages */
+  padding: 0.75rem 1rem;
+  background-color: #fdfdfd;
 }
+
+#sidebar-chat-loading-indicator .d-flex { /* Cible le conteneur direct de l'avatar et de la bulle de chargement */
+  flex-direction: column; /* Empile l'avatar et la bulle verticalement */
+  align-items: flex-start; /* Aligne les éléments (avatar, bulle) à gauche */
+}
+
 #sidebar-chat-loading-indicator img {
   width: 24px;
   height: 24px;
+  margin-bottom: 0.3rem; /* Espace entre l'avatar et la bulle en dessous */
 }
 #sidebar-chat-loading-indicator .alert {
   padding: 0.5rem 0.75rem;
-  margin-bottom: 0; /* Retirer la marge par défaut de l'alerte */
+  margin-bottom: 0;
+  width: 100%; /* La bulle prend toute la largeur disponible */
+  margin-left: 0; /* S'assure qu'il n'y a pas de marge à gauche héritée */
 }

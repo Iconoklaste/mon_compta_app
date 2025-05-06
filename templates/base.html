@@ -11,7 +11,7 @@
     <!-- Tes CSS personnalisés (après Bootstrap pour pouvoir surcharger) -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
     {% if not current_user.is_authenticated %}
-    <link rel="stylesheet" href="{{ url_for('static', filename='landing.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/landing.css') }}">
     {% endif %}
     {% if current_user.is_authenticated %} {# Charger le CSS du chatbot uniquement si l'utilisateur est connecté #}
     <link rel="stylesheet" href="{{ url_for('static', filename='css/chatbot.css') }}">
@@ -30,7 +30,7 @@
     {% endblock %}
 </head>
 <body class="{% if not current_user.is_authenticated %}landing-page{% endif %}{% block body_class %}{% endblock %}">
-    <div class="app-container">
+    <div class="app-container d-flex flex-column vh-100"> {# vh-100 pour pleine hauteur, flex-column pour header/content/footer #}
         {% if current_user.is_authenticated %}
         {# --- Sidebar (pas de changement majeur ici, le masquage sera géré par CSS/JS) --- #}
         <aside class="sidebar">
@@ -113,80 +113,69 @@
         </aside>
         {% endif %}
 
-        {# --- Contenu Principal --- #}
-        <main class="main-content">
-            {% if current_user.is_authenticated %}
-            {# --- MODIFICATION : Navbar avec structure responsive Bootstrap --- #}
-            <header class="navbar navbar-expand-lg" id="main-navbar"> {# Ajout de navbar-expand-lg #}
-                <div class="container-fluid"> {# Wrapper standard Bootstrap #}
-
-                    {# --- MODIFICATION : Bouton pour afficher/masquer la Sidebar sur petits écrans --- #}
-                    <button class="btn btn-outline-secondary me-2 d-lg-none" id="sidebarToggle" type="button" aria-label="Ouvrir/fermer le menu latéral">
-                        <i class="fas fa-bars"></i>
-                    </button>
-
-                    {# Conteneur pour Titre et Sous-titre (poussé à gauche) #}
-                    <div id="navbar-title" class="navbar-title-container me-auto">
-                        {% block page_title %}
-                        {% endblock %}
-                        {% block page_subtitle %}
-                        {% endblock %}
-                    </div>
-
-                    {# --- MODIFICATION : Bouton Hamburger standard pour le menu principal sur petits écrans --- #}
-                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavContent" aria-controls="navbarNavContent" aria-expanded="false" aria-label="Basculer la navigation">
-                        <span class="navbar-toggler-icon"></span>
-                    </button>
-
-                    {# --- MODIFICATION : Conteneur pour les éléments qui se réduisent --- #}
-                    <div class="collapse navbar-collapse" id="navbarNavContent">
-                        {# navbar-nav pour aligner les éléments. ms-auto les pousse à droite sur les grands écrans #}
-                        <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center">
-                            {# Le bloc navbar_actions va maintenant ici, à l'intérieur de la liste #}
-                            {% block navbar_actions %}
-                                {# Idéalement, ce bloc devrait générer des <li class="nav-item">...</li> #}
-                                {# Exemple: <li class="nav-item"><button class="btn btn-success">Action</button></li> #}
-                            {% endblock %}
-
-                            {# Vous pouvez ajouter d'autres éléments fixes de la navbar ici si nécessaire #}
-                            {# Exemple: Dropdown utilisateur
-                            <li class="nav-item dropdown">
-                                <a class="nav-link dropdown-toggle" href="#" id="navbarUserDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false">
-                                    <i class="fas fa-user me-1"></i> Mon Compte
-                                </a>
-                                <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="navbarUserDropdown">
-                                    <li><a class="dropdown-item" href="#">Profil</a></li>
-                                    <li><hr class="dropdown-divider"></li>
-                                    <li><a class="dropdown-item" href="#">Déconnexion</a></li>
-                                </ul>
-                            </li>
-                             #}
-                        </ul>
-                    </div>
-                     {# --- Fin MODIFICATION : Conteneur Collapse --- #}
-
-                </div> {# Fin container-fluid #}
-            </header>
-            {# --- Fin MODIFICATION : Navbar --- #}
-            {% endif %}
-
-            {# Contenu de la page #}
-            {% set apply_low_padding = apply_low_padding | default(false) %}
-            <div class="content default-content-padding {% if apply_low_padding %} low-padding-top{% endif %} fade-in-item"  style="animation-delay: 0.1s;">
-                <div class="container-fluid"> {# Utiliser container-fluid pour pleine largeur #}
-                    {% block content %}
-                    {% endblock %}
-                </div>
-                
-                {# Sidebar de Chat pour les utilisateurs authentifiés, à l'intérieur de container-fluid #}
+        {# Nouveau wrapper pour main-content et la sidebar de chat, pour qu'ils soient frères #}
+        <div class="main-and-chat-wrapper d-flex flex-grow-1 overflow-hidden"> {# flex-grow-1 pour prendre la hauteur restante, overflow-hidden #}
+            {# --- Contenu Principal --- #}
+            <main class="main-content flex-grow-1 d-flex flex-column overflow-auto"> {# flex-grow-1 pour prendre la largeur, overflow-auto pour son propre scroll #}
                 {% if current_user.is_authenticated %}
-                    {% block sidebar_chat %}
-                    {# Le _chatbot_sidebar.html sera inclus ici s'il est défini dans une page enfant #}
-                    {% endblock %}
+                {# --- MODIFICATION : Navbar avec structure responsive Bootstrap --- #}
+                <header class="navbar navbar-expand-lg" id="main-navbar"> {# Ajout de navbar-expand-lg #}
+                    <div class="container-fluid"> {# Wrapper standard Bootstrap #}
+
+                        {# --- MODIFICATION : Bouton pour afficher/masquer la Sidebar sur petits écrans --- #}
+                        <button class="btn btn-outline-secondary me-2 d-lg-none" id="sidebarToggle" type="button" aria-label="Ouvrir/fermer le menu latéral">
+                            <i class="fas fa-bars"></i>
+                        </button>
+
+                        {# Conteneur pour Titre et Sous-titre (poussé à gauche) #}
+                        <div id="navbar-title" class="navbar-title-container me-auto">
+                            {% block page_title %}
+                            {% endblock %}
+                            {% block page_subtitle %}
+                            {% endblock %}
+                        </div>
+
+                        {# --- MODIFICATION : Bouton Hamburger standard pour le menu principal sur petits écrans --- #}
+                        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNavContent" aria-controls="navbarNavContent" aria-expanded="false" aria-label="Basculer la navigation">
+                            <span class="navbar-toggler-icon"></span>
+                        </button>
+
+                        {# --- MODIFICATION : Conteneur pour les éléments qui se réduisent --- #}
+                        <div class="collapse navbar-collapse" id="navbarNavContent">
+                            {# navbar-nav pour aligner les éléments. ms-auto les pousse à droite sur les grands écrans #}
+                            <ul class="navbar-nav ms-auto mb-2 mb-lg-0 align-items-center">
+                                {# Le bloc navbar_actions va maintenant ici, à l'intérieur de la liste #}
+                                {% block navbar_actions %}
+                                    {# Idéalement, ce bloc devrait générer des <li class="nav-item">...</li> #}
+                                    {# Exemple: <li class="nav-item"><button class="btn btn-success">Action</button></li> #}
+                                {% endblock %}
+                            </ul>
+                        </div>
+                         {# --- Fin MODIFICATION : Conteneur Collapse --- #}
+
+                    </div> {# Fin container-fluid #}
+                </header>
+                {# --- Fin MODIFICATION : Navbar --- #}
                 {% endif %}
-            </div>
-        </main>
-         {# --- Fin Contenu Principal --- #}
+
+                {# Contenu de la page #}
+                {% set apply_low_padding = apply_low_padding | default(false) %}
+                <div class="content default-content-padding {% if apply_low_padding %} low-padding-top{% endif %} fade-in-item flex-grow-1"  style="animation-delay: 0.1s;"> {# flex-grow-1 pour prendre la hauteur restante dans main-content #}
+                    <div class="container-fluid h-100"> {# Utiliser container-fluid pour pleine largeur #}
+                        {% block content %}
+                        {% endblock %}
+                    </div>
+                </div>
+            </main>
+             {# --- Fin Contenu Principal --- #}
+
+            {# Sidebar de Chat pour les utilisateurs authentifiés, frère de main.main-content #}
+            {% if current_user.is_authenticated %}
+                {% block sidebar_chat %}
+                {# Le _chatbot_sidebar.html sera inclus ici s'il est défini dans une page enfant #}
+                {% endblock %}
+            {% endif %}
+        </div> {# Fin main-and-chat-wrapper #}
 
          {# Footer pour les utilisateurs non authentifiés (landing page) #}
             {% if not current_user.is_authenticated %}
@@ -196,11 +185,7 @@
                     © 2024 Studio Noble-Val
                 </div>
                 <div class="footer-copyright">
-                    <a href="#">Conditions d'utilisation</a>
-                    <span class="dot-separator">·</span>
-                    <a href="#">Politique de confidentialité</a>
-                    <span class="dot-separator">·</span>
-                    <a href="#">Contact</a>
+                    <a href="#">Conditions d'utilisation</a> <span class="dot-separator">·</span> <a href="#">Politique de confidentialité</a> <span class="dot-separator">·</span> <a href="#">Contact</a>
                 </div>
             </footer>
             {% endif %}
