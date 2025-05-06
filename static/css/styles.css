@@ -19,8 +19,15 @@
     --primary-color: #0d6efd;
 }
 
+/* 1. Assurer la pleine hauteur */
+html, body {
+    height: 100%;
+    margin: 0;
+  }
+
 /* Typographie */
 body {
+    overflow-y: hidden; /* Empêcher le body de scroller lui-même */
     font-family: 'Roboto', sans-serif;
     color: var(--dark-blue); /* Texte en bleu foncé */
     background-color: var(--very-light-gray); /* Fond en gris très clair */
@@ -475,7 +482,7 @@ a:hover {
 .sidebar-bottom-nav {
     flex-shrink: 0; /* Empêche cette nav de rétrécir */
     margin-top: 0.5rem; /* Petit espace au-dessus des paramètres */
-    border-top: 1px solid rgba(255, 255, 255, 0.1); /* Séparateur visuel (optionnel) */
+    
     padding-top: 0.5rem; /* Espace au-dessus du lien */
     padding-bottom: 0.5rem; /* Espace en dessous du lien */
 }
@@ -485,15 +492,11 @@ a:hover {
 .navbar {
     background-color: var(--very-light-gray);
     color: var(--dark-blue);
-
     padding: 0.5rem 1rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
-    position: fixed;
     top: 0;
-    left: 250px;
-    width: calc(100% - 250px);
     z-index: 200;
     flex-shrink: 0;
     /*min-height: 4rem;*/
@@ -686,6 +689,7 @@ a:hover {
 .app-container {
     display: flex; /* Utilisation de Flexbox pour le conteneur principal */
     min-height: 100vh; /* Le conteneur prend toute la hauteur de la fenêtre */
+    overflow: hidden; /* Empêche le conteneur global de déborder/scroller */
 }
 
 /* Sidebar */
@@ -698,6 +702,7 @@ a:hover {
     width: 250px; /* Initial width of the sidebar */
     flex-shrink: 0; /* Sidebar should not shrink */
     position: fixed; /* Make the sidebar fixed */
+    overflow-y: auto;
     top: 0; /* Align to the top */
     left: 0; /* Align to the left */
     height: 100vh; /* Make the sidebar full height */
@@ -711,8 +716,46 @@ a:hover {
     flex-direction: column;
     margin-left: 250px; /* Add a left margin to the main content */
     transition: margin-left 0.3s ease; /* Add a transition for smooth resizing */
-    overflow-x: hidden;
+    height: 100vh;
+    overflow: hidden;
+    background-color: var(--very-light-gray)
 }
+
+/* 3. Rendre la zone de contenu scrollable */
+.main-content > .content { /* Cible directe du div.content dans main-content */
+    flex-grow: 1; /* Prend tout l'espace vertical disponible entre header et footer */
+    overflow-y: auto; /* Ajoute une barre de défilement vertical SI nécessaire */
+    /* Conservez ou ajustez le padding existant de .default-content-padding */
+    /* Par exemple, si .default-content-padding ajoutait du padding, vous pouvez le mettre ici : */
+    padding: 1.5rem; /* Ajustez selon vos besoins */
+  }
+
+  /* Ajustement pour le padding réduit */
+.main-content > .content.low-padding-top {
+    padding-top: 0.5rem; /* Ou la valeur souhaitée */
+}
+
+/* 4. Fixer le header et le footer */
+.main-content > header#main-navbar { /* Cible le header (navbar) */
+    flex-shrink: 0; /* Empêche le header de rétrécir */
+    position: sticky; /* Optionnel: le rendre collant en haut lors du scroll du contenu */
+    top: 0;
+    z-index: 1020; /* Assurer qu'il est au-dessus du contenu */
+    background-color: var(--very-light-gray); /* Fond pour masquer le contenu qui défile derrière */
+  }
+
+
+  .main-content > footer:not(.chatbot-footer) { /* Cible tous les footers dans main-content */
+    margin-top: 0.5rem;
+    padding-top: 1rem;
+    padding-bottom: 1rem;
+    flex-shrink: 0; /* Empêche le footer de rétrécir */
+    /* Styles pour le rendre visible et séparé */
+    background-color: var(--very-light-gray); /* Exemple: fond légèrement gris */
+    /* border-top: 1px solid var(--bs-border-color); */
+    z-index: 10; /* S'assurer qu'il est au-dessus du contenu qui défile */
+  }
+
 
 .content {
     flex-grow: 1;

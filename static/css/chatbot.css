@@ -63,4 +63,148 @@
   .chat-message-content tbody tr:nth-child(even) {
     background-color: #f9f9f9;
   }
-  
+ 
+
+  /* =============================================== */
+/* == Styles pour la Sidebar de Chat (Droite) == */
+/* =============================================== */
+
+.chatbot-sidebar-right {
+  position: fixed;
+  bottom: 0; /* S'ancre en bas à droite */
+  right: 0;
+  width: 360px; /* Largeur de la sidebar, ajuste selon tes besoins */
+  height: auto; /* La hauteur s'adaptera au contenu, jusqu'à max-height */
+  max-height: 90vh; /* Hauteur maximale pour ne pas couvrir tout l'écran */
+  background-color: #ffffff;
+  border-left: 1px solid #dee2e6;
+  border-top: 1px solid #dee2e6; /* Ajout d'une bordure en haut aussi */
+  box-shadow: -3px -3px 10px rgba(0, 0, 0, 0.08);
+  z-index: 1040; /* S'assurer qu'elle est au-dessus de la plupart des contenus */
+  display: flex;
+  flex-direction: column;
+  border-top-left-radius: 8px; /* Coins arrondis pour un look plus doux */
+  /* transition: transform 0.3s ease-in-out, height 0.3s ease-in-out; */ /* Pour d'éventuelles animations JS */
+}
+
+/* Entête de la sidebar */
+.chatbot-sidebar-header {
+  padding: 0.75rem 1rem;
+  background-color: #f8f9fa;
+  border-bottom: 1px solid #dee2e6;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  cursor: pointer; /* Suggère qu'on peut cliquer pour réduire/agrandir */
+  border-top-left-radius: 8px; /* Correspond au conteneur principal */
+}
+
+.chatbot-sidebar-header span {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: #343a40;
+}
+
+.chatbot-sidebar-header #toggle-chatbot-sidebar-btn {
+  padding: 0.25rem 0.5rem;
+}
+.chatbot-sidebar-header #toggle-chatbot-sidebar-btn i {
+  transition: transform 0.3s ease;
+}
+.chatbot-sidebar-right.is-expanded .chatbot-sidebar-header #toggle-chatbot-sidebar-btn i {
+  transform: rotate(180deg); /* Tourne la flèche quand c'est agrandi */
+}
+
+
+/* Conteneur des messages */
+.chatbot-sidebar-messages-container {
+  flex-grow: 1; /* Prend l'espace disponible */
+  overflow-y: auto; /* Active le défilement si les messages dépassent */
+  padding: 1rem;
+  background-color: #fdfdfd;
+  min-height: 150px; /* Hauteur minimale quand les messages sont visibles */
+  max-height: calc(90vh - 120px); /* Ajuster en fonction de la hauteur du header et input */
+}
+
+/* Styles pour les messages individuels dans la sidebar */
+/* Tu peux réutiliser/adapter tes styles existants pour .message, .user-message, .bot-message */
+.chatbot-sidebar-messages-container .message {
+  margin-bottom: 0.75rem;
+  display: flex;
+  max-width: 95%; /* Un peu moins pour laisser de l'air */
+}
+
+.chatbot-sidebar-messages-container .user-message {
+  margin-left: auto; /* Aligne à droite */
+  flex-direction: row-reverse;
+}
+.chatbot-sidebar-messages-container .user-message .alert {
+  background-color: #007bff; /* Couleur primaire Bootstrap */
+  color: white;
+  border-radius: 1rem 1rem 0.25rem 1rem; /* Forme de bulle */
+  padding: 0.5rem 0.85rem;
+  word-wrap: break-word;
+}
+
+.chatbot-sidebar-messages-container .bot-message {
+  margin-right: auto; /* Aligne à gauche */
+}
+
+.chatbot-sidebar-messages-container .bot-message .alert {
+  background-color: #e9ecef; /* Gris clair */
+  color: #212529;
+  border-radius: 1rem 1rem 1rem 0.25rem; /* Forme de bulle */
+  padding: 0.5rem 0.85rem;
+  word-wrap: break-word;
+}
+.chatbot-sidebar-messages-container .bot-message img { /* Avatar de Loova */
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  margin-right: 8px;
+  align-self: flex-start; /* Aligner l'avatar en haut du message */
+}
+.chatbot-sidebar-messages-container .bot-message .chatbot-response-content p:last-child {
+  margin-bottom: 0; /* Éviter double marge si le contenu est un <p> */
+}
+
+
+/* Zone de saisie */
+.chatbot-sidebar-input-area {
+  padding: 0.75rem 1rem;
+  border-top: 1px solid #dee2e6;
+  background-color: #ffffff;
+}
+
+.chatbot-sidebar-input-area .form-control-lg {
+  font-size: 0.9rem; /* Un peu plus petit pour la sidebar */
+  padding: 0.6rem 1rem;
+}
+
+.chatbot-sidebar-input-area .btn {
+  padding: 0.6rem 0.85rem; /* Ajuster la taille du bouton */
+}
+
+.chatbot-sidebar-input-area .chatbot-avatar-container {
+  display: flex;
+  align-items: center; /* Centrer verticalement l'avatar et le spinner */
+}
+.chatbot-sidebar-input-area #chatbot-input-spinner-footer {
+  /* Le spinner est déjà d-none, JS le montrera. */
+  /* S'assurer qu'il est bien aligné si visible. */
+}
+
+
+/* Indicateur de chargement pour la sidebar */
+#sidebar-chat-loading-indicator.message.bot-message {
+  padding: 0.75rem 1rem; /* Padding cohérent */
+  background-color: #fdfdfd; /* Correspond au fond des messages */
+}
+#sidebar-chat-loading-indicator img {
+  width: 24px;
+  height: 24px;
+}
+#sidebar-chat-loading-indicator .alert {
+  padding: 0.5rem 0.75rem;
+  margin-bottom: 0; /* Retirer la marge par défaut de l'alerte */
+}

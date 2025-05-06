@@ -1,0 +1,59 @@
+{# c:\wamp\www\mon_compta_app\templates\mistral\_chatbot_sidebar.html #}
+{# Ce fichier contient uniquement le code HTML du sidebar de chat #}
+{# Il suppose que 'chatbot_form' est disponible via le context processor #}
+<aside class="chatbot-sidebar-right" id="chatbot-sidebar-container">
+    {# Entête de la sidebar, initialement caché (géré par JS) #}
+    <div class="chatbot-sidebar-header" id="chatbot-sidebar-header" style="display: none;">
+        <span>Conversation avec Loova</span>
+        <button id="toggle-chatbot-sidebar-btn" class="btn btn-sm btn-light" aria-label="Réduire/Agrandir le chat">
+            <i class="fas fa-chevron-down"></i>
+        </button>
+    </div>
+
+    {# Conteneur pour les messages du chat, initialement caché (géré par JS) #}
+    <div class="chatbot-sidebar-messages-container" id="chatbot-sidebar-messages" style="display: none;">
+        {# Les messages seront ajoutés ici par JavaScript #}
+    </div>
+
+    {# Zone de saisie, toujours visible #}
+    <div class="chatbot-sidebar-input-area" id="chatbot-sidebar-input-area">
+        <div class="container-fluid">
+            <div class="new-question-form py-2">
+                <form method="POST" action="{{ url_for('chatbot.chatbot_ask') }}" novalidate id="sidebar-chatbot-form">
+                    {{ chatbot_form.hidden_tag() }} {# Important pour CSRF #}
+
+                    <div class="d-flex align-items-center">
+                        <div class="me-2 chatbot-avatar-container">
+                            <img src="{{ url_for('static', filename='asset/avatar-loova.png') }}" alt="Votre Avatar" class="rounded-circle" style="width: 38px; height: 38px;" id="chatbot-user-avatar-sidebar">
+                            <span class="spinner-border spinner-border-sm d-none ms-1" role="status" aria-hidden="true" id="chatbot-input-spinner-sidebar"></span>
+                        </div>
+                        <div class="input-group">
+                            {{ chatbot_form.question(class="form-control form-control-lg", placeholder="Posez moi vos questions !", autocomplete="off", aria_label="Question pour le chatbot", id="sidebar-chatbot-question-input") }}
+                            <button class="btn btn-primary" type="submit" aria-label="Envoyer la question" id="sidebar-chatbot-submit-btn"><i class="fas fa-paper-plane"></i></button>
+                        </div>
+                        {# Affichage des erreurs si la soumission depuis cette page échoue (rare si AJAX fonctionne) #}
+                        {% if chatbot_form.question.errors %}
+                            <div class="invalid-feedback d-block mt-1">
+                                {% for error in chatbot_form.question.errors %}
+                                    <span>{{ error }}</span><br>
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    {# Indicateur de chargement pour les messages de la sidebar, initialement caché #}
+    <div id="sidebar-chat-loading-indicator" class="message bot-message p-2" style="display: none;">
+        <div class="d-flex align-items-center">
+            <img src="{{ url_for('static', filename='asset/avatar-loova.png') }}" alt="Loova" class="rounded-circle me-2" style="width: 30px; height: 30px;">
+            <div class="alert alert-secondary d-inline-block mb-0 p-2">
+                <i>Réflexion en cours... <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span></i>
+            </div>
+        </div>
+    </div>
+</aside>
+
+
