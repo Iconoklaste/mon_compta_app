@@ -66,7 +66,7 @@ def upgrade():
         batch_op.create_foreign_key(None, 'organisation', ['organisation_id'], ['id'])
 
     with op.batch_alter_table('whiteboard', schema=None) as batch_op:
-        batch_op.drop_index('fk_whiteboard_projet')
+        batch_op.drop_constraint('fk_whiteboard_projet', type_='foreignkey')
         batch_op.create_foreign_key('fk_whiteboard_projet', 'projet', ['projet_id'], ['id'], ondelete='CASCADE')
 
     # ### end Alembic commands ###
