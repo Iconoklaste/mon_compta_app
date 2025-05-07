@@ -5,20 +5,24 @@ import { saveCanvasState } from './state.js';
 // --- Fonction interne pour créer des polygones réguliers ---
 function createRegularPolygon(centerX, centerY, sides, radius, angle = 0, options = {}) {
     const points = [];
-    const angleStep = (Math.PI * 2) / sides;
-    const startAngle = (angle * Math.PI / 180); // Convertir l'angle initial en radians
+    const angleStep = (Math.PI * 2) / sides; // Angle entre les sommets
+    const startAngle = (angle * Math.PI / 180); // Angle de départ pour l'orientation (converti en radians)
+
 
     for (let i = 0; i < sides; i++) {
         points.push({
-            x: centerX + radius * Math.cos(startAngle + i * angleStep),
-            y: centerY + radius * Math.sin(startAngle + i * angleStep)
+            // Calculer les points par rapport à (0,0)
+            x: radius * Math.cos(startAngle + i * angleStep),
+            y: radius * Math.sin(startAngle + i * angleStep)
+
         });
     }
     return new fabric.Polygon(points, {
-        originX: 'center', // Centre est souvent mieux pour les polygones
-        originY: 'center',
-        left: centerX,
-        top: centerY,
+        left: centerX,     // Positionner le centre (0,0) des points à centerX
+        top: centerY,      // Positionner le centre (0,0) des points à centerY
+        originX: 'center', // L'origine de transformation est le centre de la forme
+        originY: 'center', // L'origine de transformation est le centre de la forme
+        objectCaching: false, // Important pour éviter le masquage à l'agrandissement
         ...options // Fusionner les options fournies
     });
 }
@@ -119,11 +123,19 @@ function addShape(canvas, shapeType, onCompleteCallback) {
                 });
                 break;
             case 'hexagon':
-                // Créer un polygone avec rayon 0 initialement
-                shape = createRegularPolygon(origX, origY, 6, 0, 30, { // 30 degrés pour pointer vers le haut
-                     ...commonOptions,
-                     // L'origine est déjà gérée par createRegularPolygon
-                 });
+                // commonOptions a déjà originX: 'left', originY: 'top'
+                // Créer un polygone dégénéré avec l'origine souhaitée
+                const initialHexPoints = [ // 6 points à (0,0) pour un hexagone
+                    {x:0, y:0}, {x:0, y:0}, {x:0, y:0},
+                    {x:0, y:0}, {x:0, y:0}, {x:0, y:0}
+                ];
+                shape = new fabric.Polygon(initialHexPoints, {
+                    ...commonOptions, // Contient fill, stroke, originX:'left', originY:'top', etc.
+                                      // left: origX, top: origY sont aussi dans commonOptions
+                    width: 0,         // La largeur de la boîte englobante des points initiaux est 0
+                    height: 0,        // La hauteur de la boîte englobante des points initiaux est 0
+                    objectCaching: false // Important pour le rendu et la sélection corrects
+                });
                 break;
         }
 
@@ -160,17 +172,57 @@ function addShape(canvas, shapeType, onCompleteCallback) {
                 radius: radius,
             });
         } else if (shapeType === 'hexagon') {
-             const radius = Math.sqrt(width * width + height * height) / 2;
-             const centerX = origX + width / 2;
-             const centerY = origY + height / 2;
-             // Recréer les points du polygone
-             const newPoints = createRegularPolygon(centerX, centerY, 6, radius, 30).points;
+            const abs_w_mouse = Math.abs(width);
+            const abs_h_mouse = Math.abs(height);
+
+            // Hexagone avec pointes haut/bas (angle 30 deg pour les sommets par rapport à l'horizontale)
+            // Largeur de la boîte de l'hexagone = 2 * R
+            // Hauteur de la boîte de l'hexagone = Math.sqrt(3) * R
+            let R_hex;
+            if (abs_w_mouse === 0 || abs_h_mouse === 0) {
+                R_hex = 0;
+            } else {
+                // Calculer le rayon pour que l'hexagone s'inscrive dans le rectangle de la souris
+                // tout en gardant ses proportions.
+                const R_for_width = abs_w_mouse / 2;
+                const R_for_height = abs_h_mouse / Math.sqrt(3);
+                R_hex = Math.min(R_for_width, R_for_height);
+                if (R_hex < 0) R_hex = 0; // S'assurer que le rayon n'est pas négatif
+            }
+
+            const W_hex = 2 * R_hex;
+            const H_hex = Math.sqrt(3) * R_hex;
+
+            // Générer les points de l'hexagone (taille R_hex, angle 30) centrés sur (0,0)
+            // createRegularPolygon est utilisé ici uniquement pour obtenir les points.
+            const tempHexObject = createRegularPolygon(0, 0, 6, R_hex, 30);
+            const centered_points = tempHexObject.points;
+
+            // Translater les points pour que le coin supérieur gauche de la boîte de l'hexagone soit à (0,0)
+            const translated_points = centered_points.map(p => ({
+                x: p.x + W_hex / 2,
+                y: p.y + H_hex / 2
+            }));
+
+            // Calculer la position (left, top) de l'hexagone pour qu'il soit centré
+            // dans la boîte de dessin définie par la souris.
+            const box_left = (width > 0) ? origX : pointer.x;
+            const box_top = (height > 0) ? origY : pointer.y;
+
+            const offsetX = (abs_w_mouse - W_hex) / 2;
+            const offsetY = (abs_h_mouse - H_hex) / 2;
+
              shape.set({
-                 points: newPoints,
-                 left: centerX, // Mettre à jour la position du centre
-                 top: centerY,
+                points: translated_points,
+                left: box_left + offsetX,
+                top: box_top + offsetY,
+                // originX: 'left', // Déjà défini à la création et dans commonOptions
+                // originY: 'top',  // Déjà défini à la création et dans commonOptions
+                // width et height seront recalculés par Fabric à partir des translated_points.
+                // Ces width/height seront W_hex et H_hex.
              });
              shape.setCoords(); // Important pour recalculer la boîte englobante
+
         } else { // Rectangle, Triangle
             shape.set({
                 left: width > 0 ? origX : pointer.x,

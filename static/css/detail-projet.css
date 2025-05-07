@@ -72,8 +72,13 @@
     }
     /* Style pour les phases dans Gantt */
     #gantt-chart .bar-wrapper.gantt-phase .bar {
-        fill: #28a745; /* Couleur verte pour les phases */
+        fill: #ffce97; /* Couleur verte pour les phases */
     }
+    /* Style pour les tâches en cours/avancées dans Gantt */
+    #gantt-chart .bar-progress {
+        fill: #21993b; /* Vert (var(--light-green) de styles.css) */
+    }
+    
      /* Style pour les jalons dans Gantt */
     .gantt-milestone .bar {
         fill: #ffc107; /* Jaune Bootstrap */
