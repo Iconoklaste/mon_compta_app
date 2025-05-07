@@ -13,4 +13,5 @@ from .compte_comptable import CompteComptable, ClasseCompte
 from .ecritures_comptable import EcritureComptable, LigneEcriture
 from .equipe_membre import EquipeMembre
 from .note_reunion import NoteReunion
+from .rag_documents import RagDocument
     

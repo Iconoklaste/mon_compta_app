@@ -114,8 +114,12 @@ app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'} # Allowed exten
 
 # --- Dossier pour l'upload de pièce jointe user ---
 UPLOAD_FOLDER = os.path.join(app.root_path, 'uploads', 'attachments')
-app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+RAG_UPLOAD_FOLDER = os.path.join(app.root_path, 'uploads', 'rag_documents')
+
+app.config['RAG_UPLOAD_FOLDER'] = RAG_UPLOAD_FOLDER
+
 os.makedirs(UPLOAD_FOLDER, exist_ok=True) # Create the folder if it doesn't exist
+os.makedirs(RAG_UPLOAD_FOLDER, exist_ok=True) # Create the folder if it doesn't exist
 
 # --- Dossier pour le RAG ---
 RAG_STORAGE_PATH = os.path.join(app.root_path, 'data', 'rag_storage')

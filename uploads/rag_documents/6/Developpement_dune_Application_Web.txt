@@ -1,0 +1,96 @@
+Développement d’une Application Web Politique Alimentaire du département de Rufisque
+1. VOTRE BESOIN
+
+Contexte du projet
+Le Département de Rufisque (CDR), dans le cadre de sa stratégie de valorisation de la politique alimentaire, souhaite renforcer sa communication institutionnelle grâce à une application web interactive. Ce projet fait suite à un diagnostic approfondi réalisé en 2017 par le GRDR et le CICODEV et l’élaboration d’un Plan Alimentaire Territorial (PAT). De nombreuses données ont été collectées (zones agricoles, transformation alimentaire, cantines scolaires). Pour valoriser ces efforts et informer le public, le CDR souhaite une plateforme web permettant :
+
+    la visualisation des actions menées sur le territoire via des cartes interactives,
+
+    la consultation de graphiques et de données chiffrées,
+
+    des rubriques “Pour aller plus loin” avec contenu textuel et infobulles.
+
+Thématiques et données
+Thématique	Données cartographiques	Infobulles & graphiques	Textes complémentaires
+Zones agricoles	Lendeng maraîchère, unités de production, irrigation, courbes…	Détails sur irrigation, enjeux eau ; graphiques production, agriculture durable	Enjeux fonciers, gestion de l’eau, impact emploi local
+Transformation alimentaire	Acteurs (TPE, PME, groupements de femmes)	Nom, logo, activité, contrats cantines ; graphiques relations et contribution économique	Approvisionnement local, charte femmes, enjeux genre/emploi
+Cantines scolaires	Écoles, effectifs par genre, bénéficiaires repas	Détails écoles, graphiques réussite scolaire, coûts repas	Modes d’alimentation, lien cantines‑réussite, coûts repas
+
+Points d’attention
+
+    Intégration : l’appli doit s’imbriquer simplement via iframe ou lien dans les sites CDR/GRDR, avec design sobre, sans charte contraignante.
+
+    Hébergement : service souple, gratuit, indépendant des sites hôtes, administration simplifiée (GitHub Pages, Netlify, Vercel…).
+
+    Mises à jour : trimestrielles, uniquement pour les données SIG, sans personnel dédié ; les données sont modifiées localement puis téléversées.
+
+    Livrables documentaires : architecture technique, manuel de mise à jour, guide d’intégration iframe.
+
+    Formation : support pédagogique, session de prise en main et de mise à jour.
+
+    Co‑construction : réunions de cadrage et validation conjointes à chaque phase.
+
+2. QUI SOMMES‑NOUS ?
+
+Studio Noble‑Val
+Micro‑entreprise de cartographie & développement Web dans le Sud‑Ouest de la France. Flexibilité, réactivité et relation client directe garantissant une implication totale.
+
+Méthodologie
+
+    Équilibre créativité/rigueur pour des solutions innovantes et fiables.
+
+    Approche co‑construction : client impliqué à chaque étape (atelier participatif, maquettes, tests).
+
+    Écoute active et respect des valeurs du client.
+
+Intervenant principal
+Thomas Jacquemot, 15 ans d’expérience en projets SIG et WebSIG, ancien collaborateur GRDR (projet AGEPA, Atlas mauritanien).
+
+Références
+
+    Projet AGEPA (2006–2008) : SIG du projet GRDR à Bakel (print A0).
+
+    Friture.net (2012) : application WebSIG pour alternatives en Midi‑Pyrénées.
+
+3. NOTRE PROPOSITION
+3.1 Offre de base (modulaire, Open Source)
+Composantes	Fonctions de base	Options disponibles
+Page d’accueil	Carrousel, boutons d’accès modules	Responsive design (Option A)
+Cartographie dynamique	mViewer (OpenLayers + Bootstrap)	Téléchargement/Export PDF (Option B)
+Data-visualisation	D3.js pour graphiques interactifs	Infographies thématiques (Option C)
+Pavés de textes	Mise en forme, infobulles	
+Intégration (iframe)	Guide d’intégration	
+Hébergement	GitHub Pages, Netlify, Vercel…	
+Module de mise à jour	Exécutable Windows, validation, upload	
+Documentation & formation	Guides utilisateur/technique, formation	
+
+Hébergement
+Hébergeur	Gratuité	Fonctionnalités	Expertise requise
+GitHub Pages	✅ illimité	Statique, CI/CD, HTTPS, CDN	Faible
+Netlify	✅ limité	Statique, serverless, formulaires	Modéré
+Vercel	✅ limité	Statique, serverless, CI/CD avancée	Modéré
+AWS Amplify	✅ limité	Statique / dynamique, backend serverless	Élevé
+
+Intégration via iframe
+Schéma simple d’iframe avec header/menu sur site hôte et contenu distant.
+3.2 Options détaillées
+
+    Option A – Design responsive : tests multi‑appareils, fluidité sur desktop, tablette, smartphone.
+
+    Option B – Téléchargement données & PDF : export quantitatif et carto/textes en PDF pour reporting et archives hors ligne.
+
+    Option C – Infographies thématiques : création de visuels statiques (PDF, images) pour communication imprimée et en ligne.
+
+4. CALENDRIER PRÉVISIONNEL
+Phase	Activités principales	Livrables	Durée
+I. Cadrage & analyse	Réunion de lancement, atelier données/fonctions	Note analyse & périmètre, compte‑rendu réunion	1,5 sem.
+II. Conception UI/UX	Maquette, réunion de validation	Maquette fonctionnelle	2 sem.
+III. Développement	Coding accueil, carto, graphiques, module mise à jour	Beta Web, exécutable MAJ, 2 réunions d’avancement	6 sem.
+IV. Tests & ajustements	Déploiement beta, gestion tickets, corrections	Beta en ligne, système tickets, corrections intégrées	2 sem.
+V. Documentation & formation	Rédaction guides, support formation, session visio	Docs technique, guide utilisateur, guide MAJ, atelier visio	2 sem.
+VI. Déploiement & livraison	Publication v1.0, intégration iframe, réunions de clôture	V1.0 en prod, 2 réunions intégration, réunion de clôture	1 sem.
+
+Contact
+Thomas Jacquemot – tjacquemot@gmail.com
+
+Nous restons à votre disposition pour toute précision et serions ravis de co‑construire ce projet avec vos équipes.
