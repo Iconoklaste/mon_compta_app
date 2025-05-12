@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+
+{% block title %}Modifier Client - {{ client.nom }}{% endblock %}
+
+{% block content %}
+<div class="container mt-4">
+    <div class="row mb-3">
+        <div class="col-md-8">
+            <h2><i class="fas fa-edit me-2"></i>Modifier le Client : {{ client.nom }}</h2>
+        </div>
+        <div class="col-md-4 text-end">
+            <a href="{{ url_for('clients.clients') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-arrow-left me-2"></i>Retour à la liste
+            </a>
+        </div>
+    </div>
+
+    {% include '_flash_messages.html' %}
+
+    <div class="card shadow-sm">
+        <div class="card-body">
+            <form method="POST" action="{{ url_for('clients.modifier_client_page', client_id=client.id) }}" novalidate>
+                {{ form.hidden_tag() }} {# Inclut le CSRF token et autres champs cachés #}
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        {{ form.nom.label(class="form-label") }}
+                        {{ form.nom(class="form-control" + (" is-invalid" if form.nom.errors else ""), placeholder="Nom complet ou raison sociale") }}
+                        {% if form.nom.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.nom.errors %}
+                                    {{ error }}{% if not loop.last %}<br>{% endif %}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-6 mb-3">
+                        {{ form.mail.label(class="form-label") }}
+                        {{ form.mail(class="form-control" + (" is-invalid" if form.mail.errors else ""), placeholder="adresse@email.com", type="email") }}
+                        {% if form.mail.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.mail.errors %}
+                                    {{ error }}{% if not loop.last %}<br>{% endif %}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    {{ form.adresse.label(class="form-label") }}
+                    {{ form.adresse(class="form-control" + (" is-invalid" if form.adresse.errors else ""), placeholder="Numéro et nom de rue") }}
+                    {% if form.adresse.errors %}
+                        <div class="invalid-feedback">
+                            {% for error in form.adresse.errors %}
+                                {{ error }}{% if not loop.last %}<br>{% endif %}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="row">
+                    <div class="col-md-4 mb-3">
+                        {{ form.code_postal.label(class="form-label") }}
+                        {{ form.code_postal(class="form-control" + (" is-invalid" if form.code_postal.errors else ""), placeholder="Code Postal") }}
+                        {% if form.code_postal.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.code_postal.errors %}
+                                    {{ error }}{% if not loop.last %}<br>{% endif %}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                    <div class="col-md-8 mb-3">
+                        {{ form.ville.label(class="form-label") }}
+                        {{ form.ville(class="form-control" + (" is-invalid" if form.ville.errors else ""), placeholder="Ville") }}
+                        {% if form.ville.errors %}
+                            <div class="invalid-feedback">
+                                {% for error in form.ville.errors %}
+                                    {{ error }}{% if not loop.last %}<br>{% endif %}
+                                {% endfor %}
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    {{ form.telephone.label(class="form-label") }}
+                    {{ form.telephone(class="form-control" + (" is-invalid" if form.telephone.errors else ""), placeholder="Numéro de téléphone", type="tel") }}
+                    {% if form.telephone.errors %}
+                        <div class="invalid-feedback">
+                            {% for error in form.telephone.errors %}
+                                {{ error }}{% if not loop.last %}<br>{% endif %}
+                            {% endfor %}
+                        </div>
+                    {% endif %}
+                </div>
+
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end mt-4">
+                    <button type="submit" class="btn btn-primary">
+                        <i class="fas fa-save me-2"></i>Enregistrer les modifications
+                    </button>
+                    <a href="{{ url_for('clients.clients') }}" class="btn btn-secondary">
+                        Annuler
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

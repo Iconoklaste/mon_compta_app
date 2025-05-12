@@ -32,6 +32,9 @@
                     <a href="{{ url_for('clients.client_dashboard', client_id=client.id) }}" class="btn btn-primary btn-sm">
                         <i class="fas fa-eye"></i> Détail
                     </a>
+                    <a href="{{ url_for('clients.modifier_client_page', client_id=client.id) }}" class="btn btn-sm btn-warning" title="Modifier ce client">
+                        <i class="fas fa-edit"></i>
+                    </a>
                 </td>
             </tr>
             {% else %}

@@ -111,6 +111,72 @@ def ajouter_client_page():
                            form=form, # Passer le formulaire (peut contenir des erreurs)
                            current_page='CRM')
 
+# --- Route pour AFFICHER et TRAITER le formulaire de modification ---
+@clients_bp.route('/modifier/<int:client_id>', methods=['GET', 'POST'])
+@login_required
+def modifier_client_page(client_id):
+    """Affiche le formulaire (GET) ou traite la modification d'un client (POST)."""
+    user_id = current_user.id
+    user = User.query.get(user_id)
+    if not user or not user.organisation_id:
+        flash("Impossible de déterminer votre organisation.", "danger")
+        return redirect(url_for('clients.clients'))
+
+    organisation_id = user.organisation_id
+    client = Client.query.filter_by(id=client_id, organisation_id=organisation_id).first_or_404()
+
+    # Instancier le formulaire, en le pré-remplissant avec les données du client si GET
+    form = ClientForm(obj=client if request.method == 'GET' else None)
+
+    if form.validate_on_submit(): # Gère la validation ET le CSRF
+        try:
+            # Mettre à jour les champs du client avec les données du formulaire
+            client.nom = form.nom.data
+            client.adresse = form.adresse.data
+            client.code_postal = form.code_postal.data
+            client.ville = form.ville.data
+            client.telephone = form.telephone.data
+            client.mail = form.mail.data
+            # L'organisation_id et compte_comptable ne sont généralement pas modifiés ici.
+
+            db.session.commit()
+            logger.info(f"Client ID {client.id} ('{client.nom}') mis à jour avec succès.")
+            flash('Client modifié avec succès!', 'success')
+            return redirect(url_for('clients.clients'))
+
+        except IntegrityError as e:
+            db.session.rollback()
+            logger.warning(f"Erreur d'intégrité lors de la modification du client ID {client_id}: {e}")
+            error_msg = "Erreur de base de données (doublon?)."
+            # Vérifier si l'erreur concerne l'unicité de l'email pour un AUTRE client
+            if 'client.mail' in str(e.orig).lower() or 'unique constraint failed: client.mail' in str(e.orig).lower():
+                # Vérifier si l'email est utilisé par un *autre* client de la même organisation
+                existing_client_with_email = Client.query.filter(
+                    Client.mail == form.mail.data,
+                    Client.organisation_id == organisation_id,
+                    Client.id != client_id # Exclure le client actuel
+                ).first()
+                if existing_client_with_email:
+                    error_msg = "Cet email est déjà utilisé par un autre client."
+                    form.mail.errors.append(error_msg)
+            flash(error_msg, 'danger')
+
+        except (DataError, SQLAlchemyError) as e:
+            db.session.rollback()
+            logger.error(f"Erreur DB lors de la modification du client ID {client_id}: {e}", exc_info=True)
+            flash(f"Erreur de base de données: {e}", 'danger')
+        except Exception as e:
+            db.session.rollback()
+            logger.error(f"Erreur inattendue lors de la modification du client ID {client_id}: {e}", exc_info=True)
+            flash(f"Une erreur inattendue est survenue: {e}", 'danger')
+
+    # Affichage du formulaire (requête GET ou si validation POST échoue)
+    # Si c'est un POST et que la validation a échoué, les erreurs sont dans form.errors
+    return render_template('modifier_client_page.html',
+                           form=form,
+                           client=client, # Passer l'objet client pour l'affichage du titre, etc.
+                           current_page='CRM')
+
 
 # --- Route POST distincte pour traiter l'ajout via AJAX ---
 @clients_bp.route('/ajouter/ajax', methods=['POST']) # Nouvelle URL spécifique AJAX
