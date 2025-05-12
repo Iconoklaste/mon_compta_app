@@ -239,18 +239,28 @@ if __name__ == '__main__':
         # --- Création User (si besoin) ---
         if not User.query.first() and default_organisation:
 
-            default_mon = os.environ.get('DEFAULT_ADMIN_NOM')
+            default_nom = os.environ.get('DEFAULT_ADMIN_NOM')
             default_prenom = os.environ.get('DEFAULT_ADMIN_PRENOM')
             default_mail = os.environ.get('DEFAULT_ADMIN_MAIL')
             default_password = os.environ.get('DEFAULT_ADMIN_PASSWORD')
-            if not default_password:
-                raise ValueError("La variable d'environnement DEFAULT_ADMIN_PASSWORD doit être définie pour créer l'utilisateur initial.")
-            
+            default_telephone = os.environ.get('DEFAULT_ADMIN_TELEPHONE')
+
+            missing_vars = []
+            if not default_nom: missing_vars.append('DEFAULT_ADMIN_NOM')
+            if not default_prenom: missing_vars.append('DEFAULT_ADMIN_PRENOM')
+            if not default_mail: missing_vars.append('DEFAULT_ADMIN_MAIL')
+            if not default_password: missing_vars.append('DEFAULT_ADMIN_PASSWORD')
+            if not default_telephone: missing_vars.append('DEFAULT_ADMIN_TELEPHONE') 
+
+            if missing_vars:
+                raise ValueError(f"Les variables d'environnement suivantes doivent être définies pour créer l'utilisateur initial: {', '.join(missing_vars)}")
+
+
             default_user = User(
-                nom="Nom",
-                prenom="Prenom",
-                mail="nom.prenom@test.com",
-                telephone="0123456789",
+                nom=default_nom,
+                prenom=default_prenom,
+                mail=default_mail,
+                telephone=default_telephone,
                 organisation_id=default_organisation.id,
                 is_super_admin=True,
                 role="Admin"
