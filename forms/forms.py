@@ -76,8 +76,8 @@ class AjouterUserFormDemo(FlaskForm):
 class ProjetForm(FlaskForm):
     nom = StringField('Nom', validators=[DataRequired()])
     client_id = SelectField('Client', coerce=int, validators=[DataRequired()])
-    date_debut = DateField('Date de début', validators=[DataRequired()])
-    date_fin = DateField('Date de fin', validators=[DataRequired()])
+    date_debut = DateField('Date de début', validators=[DataRequired()], widget=DateInput())
+    date_fin = DateField('Date de fin', validators=[DataRequired()], widget=DateInput())
     statut = SelectField('Statut', choices=[('En attente', 'En attente'), ('En cours', 'En cours'), ('Terminé', 'Terminé'), ('Annulé', 'Annulé')], validators=[DataRequired()])
     prix_total = IntegerField('Prix total', validators=[DataRequired()])
 
@@ -95,8 +95,8 @@ class JalonForm(FlaskForm):
 
 class PhaseForm(FlaskForm):
     nom = StringField('Nom', validators=[DataRequired()])
-    date_debut = DateField('Date de début', validators=[DataRequired()], default=date.today)
-    date_fin = DateField('Date de fin', validators=[DataRequired()], default=date.today)
+    date_debut = DateField('Date de début', validators=[DataRequired()], default=date.today, widget=DateInput())
+    date_fin = DateField('Date de fin', validators=[DataRequired()], default=date.today, widget=DateInput())
     statut = SelectField('Statut', choices=[('En cours', 'En cours'), ('Terminée', 'Terminée'), ('En attente', 'En attente')])
     jalons = FieldList(FormField(JalonForm), min_entries=1)  # Add this line
     submit = SubmitField('Enregistrer')
@@ -248,7 +248,7 @@ class ClientForm(FlaskForm):
 class EntreeForm(FlaskForm):
     """Formulaire pour ajouter une transaction d'entrée (Revenu/Facture)."""
     # Champs communs
-    date = DateField('Date', default=date.today, validators=[DataRequired()])
+    date = DateField('Date', default=date.today, validators=[DataRequired()], widget=DateInput())
     montant = FloatField('Montant', validators=[DataRequired(), NumberRange(min=0.01)])
     description = StringField('Description', validators=[DataRequired(), Length(max=200)])
     mode_paiement = SelectField('Mode de Paiement', choices=[
@@ -279,8 +279,8 @@ class EntreeForm(FlaskForm):
         validators=[Optional()] # Optionnel car on peut créer un nouveau
     )
     creer_nouvel_exercice = HiddenField(default='false') # Champ caché pour le switch JS
-    date_debut_exercice = DateField('Date de début (Nouvel Exercice)', validators=[Optional()])
-    date_fin_exercice = DateField('Date de fin (Nouvel Exercice)', validators=[Optional()])
+    date_debut_exercice = DateField('Date de début (Nouvel Exercice)', validators=[Optional()], widget=DateInput())
+    date_fin_exercice = DateField('Date de fin (Nouvel Exercice)', validators=[Optional()], widget=DateInput())
 
     submit = SubmitField('Ajouter Entrée')
 
@@ -303,7 +303,7 @@ class EntreeForm(FlaskForm):
 class SortieForm(FlaskForm):
     """Formulaire pour ajouter une transaction de sortie (Dépense)."""
     # Champs communs (identiques à EntreeForm)
-    date = DateField('Date', default=date.today, validators=[DataRequired()])
+    date = DateField('Date', default=date.today, validators=[DataRequired()], widget=DateInput())
     montant = FloatField('Montant', validators=[DataRequired(), NumberRange(min=0.01)])
     description = StringField('Description', validators=[DataRequired(), Length(max=200)])
     mode_paiement = SelectField('Mode de Paiement', choices=[
@@ -334,8 +334,8 @@ class SortieForm(FlaskForm):
         validators=[Optional()]
     )
     creer_nouvel_exercice = HiddenField(default='false')
-    date_debut_exercice = DateField('Date de début (Nouvel Exercice)', validators=[Optional()])
-    date_fin_exercice = DateField('Date de fin (Nouvel Exercice)', validators=[Optional()])
+    date_debut_exercice = DateField('Date de début (Nouvel Exercice)', validators=[Optional()], widget=DateInput())
+    date_fin_exercice = DateField('Date de fin (Nouvel Exercice)', validators=[Optional()], widget=DateInput())
 
     # Champ pour la pièce jointe (optionnel)
     attachment = FileField('Pièce Jointe (Facture)', validators=[
@@ -451,7 +451,7 @@ class EquipeMembreForm(FlaskForm):
     
 class NoteReunionForm(FlaskForm):
     # Utilise DateTimeLocalField pour un sélecteur de date/heure sympa
-    date = DateField('Date de début', validators=[DataRequired()])
+    date = DateField('Date de début', validators=[DataRequired()], widget=DateInput())
     # Le contenu sera géré par le Rich Text Editor, mais on utilise TextAreaField
     contenu = TextAreaField('Contenu de la note', validators=[DataRequired()])
     submit = SubmitField('Enregistrer la note')

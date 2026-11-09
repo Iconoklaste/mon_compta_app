@@ -57,6 +57,7 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfgen import canvas
 from reportlab.lib.utils import ImageReader
 from reportlab.lib import colors
+from reportlab.lib.enums import TA_RIGHT
 from io import BytesIO
 from decimal import Decimal
 
@@ -131,13 +132,19 @@ def generate_facturation_pdf(transaction):
     )
     current_y_emitter -= 15 # Décalage vers le bas pour la ligne suivante
 
-    # Affichage de l'adresse
+    # Affichage de l'adresse : la rue sur sa propre ligne, le code postal et la
+    # ville en dessous (une adresse longue tenait mal sur une seule ligne)
     p.drawString(
         50,
         current_y_emitter, # Anciennement height - 180
-        f"{organisation.adresse}, {organisation.code_postal} {organisation.ville}"
+        organisation.adresse or ""
     )
     current_y_emitter -= 15 # Décalage vers le bas pour la ligne suivante
+
+    orga_cp_ville = " ".join(filter(None, [organisation.code_postal, organisation.ville]))
+    if orga_cp_ville:
+        p.drawString(50, current_y_emitter, orga_cp_ville)
+        current_y_emitter -= 15
 
     # Ajout du numéro SIRET de l'organisation s'il existe
     if hasattr(organisation, 'siret') and organisation.siret:
@@ -161,16 +168,48 @@ def generate_facturation_pdf(transaction):
     client_adresse = client.adresse if client and client.adresse else "Adresse inconnue"
     # Ensure client_tel is a string, even if None or client is None
     client_tel = client.telephone if client and client.telephone else ""
+    # Code postal et ville : le champ code_postal est limité à 5 chiffres, un
+    # éventuel Cedex est donc saisi dans le champ ville.
+    client_cp_ville = " ".join(filter(None, [
+        client.code_postal if client else None,
+        client.ville if client else None,
+    ]))
 
     p.drawRightString(width - 50, height - 165, client_nom)
     p.drawRightString(width - 50, height - 180, client_tel)
-    p.drawRightString(width - 50, height - 195, client_adresse)
+
+    # L'adresse est dessinée dans un Paragraph aligné à droite : une adresse
+    # longue passe à la ligne au lieu de déborder sur le bloc émetteur.
+    client_font_size = 9
+    client_addr_style = ParagraphStyle(
+        'client_addr',
+        parent=getSampleStyleSheet()['Normal'],
+        fontName='Helvetica',
+        fontSize=client_font_size,
+        leading=11,
+        alignment=TA_RIGHT
+    )
+    client_block_width = width / 2 - 50  # moitié droite de la page
+    client_block_x = (width - 50) - client_block_width
+
+    current_y_client = height - 195
+    adresse_paragraph = Paragraph(client_adresse, client_addr_style)
+    _, adresse_h = adresse_paragraph.wrapOn(p, client_block_width, 0)
+    # On aligne la première ligne du paragraphe sur la ligne de base courante
+    adresse_paragraph.drawOn(p, client_block_x, current_y_client + client_font_size - adresse_h)
+    current_y_client -= adresse_h + 4
+
+    if client_cp_ville:
+        p.setFont("Helvetica", client_font_size)
+        p.drawRightString(width - 50, current_y_client, client_cp_ville)
+        current_y_client -= 15
 
     # ======================
     #   TABLEAU D'ARTICLES
     # ======================
-    # Position de départ du tableau
-    header_baseline_y = height - 230
+    # Position de départ du tableau : sous le plus bas des deux blocs d'en-tête,
+    # dont la hauteur varie selon la longueur des adresses.
+    header_baseline_y = min(current_y_emitter, current_y_client) - 20
     left_margin = 50
     right_margin = width - 50
     col_widths = [(right_margin - left_margin) * 0.45,  # DESCRIPTION
