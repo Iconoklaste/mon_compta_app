@@ -1,7 +1,7 @@
-from flask import Blueprint, request, jsonify, render_template, redirect, url_for, make_response, session, current_app, flash
+from flask import Blueprint, request, jsonify, render_template, redirect, url_for, make_response, session, current_app, flash, abort
 from flask_login import login_user, login_required, current_user
 from controllers.db_manager import db
-from controllers.users_controller import login_required
+from controllers.users_controller import login_required, exiger_inscription_demo_ouverte
 from models import Organisation, User
 from forms.forms import OrganisationForm  # Import the OrganisationForm
 from werkzeug.utils import secure_filename
@@ -25,7 +25,12 @@ def allowed_file(filename):
            filename.rsplit('.', 1)[1].lower() in current_app.config['ALLOWED_EXTENSIONS']
 
 @organisations_bp.route('/ajouter_organisation', methods=['POST'])
+@login_required
 def ajouter_organisation():
+    # Créer une organisation est réservé au super admin.
+    if not current_user.is_super_admin:
+        return jsonify({'success': False, 'error': "Réservé au super administrateur."}), 403
+
     form = OrganisationForm()  # Create an instance of the form
 
     if form.validate_on_submit():
@@ -114,7 +119,10 @@ def modifier_organisation():
         return render_template('modifier_organisation.html', organisation=organisation, form=form)
 
 @organisations_bp.route('/get_logo/<int:organisation_id>', endpoint='get_logo')
+@login_required
 def get_logo(organisation_id):
+    if organisation_id != current_user.organisation_id and not current_user.is_super_admin:
+        abort(404)
     organisation = Organisation.query.get_or_404(organisation_id)
     if organisation.logo:
         response = make_response(organisation.logo)
@@ -127,6 +135,7 @@ def get_logo(organisation_id):
 @organisations_bp.route('/creer-compte-demo/etape-2', methods=['GET', 'POST'])
 def ajouter_organisation_demo():
     """Affiche et traite le formulaire d'informations organisation (Étape 2)."""
+    exiger_inscription_demo_ouverte()
     # Vérifier si les données de l'utilisateur de l'étape 1 sont bien en session
     if 'demo_user_data' not in session:
         logger.warning("Tentative d'accès à l'étape 2 sans données utilisateur en session.")

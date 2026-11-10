@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, request, redirect, url_for, session, jsonify, flash
+from flask import Blueprint, render_template, request, redirect, url_for, session, jsonify, flash, abort, current_app
 from controllers.db_manager import db
 from models import User, Organisation
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -14,6 +14,16 @@ logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
 users_bp = Blueprint('users', __name__)
+
+
+def exiger_inscription_demo_ouverte():
+    """Répond 404 tant que la création de compte de démonstration est fermée.
+
+    Loova est un outil interne : l'inscription publique reste fermée, sauf si
+    INSCRIPTION_DEMO=1 est posé dans le .env (voir app.py).
+    """
+    if not current_app.config.get('INSCRIPTION_DEMO'):
+        abort(404)
 
 
 @users_bp.route('/', methods=['GET', 'POST'])
@@ -126,8 +136,15 @@ def logout():
     return redirect(url_for('users.index'))
 
 @users_bp.route('/ajouter_user', methods=['GET', 'POST'])
+@login_required
 def ajouter_user():
     form = AjouterUserForm() # Create an instance of the form
+
+    # Un utilisateur n'ajoute de compte que dans sa propre organisation ;
+    # seul un super admin peut choisir parmi toutes les organisations.
+    if not current_user.is_super_admin:
+        designation = current_user.organisation.designation
+        form.organisation.choices = [(designation, designation)]
 
     if form.validate_on_submit():
         # Check if the email already exists
@@ -137,7 +154,10 @@ def ajouter_user():
             return render_template('ajouter_user.html', form=form)
 
         # Get the organization object
-        organisation = Organisation.query.filter_by(designation=form.organisation.data).first()
+        if current_user.is_super_admin:
+            organisation = Organisation.query.filter_by(designation=form.organisation.data).first()
+        else:
+            organisation = current_user.organisation
         if not organisation:
             flash('Organisation non trouvée.', 'danger')
             return render_template('ajouter_user.html', form=form)
@@ -162,6 +182,7 @@ def ajouter_user():
 def ajouter_user_demo():
     """Affiche et traite le formulaire d'informations utilisateur (Étape 1)."""
     # Important: Ne pas utiliser @login_required ici, c'est pour les nouveaux utilisateurs
+    exiger_inscription_demo_ouverte()
     form = AjouterUserForm()
     # On retire le champ organisation du formulaire pour cette étape
     del form.organisation

@@ -1,6 +1,7 @@
 # c:\wamp\www\mon_compta_app\controllers\projet_jalons.py
 
-from flask import Blueprint, render_template, redirect, url_for, request, flash, session, jsonify
+from flask import Blueprint, render_template, redirect, url_for, request, flash, session, jsonify, abort
+from flask_login import current_user
 from flask_wtf.csrf import validate_csrf
 from controllers.db_manager import db
 from models import Jalon, Projet, Phase
@@ -11,9 +12,18 @@ import logging
 
 projet_jalons_bp = Blueprint('projet_jalons', __name__, url_prefix='/projets/<int:projet_id>/phases/<int:phase_id>/jalons')
 
-@projet_jalons_bp.route('/<int:jalon_id>/update', methods=['POST'])
-def update_jalon_status(projet_id, phase_id, jalon_id):
+def _jalon_de_mon_organisation(projet_id, jalon_id):
+    """Renvoie le jalon s'il appartient au projet et à l'organisation de l'utilisateur, sinon 404."""
     jalon = Jalon.query.get_or_404(jalon_id)
+    if jalon.projet_id != projet_id or jalon.projet.organisation_id != current_user.organisation_id:
+        abort(404)
+    return jalon
+
+
+@projet_jalons_bp.route('/<int:jalon_id>/update', methods=['POST'])
+@login_required
+def update_jalon_status(projet_id, phase_id, jalon_id):
+    jalon = _jalon_de_mon_organisation(projet_id, jalon_id)
     data = request.get_json()
     jalon.atteint = data['completed']
     db.session.commit()
@@ -65,10 +75,12 @@ def modifier_jalon(projet_id, phase_id, jalon_id):
     return render_template('jalon_form.html', form=form, projet=projet, phase=phase, title="Modifier un jalon", jalon=jalon)
 
 @projet_jalons_bp.route('/<int:jalon_id>/modifier_statut', methods=['POST'])
+@login_required
 def modifier_jalon_statut(projet_id, phase_id, jalon_id):
     logging.debug(f"Updating jalon {jalon_id} in phase {phase_id} of project {projet_id}")
+    # Hors du try : un 404 doit rester un 404, pas devenir une erreur 500.
+    jalon = _jalon_de_mon_organisation(projet_id, jalon_id)
     try:
-        jalon = Jalon.query.get_or_404(jalon_id)
         data = request.get_json()
 
         if data is None:

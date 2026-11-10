@@ -109,6 +109,10 @@ if not secret_key:
     raise ValueError("No SECRET_KEY set for Flask application")
 app.config['SECRET_KEY'] = secret_key
 
+# Loova est un outil interne : la création de compte de démonstration depuis la
+# page d'accueil est fermée par défaut. Pour la rouvrir : INSCRIPTION_DEMO=1 dans le .env.
+app.config['INSCRIPTION_DEMO'] = os.environ.get('INSCRIPTION_DEMO') == '1'
+
 app.config['MAX_LOGO_SIZE'] = 2 * 1024 * 1024 # 2MB max size for logo
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'} # Allowed extensions for logo
 
@@ -178,6 +182,7 @@ def inject_chatbot_form():
     return dict(chatbot_form=form)
 
 @app.route('/test-pen') # Vous pouvez choisir l'URL que vous voulez
+@login_required
 def test_pen_page():
     """
     Affiche la page de test pour les pinceaux Fabric.js.
@@ -187,6 +192,7 @@ def test_pen_page():
     return render_template('test-pen.html')
 
 @app.route('/test/projet_detail')
+@login_required
 def test_projet_detail():
     return render_template('test/test_projet_detail.html')
 

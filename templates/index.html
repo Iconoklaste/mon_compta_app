@@ -35,9 +35,12 @@
                     </div>
                 </div>
 
+                {# Bouton affiché seulement si l'inscription de démonstration est ouverte (INSCRIPTION_DEMO=1) #}
+                {% if config.INSCRIPTION_DEMO %}
                 <a href="{{ url_for('users.ajouter_user_demo') }}" class="btn-decouvrir mt-4 btn btn-success btn-lg mb-5">
                     Créer un compte de démonstration <i class="fas fa-arrow-right fa-lg ms-2"></i>
                 </a>
+                {% endif %}
 
             </div>
 

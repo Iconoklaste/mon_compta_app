@@ -29,6 +29,7 @@ md = MarkdownIt().enable('table')
 chatbot_bp = Blueprint('chatbot', __name__, template_folder='../templates/mistral')
 
 @chatbot_bp.route('/chatbot_ask', methods=['POST']) # Assurez-vous que l'URL correspond à vos url_for
+@login_required
 def chatbot_ask():
     """
     Reçoit la question de l'utilisateur via le formulaire WTForms ou AJAX,
