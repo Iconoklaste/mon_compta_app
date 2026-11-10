@@ -6,8 +6,18 @@ from sqlalchemy import Numeric
 
 class Projet(db.Model):
     __tablename__ = 'projet'
+    # « reference » en tête de la contrainte : un index qui commencerait par
+    # organisation_id pourrait être adopté par MySQL pour la clé étrangère, et
+    # ne plus pouvoir être retiré ensuite.
+    __table_args__ = (
+        db.UniqueConstraint('reference', 'organisation_id', name='uq_projet_reference_organisation'),
+    )
+
     id = db.Column(db.Integer, primary_key=True)
     nom = db.Column(db.String(100), nullable=False)
+    # Numéro d'affaire du studio (ex. « 2026-005 »). Facultatif, unique par
+    # organisation. Jamais de chaîne vide : absent = NULL.
+    reference = db.Column(db.String(50), nullable=True)
     date_debut = db.Column(db.Date)
     date_fin = db.Column(db.Date)
     statut = db.Column(db.String(20), default="En attente")
@@ -42,6 +52,21 @@ class Projet(db.Model):
         lazy='dynamic', # 'dynamic' est bien si tu veux pouvoir filtrer/compter sans tout charger
         cascade='all, delete-orphan' # Supprime les notes si le projet est supprimé
     )
+    @staticmethod
+    def nettoyer_reference(valeur):
+        """Référence saisie -> valeur à enregistrer (None si vide)."""
+        return (valeur or '').strip() or None
+
+    @classmethod
+    def portant_la_reference(cls, organisation_id, reference, sauf_id=None):
+        """Projet de l'organisation qui porte déjà cette référence, ou None."""
+        if not reference:
+            return None
+        requete = cls.query.filter(cls.organisation_id == organisation_id, cls.reference == reference)
+        if sauf_id is not None:
+            requete = requete.filter(cls.id != sauf_id)
+        return requete.first()
+
     def get_total(self):
         """Calculates the total amount of the project."""
         return self.prix_total

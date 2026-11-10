@@ -28,7 +28,13 @@ def modifier_projet(projet_id):
     form = ProjetForm(obj=projet)
 
     if form.validate_on_submit():
+        reference = Projet.nettoyer_reference(form.reference.data)
+        if Projet.portant_la_reference(projet.organisation_id, reference, sauf_id=projet.id):
+            form.reference.errors.append(f"La référence « {reference} » est déjà portée par un autre projet.")
+            return render_template('projet_edit.html', projet=projet, form=form)
+
         projet.nom = form.nom.data
+        projet.reference = reference
         projet.client_id = form.client_id.data
         projet.date_debut = form.date_debut.data
         projet.date_fin = form.date_fin.data
@@ -206,8 +212,14 @@ def ajouter_projet():
             flash("Client non trouvé.", 'danger')
             return redirect(url_for('projets.ajouter_projet'))
 
+        reference = Projet.nettoyer_reference(form.reference.data)
+        if Projet.portant_la_reference(organisation.id, reference):
+            flash(f"La référence « {reference} » est déjà portée par un autre projet.", 'danger')
+            return redirect(url_for('projets.ajouter_projet'))
+
         nouveau_projet = Projet(
             nom=form.nom.data,
+            reference=reference,
             date_debut=form.date_debut.data,
             date_fin=form.date_fin.data,
             statut=form.statut.data,

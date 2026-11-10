@@ -75,6 +75,7 @@ class AjouterUserFormDemo(FlaskForm):
 
 class ProjetForm(FlaskForm):
     nom = StringField('Nom', validators=[DataRequired()])
+    reference = StringField("Référence (numéro d'affaire)", validators=[Optional(), Length(max=50)])
     client_id = SelectField('Client', coerce=int, validators=[DataRequired()])
     date_debut = DateField('Date de début', validators=[DataRequired()], widget=DateInput())
     date_fin = DateField('Date de fin', validators=[DataRequired()], widget=DateInput())

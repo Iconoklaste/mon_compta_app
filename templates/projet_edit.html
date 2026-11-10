@@ -21,6 +21,20 @@
             {% endif %}
         </div>
 
+        {# Numéro d'affaire du studio : facultatif, unique #}
+        <div class="mb-3">
+            {{ form.reference.label(class="form-label") }}
+            {{ form.reference(class="form-control", maxlength="50") }}
+            <div class="form-text">Facultatif. Ex. 2026-005. Deux projets ne peuvent pas porter la même référence.</div>
+            {% if form.reference.errors %}
+                <ul class="errors list-unstyled">
+                    {% for error in form.reference.errors %}
+                        <li class="text-danger small">{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+        </div>
+
         {# Remplacement de form-group par mb-3, ajout de form-label et form-select #}
         <div class="mb-3">
             {{ form.client_id.label(class="form-label") }}

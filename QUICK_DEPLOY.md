@@ -48,3 +48,21 @@ Passenger relance l'app au chargement de page suivant. Équivalent : bouton
 
 Charger une page de https://loova.studionobleval.xyz/ puis tester la
 fonctionnalité déployée. En cas d'erreur 500 : consulter `~/logs/`.
+
+## API des agents (`/api/v1`)
+
+Sert à créer et renseigner des projets depuis l'extérieur (voir
+`controllers/api_v1.py`). Elle est **fermée** (404 partout) tant que ces deux
+lignes ne sont pas dans `~/loova_app/.env` :
+
+```
+LOOVA_API_TOKEN=<jeton de 32 caractères au moins>
+LOOVA_API_USER=<e-mail du compte Loova au nom duquel l'API agit>
+```
+
+Les coller dans le fichier (éditeur de cPanel ou `nano`), puis
+`touch tmp/restart.txt`. Pour la refermer : retirer la ligne du jeton et
+redémarrer. Pour changer de jeton : remplacer la ligne et redémarrer, l'ancien
+jeton cesse aussitôt de fonctionner. Les écritures faites par l'API sont
+tracées dans `~/loova_app/logs/flask_app.log`
+(`API v1 : POST /api/v1/… -> 201`).

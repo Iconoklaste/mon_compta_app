@@ -36,6 +36,7 @@ from controllers.notes_reunion_controller import notes_reunion_bp
 from controllers.ocr_depenses_controller import ocr_depenses_bp
 from controllers.mistral_chat import chatbot_bp
 from controllers.rag_controller import rag_bp
+from controllers.api_v1 import api_v1_bp
 from models import *  # Import all models
 #from models.clients import Client # Import the Client model
 from models.organisations import Organisation
@@ -113,6 +114,12 @@ app.config['SECRET_KEY'] = secret_key
 # page d'accueil est fermée par défaut. Pour la rouvrir : INSCRIPTION_DEMO=1 dans le .env.
 app.config['INSCRIPTION_DEMO'] = os.environ.get('INSCRIPTION_DEMO') == '1'
 
+# API des agents du studio (/api/v1, voir controllers/api_v1.py). Fermée tant que
+# ces deux lignes ne sont pas dans le .env : un jeton de 32 caractères au moins,
+# et l'e-mail du compte Loova au nom duquel l'API agit.
+app.config['LOOVA_API_TOKEN'] = os.environ.get('LOOVA_API_TOKEN', '').strip()
+app.config['LOOVA_API_USER'] = os.environ.get('LOOVA_API_USER', '').strip()
+
 app.config['MAX_LOGO_SIZE'] = 2 * 1024 * 1024 # 2MB max size for logo
 app.config['ALLOWED_EXTENSIONS'] = {'png', 'jpg', 'jpeg', 'gif'} # Allowed extensions for logo
 
@@ -166,6 +173,9 @@ app.register_blueprint(notes_reunion_bp)
 app.register_blueprint(ocr_depenses_bp)
 app.register_blueprint(chatbot_bp)
 app.register_blueprint(rag_bp)
+app.register_blueprint(api_v1_bp)
+# L'API ne s'appuie pas sur la session : c'est le jeton qui authentifie, pas un cookie.
+csrf.exempt(api_v1_bp)
 
 
 # --- Configuration du User Loader pour Flask-Login ---

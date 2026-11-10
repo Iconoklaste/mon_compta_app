@@ -15,6 +15,13 @@
             <input type="text" class="form-control" id="nom" name="nom" required>
         </div>
 
+        {# Numéro d'affaire du studio : facultatif, unique #}
+        <div class="mb-3">
+            <label for="reference" class="form-label">Référence (numéro d'affaire)</label>
+            <input type="text" class="form-control" id="reference" name="reference" maxlength="50">
+            <div class="form-text">Facultatif. Ex. 2026-005. Deux projets ne peuvent pas porter la même référence.</div>
+        </div>
+
         {# Remplacement de form-group par mb-3 et ajout de form-label #}
         <div class="mb-3">
             <label for="client_id" class="form-label">Client</label>

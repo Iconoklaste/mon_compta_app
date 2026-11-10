@@ -27,6 +27,12 @@
                 
                 
                 <div class="card-body">
+                    {% if projet.reference %}
+                    <p class="card-text">
+                        <small class="text-muted">Référence:</small>
+                        <small>{{ projet.reference }}</small>
+                    </p>
+                    {% endif %}
                     <p class="card-text">
                         <small class="text-muted">Client:</small>
                         {% if projet.client %}
